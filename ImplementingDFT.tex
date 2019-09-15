@@ -1,0 +1,69 @@
+\documentclass[graybox,envcountchap,sectrefs,default]{svmono}
+
+\usepackage{framed}
+
+\usepackage{fontspec}
+\setmonofont{DejaVu Sans Mono}
+%\setmonofont{FreeMono}
+%\setmonofont{Fira Code}
+%\setmonofont{Fira Mono}
+
+\usepackage{geometry}
+\geometry{verbose,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
+
+\usepackage{graphicx}
+\usepackage{float}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\setlength{\parskip}{\smallskipamount}
+\setlength{\parindent}{0pt}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{minted}
+% using DejaVu Sans Mono, we need to scale the font to smaller size to match
+% the main font.
+\newminted{julia}{breaklines,fontsize=\scriptsize}
+\newminted{bash}{breaklines,fontsize=\scriptsize}
+
+\newcommand{\txtinline}[1]{\mintinline[fontsize=\scriptsize]{text}{#1}}
+\newcommand{\jlinline}[1]{\mintinline[fontsize=\scriptsize]{julia}{#1}}
+
+\usepackage{hyperref}
+
+
+\begin{document}
+
+\title{Implementing Density Functional Theory}
+\author{Fadjar Fathurrahman \\
+Hermawan Kresno Dipojono}
+\maketitle
+
+\frontmatter
+
+%\include{dedication}
+%\include{foreword}
+\include{preface}
+%\include{acknowledgement}
+
+\tableofcontents
+
+\mainmatter
+
+\include{Intro}
+\include{JuliaProg}
+\include{Sch_1d}
+\include{Sch_2d}
+\include{Sch_3d}
+\include{Poisson}
+\include{KS_part1}
+\include{KS_part2}
+
+\appendix
+\include{Octopus}
+
+\end{document}

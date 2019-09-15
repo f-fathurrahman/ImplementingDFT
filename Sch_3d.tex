@@ -1,0 +1,17 @@
+\chapter{Numerical solution of Schroedinger equation in 3d}
+
+Extension to 3d
+
+\begin{juliacode}
+const ⊗ = kron
+function build_nabla2_matrix( fdgrid::FD3dGrid; func_1d=build_D2_matrix_3pt )
+    D2x = func_1d(fdgrid.Nx, fdgrid.hx)
+    D2y = func_1d(fdgrid.Ny, fdgrid.hy)
+    D2z = func_1d(fdgrid.Nz, fdgrid.hz)
+    IIx = speye(fdgrid.Nx)
+    IIy = speye(fdgrid.Ny)
+    IIz = speye(fdgrid.Nz)
+    ∇2 = D2x⊗IIy⊗IIz + IIx⊗D2y⊗IIz + IIx⊗IIy⊗D2z 
+    return ∇2
+end
+\end{juliacode}
