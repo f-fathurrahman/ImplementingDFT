@@ -1,6 +1,18 @@
-\chapter{Numerical solution of Schroedinger equation in 3d}
+\chapter{Schroedinger equation in 3d}
 
-Extension to 3d
+Extension to 3d \cite{juliaorg}
+
+Schrodinger equation in 3d:
+\begin{equation}
+\left[ -\frac{1}{2}\nabla^2 + V(\mathbf{r}) \right] \psi(\mathbf{r}) = E\,\psi(\mathbf{r})
+\end{equation}
+where $\mathbf{r}$ is abbreviation to $(x,y,z)$.
+%
+where $\nabla^2$ is the Laplacian operator:
+\begin{equation}
+\nabla^2 = \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2} +
+\frac{\partial^2}{\partial z^2}
+\end{equation}
 
 \begin{juliacode}
 const ⊗ = kron

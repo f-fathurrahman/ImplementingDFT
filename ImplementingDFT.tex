@@ -29,12 +29,17 @@
 % the main font.
 \newminted{julia}{breaklines,fontsize=\scriptsize}
 \newminted{bash}{breaklines,fontsize=\scriptsize}
+\newminted{text}{breaklines,fontsize=\scriptsize}
 
 \newcommand{\txtinline}[1]{\mintinline[fontsize=\scriptsize]{text}{#1}}
 \newcommand{\jlinline}[1]{\mintinline[fontsize=\scriptsize]{julia}{#1}}
 
 \usepackage{hyperref}
 
+\usepackage{multicol}
+
+\usepackage{makeidx}
+\makeindex
 
 \begin{document}
 
@@ -46,7 +51,7 @@ Hermawan Kresno Dipojono}
 \frontmatter
 
 %\include{dedication}
-%\include{foreword}
+\include{foreword}
 \include{preface}
 %\include{acknowledgement}
 
@@ -55,7 +60,6 @@ Hermawan Kresno Dipojono}
 \mainmatter
 
 \include{Intro}
-\include{JuliaProg}
 \include{Sch_1d}
 \include{Sch_2d}
 \include{Sch_3d}
@@ -64,6 +68,9 @@ Hermawan Kresno Dipojono}
 \include{KS_part2}
 
 \appendix
+\include{JuliaProg}
 \include{Octopus}
+
+\printindex
 
 \end{document}
