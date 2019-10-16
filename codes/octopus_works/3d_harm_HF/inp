@@ -1,0 +1,26 @@
+CalculationMode = gs
+
+Dimensions = 3
+PeriodicDimensions = 0
+
+TheoryLevel = hartree_fock
+
+BoxShape = parallelepiped
+%Lsize
+ 3 | 3 | 3
+%
+
+spacing = 0.25
+
+PoissonSolver = cg
+FilterPotentials = filter_none
+
+% Species 
+  'HO' | species_user_defined | potential_formula | "2.0*(x^2 + y^2 + z^2)" | valence | 8
+%
+
+% Coordinates
+  "HO" | 0 | 0 | 0
+%
+
+
