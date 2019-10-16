@@ -1,19 +1,41 @@
 \chapter{Schroedinger equation in 3d}
 
-Extension to 3d \cite{juliaorg}
-
-Schrodinger equation in 3d:
+After we have considered two-dimensional Schroedinger equations, we are now ready for
+the extension to three-dimensional systems. In 3d, Schroedinger equation can be
+written as:
 \begin{equation}
 \left[ -\frac{1}{2}\nabla^2 + V(\mathbf{r}) \right] \psi(\mathbf{r}) = E\,\psi(\mathbf{r})
 \end{equation}
-where $\mathbf{r}$ is abbreviation to $(x,y,z)$.
+where $\mathbf{r}$ is the abbreviation to $(x,y,z)$ and
 %
-where $\nabla^2$ is the Laplacian operator:
+$\nabla^2$ is the Laplacian operator in 3d:
 \begin{equation}
 \nabla^2 = \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2} +
 \frac{\partial^2}{\partial z^2}
 \end{equation}
 
+\subsection{Three-dimensional grid}
+
+As in the preceeding chapter, our first task is to create a representation of 3d grid
+points and various quantities defined on it. This task is realized using straightforward
+extension of \txtinline{FD2dGrid} to \txtinline{FD3dGrid}.
+
+
+Visualization of 3d functions as isosurface map or slice of 3d array.
+
+Introducing 3d xsf
+
+
+\subsection{Laplacian operator}
+
+\begin{equation}
+\mathbb{L} = \mathbb{D}^{(2)}_{x} \otimes \mathbb{I}_{y} \otimes \mathbb{I}_{z} +
+\mathbb{I}_{x} \otimes \mathbb{D}^{(2)}_{y} \otimes \mathbb{I}_{z} +
+\mathbb{I}_{x} \otimes \mathbb{I}_{y} \otimes \mathbb{D}^{(2)}_{z}
+\end{equation}
+
+
+Code
 \begin{juliacode}
 const ⊗ = kron
 function build_nabla2_matrix( fdgrid::FD3dGrid; func_1d=build_D2_matrix_3pt )
@@ -27,3 +49,4 @@ function build_nabla2_matrix( fdgrid::FD3dGrid; func_1d=build_D2_matrix_3pt )
     return ∇2
 end
 \end{juliacode}
+
