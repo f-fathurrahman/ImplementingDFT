@@ -29,9 +29,9 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
     Nstates = size(psi,2)
     Hpsi = zeros(Float64,Nbasis,Nstates)
     # include occupation number factor
-    Hpsi = -0.5*Ham.Laplacian * psi * 2.0
+    Hpsi = -0.5*Ham.Laplacian * psi #* 2.0
     for ist in 1:Nstates, ip in 1:Nbasis
-        Hpsi[ip,ist] = Hpsi[ip,ist] + 2.0*( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] ) * psi[ip,ist]
+        Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] ) * psi[ip,ist]
     end
     return Hpsi
 end

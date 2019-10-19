@@ -73,8 +73,8 @@ function main()
 
     for iterSCF in 1:NiterMax
 
-        #evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=true )
-        evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=true )
+        evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=true )
+        #evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=true )
         psi = psi/sqrt(dVol)
 
         Rhoe_new = calc_rhoe( psi )
