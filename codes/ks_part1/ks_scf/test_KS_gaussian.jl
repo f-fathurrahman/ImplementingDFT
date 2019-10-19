@@ -1,28 +1,11 @@
+push!(LOAD_PATH, pwd())
+
 using Printf
-using LinearAlgebra
-using SparseArrays
-using IterativeSolvers
-using IncompleteLU
-using AlgebraicMultigrid
 using Random
+using LinearAlgebra
+using SpecialFunctions
 
-include("../../3d/FD3dGrid.jl")
-include("../../3d/build_nabla2_matrix.jl")
-include("../../diag_Emin_PCG.jl")
-include("../../diag_davidson.jl")
-include("../../diag_LOBPCG.jl")
-include("../../ortho_sqrt.jl")
-include("../../supporting_functions.jl")
-include("../../3d_poisson/Poisson_solve_PCG.jl")
-
-include("Electrons.jl")
-include("Energies.jl")
-include("calc_rhoe.jl")
-include("Hamiltonian.jl")
-
-include("../LDA_VWN.jl")
-
-include("calc_energies.jl")
+using MyModule
 
 function pot_gaussian( fdgrid::FD3dGrid; A=1.0, α=1.0, center=[0.0, 0.0, 0.0], normalized=false )
     Npoints = fdgrid.Npoints
@@ -75,7 +58,7 @@ function main()
         @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
     end
 
-    Rhoe = calc_rhoe( psi )
+    Rhoe = calc_rhoe( Ham, psi )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
 
     update!( Ham, Rhoe )
@@ -96,7 +79,7 @@ function main()
 
         psi = psi/sqrt(dVol) # renormalize
 
-        Rhoe_new = calc_rhoe( psi )
+        Rhoe_new = calc_rhoe( Ham, psi )
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
 

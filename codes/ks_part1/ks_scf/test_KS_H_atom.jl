@@ -1,30 +1,11 @@
+push!(LOAD_PATH, pwd())
+
 using Printf
-using LinearAlgebra
-using SparseArrays
-using IterativeSolvers
-using IncompleteLU
-using AlgebraicMultigrid
 using Random
+using LinearAlgebra
 using SpecialFunctions
 
-include("../../3d/FD3dGrid.jl")
-include("../../3d/build_nabla2_matrix.jl")
-include("../../diag_Emin_PCG.jl")
-include("../../diag_davidson.jl")
-include("../../diag_LOBPCG.jl")
-include("../../ortho_sqrt.jl")
-include("../../supporting_functions.jl")
-include("../../3d_poisson/Poisson_solve_PCG.jl")
-
-include("Electrons.jl")
-include("Energies.jl")
-include("Hamiltonian.jl")
-
-include("calc_rhoe.jl")
-
-include("../LDA_VWN.jl")
-
-include("calc_energies.jl")
+using MyModule
 
 function pot_Hps_HGH( fdgrid, center )
     Npoints = fdgrid.Npoints

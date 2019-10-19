@@ -1,28 +1,11 @@
+push!(LOAD_PATH, pwd())
+
 using Printf
-using LinearAlgebra
-using SparseArrays
-using IterativeSolvers
-using IncompleteLU
-using AlgebraicMultigrid
 using Random
+using LinearAlgebra
+using SpecialFunctions
 
-include("../../3d/FD3dGrid.jl")
-include("../../3d/build_nabla2_matrix.jl")
-include("../../diag_Emin_PCG.jl")
-include("../../diag_davidson.jl")
-include("../../diag_LOBPCG.jl")
-include("../../ortho_sqrt.jl")
-include("../../supporting_functions.jl")
-include("../../3d_poisson/Poisson_solve_PCG.jl")
-
-include("Electrons.jl")
-include("Energies.jl")
-include("calc_rhoe.jl")
-include("Hamiltonian.jl")
-
-include("../LDA_VWN.jl")
-
-include("calc_energies.jl")
+using MyModule
 
 function pot_harmonic( fdgrid::FD3dGrid; ω=1.0, center=[0.0, 0.0, 0.0] )
     Npoints = fdgrid.Npoints
@@ -69,7 +52,7 @@ function main()
         @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
     end
 
-    Rhoe = calc_rhoe( psi )
+    Rhoe = calc_rhoe( Ham, psi )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
 
     update!( Ham, Rhoe )
@@ -77,16 +60,20 @@ function main()
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
-    betamix = 0.7
+    betamix = 0.8
     dRhoe = 0.0
     NiterMax = 100
 
     for iterSCF in 1:NiterMax
 
         evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-        psi = psi/sqrt(dVol)
 
-        Rhoe_new = calc_rhoe( psi )
+        #psi = psi*sqrt(dVol) # for diag_davidson
+        #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
+
+        psi = psi/sqrt(dVol) # renormalize
+
+        Rhoe_new = calc_rhoe( Ham, psi )
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
 
