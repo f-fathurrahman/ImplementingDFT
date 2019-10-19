@@ -4,15 +4,16 @@ function calc_E_kin( Ham, psi::Array{Float64,2} )
     E_kin = 0.0
     dVol = Ham.fdgrid.dVol
     nabla2psi = zeros(Float64,Nbasis)
+    Focc = Ham.electrons.Focc
     for ist in 1:Nstates
         @views nabla2psi = -0.5*Ham.Laplacian*psi[:,ist]
-        E_kin = E_kin + 2.0*dot( psi[:,ist], nabla2psi[:] )*dVol
+        E_kin = E_kin + Focc[ist]*dot( psi[:,ist], nabla2psi[:] )*dVol
     end
     return E_kin
 end
 
 function calc_energies!( Ham::Hamiltonian, psi::Array{Float64,2} )
-    
+
     dVol = Ham.fdgrid.dVol
 
     Ham.energies.Kinetic = calc_E_kin( Ham, psi )

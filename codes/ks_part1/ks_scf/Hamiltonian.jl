@@ -21,6 +21,7 @@ function Hamiltonian( fdgrid::FD3dGrid, ps_loc_func::Function;
 
     Laplacian = build_nabla2_matrix( fdgrid, func_1d=func_1d )
     V_Ps_loc = ps_loc_func( fdgrid )
+
     Npoints = fdgrid.Npoints
     V_Hartree = zeros(Float64, Npoints)
 
