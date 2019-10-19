@@ -51,7 +51,7 @@ function main()
     println("dVol = ", fdgrid.dVol)
     println(fdgrid.hx*fdgrid.hy*fdgrid.hz)
 
-    my_pot_harmonic( fdgrid ) = pot_harmonic( fdgrid, ω=2, center=[0.0, 0.0, 0.0] )
+    my_pot_harmonic( fdgrid ) = pot_harmonic( fdgrid, ω=2 )
 
     Nstates = 4
     Nelectrons = 2*Nstates
@@ -83,15 +83,12 @@ function main()
 
     for iterSCF in 1:NiterMax
 
-        evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=true )
+        evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
         psi = psi/sqrt(dVol)
 
         Rhoe_new = calc_rhoe( psi )
-        @printf("Integ Rhoe new = %18.10f\n", sum(Rhoe)*dVol)
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-
-        @printf("Integ Rhoe     = %18.10f\n", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 
@@ -105,6 +102,10 @@ function main()
 
         if dEtot < 1e-6
             @printf("Convergence is achieved in %d iterations\n", iterSCF)
+            @printf("\nEigenvalues:\n")
+            for i in 1:Nstates
+                @printf("%3d %18.10f\n", i, evals[i])
+            end
             break
         end
 
