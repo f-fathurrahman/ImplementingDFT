@@ -37,7 +37,7 @@ function pot_gaussian( fdgrid::FD3dGrid; A=1.0, α=1.0, center=[0.0, 0.0, 0.0], 
         y = fdgrid.r[2,i] - center[2]
         z = fdgrid.r[3,i] - center[3]
         r2 = x^2 + y^2 + z^2
-        Vpot[i] = -A*exp( -α*r2 )/NN
+        Vpot[i] = -A*exp( -α*r2 )*NN
     end
     return Vpot
 end
@@ -57,7 +57,7 @@ function main()
     println("dVol = ", fdgrid.dVol)
     println(fdgrid.hx*fdgrid.hy*fdgrid.hz)
 
-    my_pot_local( fdgrid ) = pot_gaussian( fdgrid, α=1.0, A=1.0, normalized=false )
+    my_pot_local( fdgrid ) = pot_gaussian( fdgrid, α=1.0, A=1.0, normalized=true )
 
     Nstates = 1
     Nelectrons = 2*Nstates
