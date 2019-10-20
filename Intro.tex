@@ -1,11 +1,65 @@
 \chapter{An introduction to density functional theory}
 
-Intro to DFT \cite{Kohn1965}.
-
-Kohn-Sham equation \index{Kohn-Sham equation}
+Many-body (electrons-nuclei) Hamiltonian (in atomic unit):
 \begin{equation}
-\nabla^2 + V(\mathbf{r}) \psi_{i}\mathbf{r} = E\,\psi_{i}(\mathbf{r})
+\hat{\mathcal{H}} = 
+- \sum_{I=1}^{N_{a}} \frac{1}{2M_{I}} \nabla^{2}_{I}
+- \sum_{i=1}^{N_{e}} \frac{1}{2m} \nabla^{2}_{i}
++ \sum_{I=1}^{N_{a}} \sum_{J \neq I}^{N_{a}} \frac{Z_{I} Z_{J}}{\left| \mathbf{R}_{I} - \mathbf{R}_{J} \right|}
++ \frac{1}{2} \sum_{i=1}^{N_{e}} \sum_{j \neq i}^{N_{e}} \frac{1}{\left| \mathbf{r}_{i} - \mathbf{r}_{j} \right|}
+- \sum_{I=1}^{N_{a}} \sum_{i \neq i}^{N_{e}} \frac{Z_{I}}{\left| \mathbf{R}_{I} - \mathbf{r}_{i} \right|}
 \end{equation}
+
+$\mathbf{R} = \left\{ \mathbf{R}_{I}, I=1,2,\ldots,N_{a} \right\}$
+
+$\mathbf{r} = \left\{ \mathbf{r}_{i}, i=1,2,\ldots,N_{e} \right\}$
+
+
+Many-body Schroedinger equation
+\begin{equation}
+\hat{\mathcal{H}}\, \Psi_{n}(\mathbf{R},\mathbf{r}) = \mathcal{E}_{n}\, \Psi_{n}(\mathbf{R},\mathbf{r})
+\end{equation}
+
+
+\begin{equation}
+\Psi(\mathbf{R},\mathbf{r},t) = \sum_{n} \Theta_{n}(\mathbf{R},t) \Phi_{n}(\mathbf{R},r)
+\end{equation}
+
+
+$\Theta_{n}(\mathbf{R},t)$ are wave functions describing dynamics of nuclear subsystem in each one of
+adiabatic electronic eigenstates $\Phi_{n} (\mathbf{R},r)$.
+
+\begin{equation}
+\hat{h}_{e} \, \Phi_{n}(\mathbf{R},\mathbf{r}) = E_{n}\,\Phi_{n}(\mathbf{R},\mathbf{r})
+\end{equation}
+
+Electronic Hamiltonian:
+\begin{equation}
+\hat{h}_{e} = \hat{T} + \hat{U}_{ee} + \hat{V}_{ne} = \mathcal{H} - \hat{T}_{n} - \hat{V}_{nn}
+\end{equation}
+
+
+
+
+Kohn-Sham equation \cite{Kohn1965} \index{Kohn-Sham equation}:
+\begin{equation}
+\left[ -\frac{1}{2}\nabla^2 + V_{\mathrm{KS}}(\mathbf{r})\right]
+\psi_{i}(\mathbf{r}) = \epsilon_{i} \, \psi_{i}(\mathbf{r})
+\end{equation}
+with Kohn-Sham potential:
+\begin{equation}
+V_{\mathrm{KS}}(\mathbf{r}) = V_{\mathrm{ion}}(\mathbf{r}) +
+V_{\mathrm{Ha}}(\mathbf{r}) + V_{\mathrm{xc}}(\mathbf{r})
+\end{equation}
+
+\begin{equation}
+V_{\mathrm{Ha}}(\mathbf{r}) = \int\, \frac{\rho(\mathbf{r}')}{\mathbf{r} - \mathbf{r}'}\,\mathrm{d}\mathbf{r}'
+\end{equation}
+
+\begin{equation}
+V_{\mathrm{ion}}(\mathbf{r}) = \sum_{I=1} \frac{Z_{I}}{\mathbf{r} - \mathbf{R}_{I}}
+\end{equation}
+
 
 
 \begin{thebibliography}{99.}%
