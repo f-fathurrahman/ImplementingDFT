@@ -64,7 +64,11 @@ function main()
         @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
     end
 
-    Rhoe = calc_rhoe( Ham, psi )
+    Rhoe_new = zeros(Float64,Nbasis)
+    Rhoe = zeros(Float64,Nbasis)
+
+    #Rhoe = calc_rhoe( Ham, psi )
+    calc_rhoe!( Ham, psi, Rhoe )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
 
     update!( Ham, Rhoe )
@@ -78,14 +82,16 @@ function main()
 
     for iterSCF in 1:NiterMax
 
-        evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
+        #evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
+        evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=false )
 
         #psi = psi*sqrt(dVol) # for diag_davidson
         #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
 
         psi = psi/sqrt(dVol) # renormalize
 
-        Rhoe_new = calc_rhoe( Ham, psi )
+        #Rhoe_new = calc_rhoe( Ham, psi )
+        calc_rhoe!( Ham, psi, Rhoe_new )
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
 

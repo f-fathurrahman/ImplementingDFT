@@ -41,7 +41,7 @@ include("Hamiltonian.jl")
 export Hamiltonian, update!
 
 include("calc_rhoe.jl")
-export calc_rhoe
+export calc_rhoe, calc_rhoe!
 
 include("../LDA_VWN.jl")
 export excVWN, excpVWN
