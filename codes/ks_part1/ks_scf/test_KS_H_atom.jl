@@ -82,8 +82,8 @@ function main()
 
     for iterSCF in 1:NiterMax
 
-        #evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-        evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=false )
+        evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=true )
+        #evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=false )
 
         #psi = psi*sqrt(dVol) # for diag_davidson
         #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
