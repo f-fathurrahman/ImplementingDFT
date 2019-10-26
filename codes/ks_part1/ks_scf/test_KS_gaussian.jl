@@ -58,7 +58,10 @@ function main()
         @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
     end
 
-    Rhoe = calc_rhoe( Ham, psi )
+    Rhoe = zeros(Float64, Nbasis)
+    Rhoe_new = zeros(Float64, Nbasis)
+
+    calc_rhoe!( Ham, psi, Rhoe )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
 
     update!( Ham, Rhoe )
@@ -79,7 +82,7 @@ function main()
 
         psi = psi/sqrt(dVol) # renormalize
 
-        Rhoe_new = calc_rhoe( Ham, psi )
+        calc_rhoe!( Ham, psi, Rhoe_new )
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
 
