@@ -94,8 +94,6 @@ function main()
 
         if dEtot < 1e-6
             @printf("Convergence is achieved in %d iterations\n", iterSCF)
-            Hsub = Hermitian( psi' * (Ham*psi) )*dVol
-            evals = eigvals(Hsub)
             for i in 1:Nstates
                 @printf("%3d %18.10f\n", i, evals[i])
             end

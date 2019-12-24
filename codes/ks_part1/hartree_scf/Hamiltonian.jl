@@ -39,8 +39,5 @@ end
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
     Ham.rhoe[:] = Rhoe[:]
     Ham.V_Hartree = Poisson_solve_PCG( Ham.Laplacian, Ham.precLaplacian, -4*pi*Rhoe, 1000, verbose=false, TOL=1e-10 )
-    V_loc = Ham.V_Hartree + Ham.V_Ps_loc
-    println("sum(V_Hartree)*dVol = ", sum(Ham.V_Hartree)*Ham.fdgrid.dVol)
-    println("sum(V_loc)*dVol = ", sum(V_loc)*Ham.fdgrid.dVol)
     return
 end
