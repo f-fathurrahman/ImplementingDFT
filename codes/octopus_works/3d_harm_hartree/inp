@@ -3,9 +3,8 @@ CalculationMode = gs
 Dimensions = 3
 PeriodicDimensions = 0
 
+TheoryLevel = dft
 XCFunctional = none
-
-MixField = density
 
 BoxShape = parallelepiped
 %Lsize
