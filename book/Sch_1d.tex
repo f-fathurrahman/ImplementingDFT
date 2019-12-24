@@ -27,7 +27,7 @@ h = \frac{ x_{\mathrm{max}} - x_{\mathrm{min}} }{N-1}
 
 The following code can be used to initialize the grid points:
 
-\inputminted[breaklines,fontsize=\scriptsize]{julia}{codes/1d/init_FD1d_grid.jl}
+\inputminted[breaklines]{julia}{codes/1d/init_FD1d_grid.jl}
 
 
 \section{Approximating second derivative}
@@ -62,7 +62,7 @@ where $\mathbb{D}^{(2)}$ is the second derivative matrix operator
 
 An example implementation can be found in file \txtinline{build_D2_matrix_3pt.jl}.
 
-\inputminted[breaklines,fontsize=\scriptsize]{julia}{codes/1d/build_D2_matrix_3pt.jl}
+\inputminted[breaklines]{julia}{codes/1d/build_D2_matrix_3pt.jl}
 
 Test with Gaussian function:
 \begin{equation}
@@ -114,7 +114,7 @@ where $\mathbb{V}$ is a diagonal matrix whose elements are:
 
 Code to solve harmonic oscillator:
 
-\inputminted[breaklines,fontsize=\scriptsize]{julia}{codes/1d/main_harmonic_01.jl}
+\inputminted[breaklines]{julia}{codes/1d/main_harmonic_01.jl}
 
 Compare with analytical solution.
 
