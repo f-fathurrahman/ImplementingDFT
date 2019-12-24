@@ -1,14 +1,18 @@
+"""
+Assumption:
+dot(X,X) = 1
+"""
 function diag_davidson!( Ham, X::Array{Float64,2}, prec;
                          tol=1e-5, NiterMax=100, verbose=false,
                          verbose_last=false, Nstates_conv=0 )
-      
+
 
     # get size info
     Nstates = size(X)[2]
     Nbasis  = size(X)[1]
 
     @assert(Nstates >= 1)
-    
+
     if Nstates_conv == 0
         Nstates_conv = Nstates
     end
@@ -21,7 +25,7 @@ function diag_davidson!( Ham, X::Array{Float64,2}, prec;
     X_red    = zeros(Float64, 2*Nstates, 2*Nstates)
     res      = zeros(Float64, Nstates)
     res_norm = zeros(Float64, Nstates)
-    
+
     devals    = zeros(Float64, Nstates)
     evals_old = zeros(Float64, Nstates)
 
@@ -110,7 +114,7 @@ function diag_davidson!( Ham, X::Array{Float64,2}, prec;
             end
             res[ist] = sqrt( dot( R[:,ist], R[:,ist] ) )
         end
-            
+
         if verbose
             @printf("\n")
             for ist = 1:Nstates
