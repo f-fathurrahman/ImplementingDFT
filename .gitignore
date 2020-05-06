@@ -2,6 +2,7 @@ _minted
 OLD_*
 TEMP_*
 LOG_*
+IMG_*
 
 *.swp
 *.swo

@@ -19,7 +19,7 @@ function main()
     N = 51
     x, h = init_FD1d_grid(xmin, xmax, N)
     # Build 2nd derivative matrix
-    D2 = build_D2_matrix_3pt(N, h)
+    D2 = build_D2_matrix_9pt(N, h)
     # Potential
     Vpot = pot_harmonic.(x)
     # Hamiltonian
@@ -31,25 +31,26 @@ function main()
     @printf("Eigenvalues\n")
     ω = 1.0
     hbar = 1.0
+    @printf(" State         Approx              Exact          Difference\n")
     for i in 1:Nstates
         E_ana = (2*i - 1)*ω*hbar/2
         @printf("%5d %18.10f %18.10f %18.10e\n", i, evals[i], E_ana, abs(evals[i]-E_ana))
     end
 
     # normalize the first three eigenstates
-    for i in 1:3
-        ss = dot(evecs[:,i], evecs[:,i])*h
-        evecs[:,i] = evecs[:,i]/sqrt(ss)
-    end
+    #for i in 1:3
+    #    ss = dot(evecs[:,i], evecs[:,i])*h
+    #    evecs[:,i] = evecs[:,i]/sqrt(ss)
+    #end
 
     # Plot up to 3rd eigenstate
-    plot_title = "N="*string(N)
-    plt.plot(x, evecs[:,1], label="1st eigenstate", marker="o")
-    plt.plot(x, evecs[:,2], label="2nd eigenstate", marker="o")
-    plt.plot(x, evecs[:,3], label="3rd eigenstate", marker="o")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("IMG_main_harmonic_01_"*string(N)*".pdf")
+    #plot_title = "N="*string(N)
+    #plt.plot(x, evecs[:,1], label="1st eigenstate", marker="o")
+    #plt.plot(x, evecs[:,2], label="2nd eigenstate", marker="o")
+    #plt.plot(x, evecs[:,3], label="3rd eigenstate", marker="o")
+    #plt.legend()
+    #plt.tight_layout()
+    #plt.savefig("IMG_main_harmonic_01_"*string(N)*".pdf")
 end
 
 main()
