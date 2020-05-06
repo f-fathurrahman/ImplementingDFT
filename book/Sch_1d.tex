@@ -1,52 +1,66 @@
 \chapter{Schroedinger equation in 1d}
 
-The equation we want to solve is (in Hartree atomic unit):
+We are interested in finding bound states solution to 1d time-independent Schroedinger equation:
 \begin{equation}
 \left[ -\frac{1}{2}\frac{\mathrm{d}^2}{\mathrm{d}x^2} + V(x) \right] \psi(x) = E\, \psi(x)
+\label{eq:Sch_1d_eq}
 \end{equation}
+%
 with the boundary conditions:
+%
 \begin{equation}
-\lim_{x \rightarrow \pm \infty} = 0
+\lim_{x \rightarrow \pm \infty} \psi(x) = 0
 \label{eq:BC_isolated}
 \end{equation}
 %
-We will discretize the wave function, potentials, and various spatial quantities using
-regular grid within the finite computational interval
-$\left[x_{\mathrm{min}}, x_{\mathrm{max}}\right]$. This computational interval should be choosen
-such that the boundary condition \ref{eq:BC_isolated} approximately satisfied.
-
-We will choose the grid points $x_{i}$, $i = 1, 2, \ldots$ as:
+First we need to define a spatial domain $\left[x_{\mathrm{min}}, x_{\mathrm{max}}\right]$
+where $x_{\mathrm{min}}, x_{\mathrm{max}}$ chosen
+such that the boundary condition \ref{eq:BC_isolated} is approximately satisfied.
+The next step is to divide the spatial domain $x$ using equally-spaced grid points
+which we will denote as $\{x_{1},x_{2},\ldots,x_{N}\}$ where $N$ is number
+of grid points. Various spatial quantities such as wave function and potential will be discretized
+on these grid points.
+The grid points $x_{i}$, $i = 1, 2, \ldots$ are chosen as:
 \begin{equation}
 x_{i} = x_{\mathrm{min}} + (i-1)h
 \end{equation}
-where $N$ is the number of grid points and $h$ is the spacing between the grid points
-is:
+where $h$ is the spacing between the grid points:
 \begin{equation}
 h = \frac{ x_{\mathrm{max}} - x_{\mathrm{min}} }{N-1}
 \end{equation}
 
 The following code can be used to initialize the grid points:
-
-\juliafile{../codes/1d/init_FD1d_grid.jl}
+\begin{juliacode}
+function init_FD1d_grid( x_min::Float64, x_max::Float64, N::Int64 )
+    L = x_max - x_min
+    h = L/(N-1) # spacing
+    x = zeros(Float64,N) # the grid points
+    for i = 1:N
+        x[i] = x_min + (i-1)*h
+    end
+    return x, h
+end
+\end{juliacode}
 
 
 \section{Approximating second derivative}
 
-With the following notation: $\psi_{i} = \psi(x_{i})$, we can use 3-point
-finite difference to approximate second derivative of $\psi(x)$:
+Our next task is to find an approximation to the second derivative operator
+present in the Equation \eqref{eq:Sch_1d_eq}.
+One simple approximation that we can use is the 3-point (central) finite difference:
 \begin{equation}
 \frac{\mathrm{d}^2}{\mathrm{d}x^2} \psi_{i} =
 \frac{\psi_{i+1} - 2\psi_{i} + \psi_{i-1}}{h^2}
 \end{equation}
-
-
-Take $\{ \psi_{i} \}$ as (column) vector, we can represent the second derivative operation
-as matrix multiplication:
+where we have the following notation have been used: $\psi_{i} = \psi(x_{i})$.
+%
+By taking $\{ \psi_{i} \}$ as a column vector, the second derivative operation
+can be expressed as matrix multiplication:
 \begin{equation}
 \vec{\psi''} = \mathbb{D}^{(2)} \vec{\psi}
 \end{equation}
 %%
-where $\mathbb{D}^{(2)}$ is the second derivative matrix operator
+where $\mathbb{D}^{(2)}$ is the second derivative matrix operator:
 \begin{equation}
 \mathbb{D}^{(2)} = \frac{1}{h^2}
 \begin{bmatrix}
@@ -58,13 +72,27 @@ where $\mathbb{D}^{(2)}$ is the second derivative matrix operator
  0  &  \cdots  & \cdots & 0  & 1  & -2  & 1 \\
  0  &  \cdots  & \cdots & \cdots & 0  &  1  & -2 \\
 \end{bmatrix}
+\label{eq:1d_D2_matmul}
 \end{equation}
 
-An example implementation can be found in file \txtinline{build_D2_matrix_3pt.jl}.
+An example implementation can be found in the following function.
+\begin{juliacode}
+function build_D2_matrix_3pt( N::Int64, h::Float64 )
+    mat = zeros(Float64,N,N)
+    for i = 1:N-1
+        mat[i,i] = -2.0
+        mat[i,i+1] = 1.0
+        mat[i+1,i] = mat[i,i+1]
+    end
+    mat[N,N] = -2.0
+    return mat/h^2
+end
+\end{juliacode}
 
-\juliafile{../codes/1d/build_D2_matrix_3pt.jl}
 
-Test with Gaussian function:
+Before use this function to solve Schroedinger equation we will to test the operation
+in Equation \eqref{eq:1d_D2_matmul} for a simple function which second derivative
+can be calculated analytically.
 \begin{equation}
 \psi(x) = \mathrm{e}^{-\alpha x^2}
 \end{equation}

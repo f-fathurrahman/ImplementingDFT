@@ -1,0 +1,25 @@
+CalculationMode = gs
+
+Dimensions = 3
+PeriodicDimensions = 0
+
+TheoryLevel = dft
+XCFunctional = lda_x + lda_c_vwn_1
+
+BoxShape = parallelepiped
+%Lsize
+ 8 | 8 | 8
+%
+
+spacing = 0.25
+
+PoissonSolver = cg
+FilterPotentials = filter_none
+
+% Species
+  "X" | species_user_defined | potential_formula | "-1.0/r*erf(r/(sqrt(2.0)*0.2) ) + (-4.0663326 + 0.6678322*(5*r)^2)*exp(-0.5*(5*r)^2)" | valence | 1
+%
+
+% Coordinates
+  "X" | 1e-9 | 1e-9 | 1e-9
+%

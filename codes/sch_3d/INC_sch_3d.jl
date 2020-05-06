@@ -1,0 +1,7 @@
+include("../FD3d/FD3dGrid.jl")
+include("../FD3d/build_nabla2_matrix.jl")
+include("../common/diag_Emin_PCG.jl")
+include("../common/diag_davidson.jl")
+include("../common/diag_LOBPCG.jl")
+include("../common/ortho_sqrt.jl")
+include("../common/supporting_functions.jl")
