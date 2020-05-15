@@ -12,10 +12,10 @@ function my_gaussian(x::Float64; α=1.0)
 end
 
 function main()
-    A = -5.0
-    B =  5.0
-    Npoints = 21
-    x, h = init_FD1d_grid( A, B, Npoints )
+    x_min = -5.0
+    x_max =  5.0
+    Npoints = 8
+    x, h = init_FD1d_grid( x_min, x_max, Npoints )
     @printf("Grid spacing = %f\n", h)
     @printf("\nGrid points:\n")
     for i in 1:Npoints
@@ -23,14 +23,15 @@ function main()
     end
 
     NptsPlot = 200
-    x_dense = range(A, stop=5, length=NptsPlot)
+    x_dense = range(x_min, stop=x_max, length=NptsPlot)
 
     plt.clf()
     plt.plot(x_dense, my_gaussian.(x_dense), label=L"f(x)")
     plt.plot(x, my_gaussian.(x), label=L"Sampled $f(x)$", marker="o")
     plt.legend()
+    plt.grid()
     plt.tight_layout()
-    plt.savefig("IMG_gaussian_1d_21pt.pdf")
+    plt.savefig("IMG_gaussian_1d_8pt.pdf")
 end
 
 main()
