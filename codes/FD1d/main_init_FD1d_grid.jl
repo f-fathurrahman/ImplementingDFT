@@ -14,7 +14,7 @@ end
 function main()
     A = -5.0
     B =  5.0
-    Npoints = 8
+    Npoints = 21
     x, h = init_FD1d_grid( A, B, Npoints )
     @printf("Grid spacing = %f\n", h)
     @printf("\nGrid points:\n")
@@ -30,7 +30,7 @@ function main()
     plt.plot(x, my_gaussian.(x), label=L"Sampled $f(x)$", marker="o")
     plt.legend()
     plt.tight_layout()
-    plt.savefig("IMG_gaussian_1d.pdf")
+    plt.savefig("IMG_gaussian_1d_21pt.pdf")
 end
 
 main()
