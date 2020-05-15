@@ -1,18 +1,24 @@
 %\documentclass[graybox,envcountchap,sectrefs,default]{svmono}
-\documentclass[a4paper,10pt]{extbook}
+\documentclass[a4paper,11pt]{extbook}
 
-\usepackage{framed}
-
-\usepackage{amsmath}
-\usepackage{amssymb}
-
-\usepackage{fontspec}
-\setmainfont{FreeSerif}
-\setmonofont{FreeMono}
+% DRAFT SETTINGS: easier to read in dark mode
+\usepackage{cmbright}
+\renewcommand{\familydefault}{\sfdefault}
 
 \usepackage{geometry}
-\geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
+\geometry{verbose,tmargin=1.5cm,bmargin=1.5cm,lmargin=1.5cm,rmargin=1.5cm}
 
+%\usepackage{geometry}
+%\geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
+
+\usepackage{fontspec}
+%\setmainfont{FreeSerif}
+%\setmonofont{FreeMono}
+\setmonofont{DejaVu Sans Mono}
+
+\usepackage{framed}
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{float}
 
@@ -26,14 +32,18 @@
 \usepackage{minted}
 % using DejaVu Sans Mono, we need to scale the font to smaller size to match
 % the main font.
-\newminted{julia}{breaklines,fontsize=\small}
-\newminted{bash}{breaklines,fontsize=\small}
-\newminted{text}{breaklines,fontsize=\small}
+\newminted{julia}{breaklines,fontsize=\footnotesize}
+\newminted{bash}{breaklines,fontsize=\footnotesize}
+\newminted{text}{breaklines,fontsize=\footnotesize}
 
-\newcommand{\txtinline}[1]{\mintinline{text}{#1}}
-\newcommand{\jlinline}[1]{\mintinline{julia}{#1}}
+\newcommand{\txtinline}[1]{\mintinline[fontsize=\footnotesize]{text}{#1}}
+\newcommand{\jlinline}[1]{\mintinline[fontsize=\footnotesize]{julia}{#1}}
 
-\newmintedfile[juliafile]{julia}{breaklines,fontsize=\small}
+\newmintedfile[juliafile]{julia}{breaklines,fontsize=\footnotesize}
+
+\usepackage{float}
+\newfloat{mintedfloat}{h}{lop}
+\floatname{mintedfloat}{Listing}
 
 \usepackage{hyperref}
 
@@ -71,6 +81,9 @@ Hermawan Kresno Dipojono}
 \appendix
 \include{JuliaProg}
 \include{Octopus}
+
+\bibliographystyle{unsrt}
+\bibliography{BIBLIO}
 
 \printindex
 

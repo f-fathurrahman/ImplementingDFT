@@ -1,67 +1,154 @@
 \chapter{An introduction to density functional theory}
 
-Many-body (electrons-nuclei) Hamiltonian (in atomic unit):
+Density functional theory: \cite{Hohenberg1964,Kohn1965},
+
+Using the Kohn-Sham density functional theory, total energy of system of interacting electrons
+under external potential $V_{\mathrm{ext}}(\mathbf{r})$ can be written as a functional of
+a set of single-particle wave functions or Kohn-Sham orbitals $\{\psi_{i}(\mathbf{r})\}$
 \begin{equation}
-\hat{\mathcal{H}} =
-- \sum_{I=1}^{N_{a}} \frac{1}{2M_{I}} \nabla^{2}_{I}
-- \sum_{i=1}^{N_{e}} \frac{1}{2m} \nabla^{2}_{i}
-+ \sum_{I=1}^{N_{a}} \sum_{J \neq I}^{N_{a}} \frac{Z_{I} Z_{J}}{\left| \mathbf{R}_{I} - \mathbf{R}_{J} \right|}
-+ \frac{1}{2} \sum_{i=1}^{N_{e}} \sum_{j \neq i}^{N_{e}} \frac{1}{\left| \mathbf{r}_{i} - \mathbf{r}_{j} \right|}
-- \sum_{I=1}^{N_{a}} \sum_{i \neq i}^{N_{e}} \frac{Z_{I}}{\left| \mathbf{R}_{I} - \mathbf{r}_{i} \right|}
+E\left[\{\psi_{i}(\mathbf{r})\}\right] =
+-\frac{1}{2} \int \psi_{i}(\mathbf{r}) \nabla^{2} \psi_{i}(\mathbf{r})\,\mathrm{d}\mathbf{r} +
+\int \rho(\mathbf{r}) V_{\mathrm{ext}}(\mathbf{r})\,\mathrm{d}\mathbf{r} +
+\frac{1}{2}\int
+\frac{\rho(\mathbf{r}) \rho(\mathbf{r}')}{\left|\mathbf{r}-\mathbf{r}'\right|}\,
+\mathrm{d}\mathbf{r}\,\mathrm{d}\mathbf{r}' + E_{\mathrm{xc}}\left[\rho(\mathbf{r})\right]
+\label{eq:KS_energy_functional}
+\end{equation}
+%
+where single-particle electron density $\rho(\mathbf{r})$ is calculated as
+%
+\begin{equation}
+\rho(\mathbf{r}) = \sum_{i} f_{i} \psi^{*}(\mathbf{r}) \psi(\mathbf{r})
+\label{eq:electron_density}
+\end{equation}
+%
+In Equation \ref{eq:electron_density} the summation is done over
+all occupied single electronic states $i$ and $f_{i}$
+is the occupation number of the $i$-th orbital. For doubly-occupied orbitals
+we have $f_{i}=2$.
+In the usual setting in material science and chemistry, the external potential
+is usually the potential due to the atomic nuclei (ions):
+\begin{equation}
+V_{\mathrm{ext}}(\mathbf{r}) = \sum_{I} \frac{Z_{I}}{\left|\mathbf{r} - \mathbf{R}_{I}\right|}
+\end{equation}
+and an additional term of energy, the nucleus-nucleus energy $E_{\mathrm{nn}}$,
+is added to the total energy functional \eqref{eq:KS_energy_functional}:
+\begin{equation}
+E_{\mathrm{nn}} = \frac{1}{2} \sum_{I}\sum_{J}\frac{Z_{I} Z_{J}}{\left| R_{I} - R_{J} \right|}
 \end{equation}
 
-$\mathbf{R} = \left\{ \mathbf{R}_{I}, I=1,2,\ldots,N_{a} \right\}$
-
-$\mathbf{r} = \left\{ \mathbf{r}_{i}, i=1,2,\ldots,N_{e} \right\}$
-
-
-Many-body Schroedinger equation
+The energy terms in total energy functionals are the kinetic, external, Hartree, and exchange-correlation
+(XC) energy, respectively. The functional form of the last term (i.e. the XC energy)
+in terms of electron density is not known and one must resort to an approximation. In this article
+we will use the local density approximation for the XC energy. Under this approximation, the XC energy
+can be written as:
 \begin{equation}
-\hat{\mathcal{H}}\, \Psi_{n}(\mathbf{R},\mathbf{r}) = \mathcal{E}_{n}\, \Psi_{n}(\mathbf{R},\mathbf{r})
+E_{\mathrm{xc}}\left[\rho(\mathbf{r})\right] =
+\int \rho(\mathbf{r}) \epsilon_{\mathrm{xc}}\left[\rho(\mathbf{r})\right]\,\mathrm{d}\mathbf{r}
 \end{equation}
+where $\epsilon_{\mathrm{xc}}$ is the exchange-correlation energy per particle.
+There are many functional forms that have been devised for $\epsilon_{\mathrm{xc}}$
+and they are usually named by the persons who proposed them.
+An explicit form of $\epsilon_{\mathrm{xc}}$ will be given later.
 
 
+Many material properties can be derived from the minimum of the
+functional \eqref{eq:KS_energy_functional}. This minimum energy is also called the
+\textit{ground state energy}. This energy can be obtained by using direct
+minimization of the Kohn-Sham energy functional or by solving the Kohn-Sham equations:
 \begin{equation}
-\Psi(\mathbf{R},\mathbf{r},t) = \sum_{n} \Theta_{n}(\mathbf{R},t) \Phi_{n}(\mathbf{R},r)
+\hat{H}_{\mathrm{KS}}\,\psi_{i}(\mathbf{r}) = \epsilon_{i}\,\psi_{i}(\mathbf{r})
+\label{eq:KS_equations}
 \end{equation}
-
-
-$\Theta_{n}(\mathbf{R},t)$ are wave functions describing dynamics of nuclear subsystem in each one of
-adiabatic electronic eigenstates $\Phi_{n} (\mathbf{R},r)$.
-
+%
+where $\epsilon_{i}$ are the Kohn-Sham orbital energies and the
+Kohn-Sham Hamiltonian $\hat{H}_{\mathrm{KS}}$ is defined as
+%
 \begin{equation}
-\hat{h}_{e} \, \Phi_{n}(\mathbf{R},\mathbf{r}) = E_{n}\,\Phi_{n}(\mathbf{R},\mathbf{r})
-\end{equation}
-
-Electronic Hamiltonian:
-\begin{equation}
-\hat{h}_{e} = \hat{T} + \hat{U}_{ee} + \hat{V}_{ne} = \mathcal{H} - \hat{T}_{n} - \hat{V}_{nn}
-\end{equation}
-
-
-Kohn-Sham energy functional 
-
-Kohn-Sham equation \cite{Kohn1965} \index{Kohn-Sham equation}:
-\begin{equation}
-\left[ -\frac{1}{2}\nabla^2 + V_{\mathrm{KS}}(\mathbf{r})\right]
-\psi_{i}(\mathbf{r}) = \epsilon_{i} \, \psi_{i}(\mathbf{r})
-\end{equation}
-with Kohn-Sham potential:
-\begin{equation}
-V_{\mathrm{KS}}(\mathbf{r}) = V_{\mathrm{ion}}(\mathbf{r}) +
+\hat{H}_{\mathrm{KS}} = -\frac{1}{2}\nabla^{2} + V_{\mathrm{ext}}(\mathbf{r}) +
 V_{\mathrm{Ha}}(\mathbf{r}) + V_{\mathrm{xc}}(\mathbf{r})
+\label{eq:KS_hamiltonian}
 \end{equation}
+%
+From the solutions of the Kohn-Sham equations: ${\epsilon_{i}}$ and ${\psi_{i}(\mathbf{r})}$
+we can calculate the corresponding minimum total energy from the functional
+\eqref{eq:KS_energy_functional}.
 
+In the definition of Kohn-Sham Hamiltonian, other than the external potential
+which is usually specified from the problem,
+we have two additional potential terms, namely the Hartree and exchange-correlation
+potential.
+The Hartree potential can be calculated from its integral form
 \begin{equation}
-V_{\mathrm{Ha}}(\mathbf{r}) = \int\, \frac{\rho(\mathbf{r}')}{\mathbf{r} - \mathbf{r}'}\,\mathrm{d}\mathbf{r}'
+V_{\mathrm{Ha}}(\mathbf{r}) = \int
+\frac{\rho(\mathbf{r})}{\mathbf{r} - \mathbf{r}'}\,\mathrm{d}\mathbf{r}'
 \end{equation}
-
+An alternative way to calculate the Hartree potential is to solve the Poisson equation:
 \begin{equation}
-V_{\mathrm{ion}}(\mathbf{r}) = \sum_{I=1} \frac{Z_{I}}{\mathbf{r} - \mathbf{R}_{I}}
+\nabla^2 V_{\mathrm{Ha}}(\mathbf{r}) = -4\pi\rho(\mathbf{r})
+\label{eq:poisson_eq}
+\end{equation}
+%
+The exchange-correlation potential is defined as functional derivative of the
+exchange-correlation energy:
+\begin{equation}
+V_{\mathrm{xc}}(\mathbf{r}) = \frac{\delta E[\rho(\mathbf{r})]}{\delta \rho(\mathbf{r})}
 \end{equation}
 
+The Kohn-Sham equations are nonlinear eigenvalue equations in the sense that to calculate the
+solutions $\{\epsilon_{i}\}$ and $\{\psi_{i}(\mathbf{r})\}$ we need to know
+the electron density $\rho(\mathbf{r})$ to build the Hamiltonian. The electron density
+itself must be calculated from $\{\psi_{i}(\mathbf{r})\}$ which are not known (the quantities
+we want to solve for). The usual algorithm to solve the Kohn-Sham equations is the following:
+\begin{itemize}
+\item (\textbf{STEP 1}): start from a guess input density $\rho^{\mathrm{in}}(\mathbf{r})$
+\item (\textbf{STEP 2}): calculate the Hamiltonian defined in \eqref{eq:KS_hamiltonian}
+\item (\textbf{STEP 3}): solve the eigenvalue equations in \eqref{eq:KS_equations} to obtain the eigenpairs
+  $\{\epsilon_{i}\}$, $\{\psi_{i}(\mathbf{r})\}$
+\item (\textbf{STEP 4}): calculate the output electron density $\rho^{\mathrm{out}}(\mathbf{r})$
+  from $\{\psi_{i}(\mathbf{r})\}$
+  that are obtained from the previous step.
+\item (\textbf{STEP 5}) Check whether the difference between $\rho^{\mathrm{in}}(\mathbf{r})$
+  and $\rho^{\mathrm{out}}(\mathbf{r})$ is small.
+  If the difference is still above a chosen threshold then back to \textbf{STEP 1}.
+  If the difference is already small the stop the algorithm.
+\end{itemize}
+The algorithm we have just described is known as the self-consistent field (SCF) algorithm.
 
+Nowadays, there are many available software packages that can be used to solve the Kohn-Sham
+equations such as Quantum ESPRESSO, ABINIT, VASP, Gaussian, and NWChem are among the
+popular ones. A more complete list is given in a Wikipedia page \cite{wiki-dft-softwares}.
+These packages differs in several aspects, particularly the basis set used to discretize
+the Kohn-Sham equations and characteristic of the systems they can handle (periodic or non-periodic
+systems). These packages provide an easy way for researchers to carry out calculations based
+on density functional theory for particular systems they are interested in without knowing the
+details of how these calculations are performed.
 
-\begin{thebibliography}{99.}%
-\bibitem{Kohn1965} Test Kohn Sham
-\end{thebibliography}
+In this book we will describe a simple way to solve the Kohn-Sham equations based on
+finite difference approximation.
+Our focus will be on the practical numerical implementation
+of a solver for the Kohn-Sham equations.
+The solver will be implemented using Julia programming language \cite{juliaorg}.
+Our target is to calculate the ground state energy
+of several simple model systems. We will begin to build our solver starting from the ground up.
+The roadmap of the article is as follows.
+\begin{itemize}
+\item We begin from discussing numerical solution of Schroedinger equation in 1d.
+  We will introduce finite difference approximation and its use in
+  approximating second derivative operator that is present in the Schroedinger equation.
+  We show how one can build the Hamiltonian matrix and
+  solve the resulting eigenvalue equations using standard function that is available in Julia.
+\item In the next section, we discuss numerical solution of Schroedinger in 2d. We will introduce
+  how one can handle 2d grid and applying finite difference approximation to the Laplacian
+  operator present in the 2d Schroedinger equation. We also present several iterative methods
+  to solve the eigenvalue equations.
+\item The next section discusses the numerical solution of Schroedinger equation in 3d. The methods
+  presented in this section is a straightforward extension from the 2d case.
+  In this section we start considering $V_{\mathrm{ext}}$ that is originated from the
+  Coulomb interaction between atomic nuclei and electrons. We also introduce the concept of
+  pseudopotential which is useful in practical calculations.
+\item The next section discusses about Poisson equation. Conjugate gradient method for
+  solving system of linear equations. Hartree energy calculation.
+\item Hartree approximation, implementation of SCF algorithm
+\item Kohn-Sham equations, XC energy and potential, hydrogen molecule
+\end{itemize}
