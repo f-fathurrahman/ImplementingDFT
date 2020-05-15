@@ -129,25 +129,63 @@ The resulting plots for \jlinline{N=8} and \jlinline{N=21} are shown in Figure X
 \includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_gaussian_1d_8pt.pdf}
 \includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_gaussian_1d_21pt.pdf}
 \par}
-\caption{Sampling a Gaussian function}
+\caption{Sampling a Gaussian function defined in \eqref{eq:gauss_func1}, $\alpha=1$,
+two different number of grid points: $N=8$ (upper) and $N=21$ (lower). The sampled
+coordinates are marked by dots. The true or "continuous" function is emulated by using
+a dense sampling points of 200.}
 \end{figure}
+
+Note that we have used a densely-sampled points of \jlinline{NptsPlot=200} in the
+program to emulate the true or "continuous" function. The plot of densely-sampled
+array is not done by not showing the point marker, as opposed to the array with
+lower sampling points.
+
+\textbf{Exercise} Try to vary the value of $\alpha$ and \jlinline{N}.
+Make the program more sophisticated
+by using loop over for various values of \jlinline{N} instead of manually changing its value
+in the program. You also may want to make set the saved filename of the resulting
+plot programmatically.
+
 
 
 \section{Approximating second derivative operator}
 
 Our next task is to find an approximation to the second derivative operator
-present in the Equation \eqref{eq:Sch_1d_eq}.
+present in the Equation \eqref{eq:Sch_1d_eq}. Suppose that we have a function
+sampled at appropriate positions $x_i$ as $\psi(x_{i})$. How can we approximate
+$\psi''(x_{i})$ ?
 One simple approximation that we can use is the 3-point (central) finite difference:
 \begin{equation}
 \frac{\mathrm{d}^2}{\mathrm{d}x^2} \psi_{i} =
 \frac{\psi_{i+1} - 2\psi_{i} + \psi_{i-1}}{h^2}
+\label{eq:fd_2nd_deriv_3pt}
 \end{equation}
 where we have the following notation have been used: $\psi_{i} = \psi(x_{i})$.
-%
+Let's see we can apply this by writing out the Equation \eqref{eq:fd_2nd_deriv_3pt}.
+\begin{align*}
+\psi''_{1} & \approx \left( \psi_{2} - 2\psi_{1} + \psi_{0} \right)/h^2 \\
+\psi''_{2} & \approx \left( \psi_{3} - 2\psi_{2} + \psi_{1} \right)/h^2 \\
+\psi''_{3} & \approx \left( \psi_{4} - 2\psi_{3} + \psi_{2} \right)/h^2 \\
+& \vdots \\
+\psi''_{N} & \approx \left( \psi_{N+1} - 2\psi_{N} + \psi_{N-1} \right)/h^2 \\
+\end{align*}
+In the first and the last equations, there are terms involving $\psi_{0}$ and
+$\psi_{N+1}$ which are not known. Recall that we have numbered
+our grid from 1 to $N$, so $\psi_{0}$ and $\psi_{N+1}$ are outside of our
+grid. However, by using the boundary equation \eqref{eq:BC_isolated}, these
+quantities can be taken as zeros. So we have:
+\begin{align*}
+\psi''_{1} & \approx \left( \psi_{2} - 2\psi_{1} \right)/h^2 \\
+\psi''_{2} & \approx \left( \psi_{3} - 2\psi_{2} + \psi_{1} \right)/h^2 \\
+\psi''_{3} & \approx \left( \psi_{4} - 2\psi_{3} + \psi_{2} \right)/h^2 \\
+& \vdots \\
+\psi''_{N} & \approx \left( - 2\psi_{N} + \psi_{N-1} \right)/h^2 \\
+\end{align*}
+This operation can be compactly expressed by using matrix-vector notation.
 By taking $\{ \psi_{i} \}$ as a column vector, the second derivative operation
 can be expressed as matrix multiplication:
 \begin{equation}
-\vec{\psi''} \approx \mathbb{D}^{(2)} \vec{\psi}
+\{ \psi'' \} \approx \mathbb{D}^{(2)} \{ \psi \}
 \end{equation}
 %%
 where $\mathbb{D}^{(2)}$ is the second derivative matrix operator:
@@ -166,7 +204,7 @@ where $\mathbb{D}^{(2)}$ is the second derivative matrix operator:
 \label{eq:1d_D2_matmul}
 \end{equation}
 
-An example implementation can be found in the following function.
+The following Julia function can be used to initialize the matrix $\mathbb{D}^{(2)}$.
 \begin{juliacode}
 function build_D2_matrix_3pt( N::Int64, h::Float64 )
   mat = zeros(Float64,N,N)1
@@ -184,6 +222,7 @@ The function \jlinline{build_D2_matrix_3pt} takes two arguments:
 \item \jlinline{N::Int64}: number of grid points
 \item \jlinline{h::Float64}: the uniform grid spacing
 \end{itemize}
+and returns the matrix $\mathbb{D}^{(2)}$ as two dimensional array.
 
 Before use these functions to solve Schroedinger equation, we will test the operation
 in Equation \eqref{eq:1d_D2_matmul} for a simple function for which the second derivative
@@ -196,12 +235,13 @@ The second derivative of this Gaussian function can be calculated as
 \psi''(x) = \left( -2 \alpha + 4\alpha^2 x^2 \right) \mathrm{e}^{-\alpha x^2}
 \end{equation}
 
-We also need to define the computational domain $[A,B]$ for our test.
-Let's choose $A = -5$ and $B = 5$ again as in the previous example.
-We can evaluate the value of function $\psi_{x}$ at those points to be at the
+We also need to define the computational domain
+$[x_{\text{min}},x_{\text{max}}]$ for our test.
+Let's choose $x_{\text{min}} = -5$ and $x_{\text{max}} = 5$ again as in the previous example.
+We can evaluate the value of function $\psi({x})$ at those points to be at the
 order of $10^{-11}$, which is sufficiently small for our purpose.
 
-The full Julia script that we will use is as follows.
+The full Julia program that we will use is as follows.
 \begin{juliacode}
 using Printf
 using LaTeXStrings
@@ -211,42 +251,69 @@ const plt = PyPlot
 plt.rc("text", usetex=true)
 
 include("init_FD1d_grid.jl")
+include("build_D2_matrix_3pt.jl")
 
-function my_gaussian(x::Float64; α=1.0)
-  return exp( -α*x^2 )
+function my_gaussian(x, α=1.0)
+  return exp(-α*x^2)
 end
 
-function main()
-  A = -5.0
-  B =  5.0
-  Npoints = 8
-  x, h = init_FD1d_grid( A, B, Npoints )
-  @printf("Grid spacing = %f\n", h)
-  @printf("\nGrid points:\n")
-  for i in 1:Npoints
-    @printf("%3d %18.10f\n", i, x[i])
-  end
+function d2_my_gaussian(x, α=1.0)
+  return (-2*α + 4*α^2 * x^2) * exp(-α*x^2)
+end
 
-  NptsPlot = 200
-  x_dense = range(A, stop=5, length=NptsPlot)
+function main(N::Int64)
+  x_min = -5.0
+  x_max =  5.0
+  x, h = init_FD1d_grid( x_min, x_max, N )
+  fx = my_gaussian.(x)
+
+  Ndense = 200
+  x_dense = range(A, stop=B, length=Ndense)
+  fx_dense = my_gaussian.(x_dense)
+  d2_fx_dense = d2_my_gaussian.(x_dense)
+
+  D2 = build_D2_matrix_3pt(N, h)
+  d2_fx_3pt = D2*fx
 
   plt.clf()
-  plt.plot(x_dense, my_gaussian.(x_dense), label=L"f(x)")
-  plt.plot(x, my_gaussian.(x), label=L"Sampled $f(x)$", marker="o")
+  plt.plot(x, fx, marker="o", label=L"Sampled $f(x)$")
+  plt.plot(x_dense, fx_dense, label=L"f(x)")
+  plt.plot(x, d2_fx_3pt, marker="o", label=L"Approx $f''(x)$")
+  plt.plot(x_dense, d2_fx_dense, label=L"f''(x)")
   plt.legend()
-  plt.tight_layout()
-  plt.savefig("IMG_gaussian_1d.pdf")
+  plt.grid()
+  plt.savefig("IMG_gaussian_"*string(N)*".pdf")
 end
-
-main()
+main(15)
+main(51)
 \end{juliacode}
+
+We have followed similar approach as we have done in the previous section for plotting.
+The important parts of the program are the lines:
+\begin{juliacode}
+D2 = build_D2_matrix_3pt(N, h)
+d2_fx_3pt = D2*fx
+\end{juliacode}
+where we build $\mathbb{D}^{(2)}$ matrix, represented by the variable
+\jlinline{D2} in the program, and multiply it with the vector \jlinline{fx}
+to obtain an approximation to $\psi''(x)$. The results are plotted with two
+different values of number of grid points, $\jlinline{N=15}$ and $\jlinline{N=51}$,
+which are shown in Figure XXX.
 
 \begin{figure}[H]
 {\center
 \includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_gaussian_15.pdf}
+\par}
+\caption{Finite difference approximation to a Gaussian function and its second derivative with
+number of grid points $N=15$}
+\end{figure}
+
+\begin{figure}[H]
+{\center
 \includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_gaussian_51.pdf}
 \par}
-\caption{Finite difference approximation to a Gaussian function and its second derivative}
+\caption{Finite difference approximation to a Gaussian function and its second derivative with
+number of grid points $N=51$}
 \end{figure}
 
 
@@ -277,7 +344,7 @@ Plot of eigenfunctions:
 
 \begin{figure}[H]
 {\center
-\includegraphics[scale=0.75]{../codes/sch_1d/IMG_main_harmonic_01_51.pdf}
+\includegraphics[scale=0.65]{../codes/sch_1d/IMG_main_harmonic_01_51.pdf}
 \par}
 \caption{Eigenstates of harmonic oscillator}
 \end{figure}
