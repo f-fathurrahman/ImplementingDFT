@@ -319,12 +319,14 @@ number of grid points $N=51$}
 
 \section{Harmonic potential}
 
-We will start with a simple potential with known exact solution, namely the harmonic potential:
+The time-independent Schroedinger equation \eqref{eq:Sch_1d_eq} can be expressed into
+the following eigenvalue problem in matrix form:
 \begin{equation}
-V(x) = \frac{1}{2}\omega^2 x^2
+\mathbb{H}\{ \psi \} = E \{ \psi \}
 \end{equation}
-
-The Hamiltonian in finite difference representation:
+where $\mathbb{H}$ is the Hamiltonian matrix and $\{ \psi \}$ is a vector
+column representation of wave function.
+In finite difference representation, the Hamiltonian matrix is
 \begin{equation}
 \mathbb{H} = -\frac{1}{2}\mathbb{D}^{(2)} + \mathbb{V}
 \end{equation}
@@ -332,13 +334,89 @@ where $\mathbb{V}$ is a diagonal matrix whose elements are:
 \begin{equation}
 \mathbb{V}_{ij} = V(x_{i})\delta_{ij}
 \end{equation}
+Once the Hamiltonian matrix is build, we can solve for $E$ and $\{\psi\}$ by using standard
+methods. In Julia this can be achieved by simply using the \jlinline{eigen} function
+from \jlinline{LinearAlgebra} standard library.
 
+As an example, we will start with a simple potential with known exact solution,
+namely the harmonic potential:
+\begin{equation}
+V(x) = \frac{1}{2}\omega^2 x^2
+\end{equation}
 
 Code to solve harmonic oscillator:
 
-\juliafile{../codes/sch_1d/main_harmonic_01.jl}
+\begin{juliacode}
+using Printf
+using LinearAlgebra
+using LaTeXStrings
+  
+import PyPlot
+const plt = PyPlot
+plt.rc("text", usetex=true)
+
+include("init_FD1d_grid.jl")
+include("build_D2_matrix_3pt.jl")
+  
+function pot_harmonic( x; ω=1.0 )
+  return 0.5 * ω^2 * x^2
+end
+  
+function main()
+  # Initialize the grid points
+  xmin = -5.0
+  xmax =  5.0
+  N = 51
+  x, h = init_FD1d_grid(xmin, xmax, N)
+  # Build 2nd derivative matrix
+  D2 = build_D2_matrix_3pt(N, h)
+  # Potential
+  Vpot = pot_harmonic.(x)
+  # Hamiltonian
+  Ham = -0.5*D2 + diagm( 0 => Vpot )
+  # Solve the eigenproblem
+  evals, evecs = eigen( Ham )
+  # We will show the 5 lowest eigenvalues
+  Nstates = 5
+  @printf("Eigenvalues\n")
+  ω = 1.0
+  hbar = 1.0
+  @printf(" State         Approx              Exact          Difference\n")
+  for i in 1:Nstates
+    E_ana = (2*i - 1)*ω*hbar/2
+    @printf("%5d %18.10f %18.10f %18.10e\n", i, evals[i], E_ana, abs(evals[i]-E_ana))
+  end
+  
+  # normalize the first three eigenstates
+  for i in 1:3
+    ss = dot(evecs[:,i], evecs[:,i])*h
+    evecs[:,i] = evecs[:,i]/sqrt(ss)
+  end
+  
+  # Plot up to 3rd eigenstate
+  plot_title = "N="*string(N)
+  plt.plot(x, evecs[:,1], label="1st eigenstate", marker="o")
+  plt.plot(x, evecs[:,2], label="2nd eigenstate", marker="o")
+  plt.plot(x, evecs[:,3], label="3rd eigenstate", marker="o")
+  plt.legend()
+  plt.grid()
+  plt.tight_layout()
+  plt.savefig("IMG_main_harmonic_01_"*string(N)*".pdf")
+end
+
+main()
+\end{juliacode}
 
 Compare with analytical solution.
+\begin{textcode}
+Eigenvalues
+State         Approx              Exact          Difference
+   1       0.4987468513       0.5000000000   1.2531486828e-03
+   2       1.4937215179       1.5000000000   6.2784821079e-03
+   3       2.4836386480       2.5000000000   1.6361352013e-02
+   4       3.4684589732       3.5000000000   3.1541026791e-02
+   5       4.4481438504       4.5000000000   5.1856149551e-02 
+\end{textcode}
 
 Plot of eigenfunctions:
 
