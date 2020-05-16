@@ -463,10 +463,95 @@ State         Approx              Exact          Difference
 
 \section{Higher order finite difference}
 
-To obtain higher accuracy
+To obtain higher accuracy, we can include more points in our approximation to second
+derivative operator. An example is by using 5-point finite-difference formula:
+\begin{equation}
+\frac{\mathrm{d}^2}{\mathrm{d}x^2} \psi_{i} =
+\frac{-\psi_{i+2} + 16\psi_{i+1} - 30\psi_{i} + 16\psi_{i-1} - \psi_{i-2}}{12h^2}
+\label{eq:fd_2nd_deriv_5pt}
+\end{equation}
+The corresponding second derivative matrix can be built using the following
+function.
+\begin{juliacode}
+function build_D2_matrix_5pt( N::Int64, h::Float64 )
+  mat = zeros(Float64,N,N)
+  for i = 1:N-2
+    mat[i,i] = -30.0
+    mat[i,i+1] = 16.0
+    mat[i,i+2] = -1.0
+    mat[i+1,i] = mat[i,i+1]
+    mat[i+2,i] = mat[i,i+2]
+  end
+  #
+  mat[N-1,N-1] = -30.0
+  mat[N-1,N] = 16.0
+  mat[N,N-1] = mat[N-2,N-1]
+  mat[N,N] = -30.0
+  #
+  return mat/(12*h^2)
+end
+\end{juliacode}
 
-Implementing higher order finite difference.
+Other approximation formulas for second derivative also can be used. We have implemented 3-,
+5-, 7-, 9-, and 11-points formulas.
 
+In the following we plot the difference (approximation - exact) of second derivative of
+the Gaussian function for several approximation formulas using $N=15$ grid points.
+\begin{figure}[h]
+{\center
+\includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_compare_d2_gaussian_error_15.pdf}
+\par}
+\caption{Error of 2nd derivative approx}
+\end{figure}
+
+Program:
+\begin{juliacode}
+function solve_eigvals(N::Int64, D2_func)
+  # Initialize the grid points
+  x_min = -5.0
+  x_max =  5.0
+  x, h = init_FD1d_grid(x_min, x_max, N)
+  # Build 2nd derivative matrix
+  D2 = D2_func(N, h)
+  # Potential
+  Vpot = pot_harmonic.(x)
+  # Hamiltonian
+  Ham = -0.5*D2 + diagm( 0 => Vpot )
+  # Solve for the eigenvalues only
+  evals = eigvals( Ham )
+  #
+  return evals
+end
+
+function main()
+  Npoints = 20
+  funcs = [build_D2_matrix_3pt, build_D2_matrix_5pt,
+           build_D2_matrix_7pt, build_D2_matrix_9pt,
+           build_D2_matrix_11pt]
+
+  ω = 1.0
+  hbar = 1.0
+  ist = 1
+  E_ana = (2*ist - 1)*ω*hbar/2
+
+  for f in funcs
+      evals = solve_eigvals(Npoints, f)
+      dE = abs(evals[ist]-E_ana) # absolute error
+      @printf("%20s: %18.10f %18.10e\n", string(f), evals[ist], dE)
+  end
+end
+
+main()
+\end{juliacode}
+
+Example result:
+\begin{textcode}
+  build_D2_matrix_3pt:       0.4911851752   8.8148248058e-03
+  build_D2_matrix_5pt:       0.4992583463   7.4165366457e-04
+  build_D2_matrix_7pt:       0.4998965249   1.0347512122e-04
+  build_D2_matrix_9pt:       0.4999802170   1.9782954165e-05
+ build_D2_matrix_11pt:       0.4999952673   4.7326636594e-06
+\end{textcode}
 
 \section{Exercises}
 
