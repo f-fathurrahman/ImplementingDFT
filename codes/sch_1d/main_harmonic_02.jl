@@ -12,14 +12,13 @@ function pot_harmonic( x; ω=1.0 )
     return 0.5 * ω^2 * x^2
 end
 
-function main()
+function main(N::Int64)
     # Initialize the grid points
     xmin = -5.0
     xmax =  5.0
-    N = 51
     x, h = init_FD1d_grid(xmin, xmax, N)
     # Build 2nd derivative matrix
-    D2 = build_D2_matrix_9pt(N, h)
+    D2 = build_D2_matrix_3pt(N, h)
     # Potential
     Vpot = pot_harmonic.(x)
     # Hamiltonian
@@ -28,7 +27,7 @@ function main()
     evals, evecs = eigen( Ham )
     # We will show the 5 lowest eigenvalues
     Nstates = 5
-    @printf("Eigenvalues\n")
+    @printf("Eigenvalues (using N=%d, h=%f)\n", N, h)
     ω = 1.0
     hbar = 1.0
     for i in 1:Nstates
@@ -38,4 +37,6 @@ function main()
 
 end
 
-main()
+for N in [51,61,71,81]
+    main(N)
+end
