@@ -8,6 +8,7 @@ plt.rc("text", usetex=true)
 
 include("init_FD1d_p_grid.jl")
 include("build_D2_matrix_p_3pt.jl")
+include("build_D2_matrix_p_5pt.jl")
 
 function my_sin(x; ω=1.0)
     return sin(ω*x)
@@ -18,18 +19,20 @@ function d2_my_sin(x; ω=1.0)
 end
 
 function main(N::Int64)
-    A = -5.0
-    B =  5.0
-    x, h = init_FD1d_p_grid( A, B, N )
-    ω = 1.5
+    x_min = 0.0
+    x_max = 2.0
+    x, h = init_FD1d_p_grid( x_min, x_max, N )
+    T = (x_max - x_min)
+    ω = 2*pi/T
     fx = my_sin.(x, ω=ω)
 
     Ndense = 200
-    x_dense = range(A, stop=B, length=Ndense)
+    x_dense = range(x_min, stop=x_max, length=Ndense)
     fx_dense = my_sin.(x_dense, ω=ω)
     d2_fx_dense = d2_my_sin.(x_dense, ω=ω)
     
-    D2 = build_D2_matrix_p_3pt(N, h)
+    #D2 = build_D2_matrix_p_3pt(N, h)
+    D2 = build_D2_matrix_p_5pt(N, h)
     d2_fx_3pt = D2*fx
 
     plot_title = latexstring("\$N = $N\$")
