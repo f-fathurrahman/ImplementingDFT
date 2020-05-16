@@ -11,7 +11,7 @@ function build_D2_matrix_3pt( N::Int64, h::Float64 )
     for i = 1:N-1
         mat[i,i] = -2.0
         mat[i,i+1] = 1.0
-        mat[i+1,i] = mat[i,i+1]
+        mat[i+1,i] = 1.0
     end
     mat[N,N] = -2.0
     return mat/h^2

@@ -14,15 +14,15 @@ function build_D2_matrix_5pt( N::Int64, h::Float64 )
         mat[i,i] = -30.0
         mat[i,i+1] = 16.0
         mat[i,i+2] = -1.0
-        mat[i+1,i] = mat[i,i+1]
-        mat[i+2,i] = mat[i,i+2]
+        mat[i+1,i] = 16.0
+        mat[i+2,i] = -1.0
     end
 
     mat[N-1,N-1] = -30.0
     mat[N-1,N] = 16.0
-    mat[N,N-1] = mat[N-2,N-1]
-    mat[N,N] = -30.0
+    mat[N,N-1] = 16.0
 
+    mat[N,N] = -30.0
 
     return mat/(12*h^2)
 end
