@@ -1,18 +1,35 @@
 \chapter{Schroedinger equation in 2d}
 
-Schrodinger equation in 2d:
+Now we will turn our attention to higher dimensions, i.e 2d.
+The time-independent Schrodinger equation in 2d can be written as:
 \begin{equation}
 \left[ -\frac{1}{2}\nabla^2 + V(x,y) \right] \psi(x,y) = E\,\psi(x,y)
+\label{eq:sch_2d}
 \end{equation}
 %
 where $\nabla^2$ is the Laplacian operator:
+%
 \begin{equation}
 \nabla^2 = \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2}
 \end{equation}
 
 
-\section{Finite difference grid in 2d}
 
+\subsection{Describing grid in 2d}
+
+Now we have two directions $x$ and $y$. Our approach to solving the Schroedinger equation
+is similar to the one we have used before in 1d, however several technical difficulties
+will arise.
+
+To describe the computational grid, we now need to specify
+$x_{\mathrm{max}}, x_{\mathrm{min}}$ for the X-domain
+and $y_{\mathrm{max}}, y_{\mathrm{min}}$ for Y-domain. We also need to specify number of grid
+points in for each x and y-directions, i.e. $N_{x}$ and $N_{y}$. That are quite lot of variables.
+For easier management, we will collect our grid related variables in one data structure or
+\txtinline{struct} in Julia. A \txtinline{struct} in Julia looks very much like C-struct.
+It also defines a new custom data type in Julia.
+
+Our struct definition looks like this.
 \begin{juliacode}
 struct FD2dGrid
     Npoints::Int64
@@ -28,8 +45,9 @@ struct FD2dGrid
     idx_xy2ip::Array{Int64,2}
 end
 \end{juliacode}
-
-
+%
+An instance of \txtinline{FD2dGrid} can be initialized using the following constructor function:
+%
 \begin{juliacode}
 function FD2dGrid( x_domain, Nx, y_domain, Ny )
     x, hx = init_FD1d_grid(x_domain, Nx)
@@ -50,11 +68,121 @@ function FD2dGrid( x_domain, Nx, y_domain, Ny )
             idx_xy2ip[i,j] = ip
         end
     end
-    return FD2dGrid(Npoints, Nx, Ny, hx, hy, dA, x, y, r, idx_ip2xy, idx_xy2ip)
+    return FD2dGrid(Npoints, Nx, Ny, hx, hy, dA, x, y, r, idx_ip2xy, idx_xy2ip) 
 end
 \end{juliacode}
 
-\section{Laplacian operator}
+A short explanation about the members of \txtinline{FD2dGrid} follows.
+%
+\begin{itemize}
+%
+\item \txtinline{Npoints} is the total number of grid points.
+%
+\item \txtinline{Nx} and \txtinline{Ny} is the total number of grid points
+in $x$ and $y$-directions, respectively.
+%
+\item \txtinline{hx} and \txtinline{hy} is grid spacing in $x$ and $y$-directions,
+respectively. \txtinline{dA} is the product of \txtinline{hx} and \txtinline{hy}.
+%
+\item \txtinline{x} and \txtinline{y} are the grid points in $x$ and $y$-directions.
+The actual two dimensional grid points $r \equiv (x_{i},y_{i})$ are stored as
+two dimensional array $r$.
+%
+\item Thw two integers arrays \txtinline{idx_ip2xy} and \txtinline{idx_xy2ip} defines
+mapping between two dimensional grids and linear grids.
+\end{itemize}
+
+
+As an illustration let's build a grid for a rectangular domain
+$x_\mathrm{min} = y_{\mathrm{min}}=-5$ and $x_\mathrm{max} = y_{\mathrm{max}}=5$
+and $N_{x}=3$, $N_{y}=4$.
+Using the above constructor for \txtinline{FD2dGrid}:
+\begin{juliacode}
+Nx = 3
+Ny = 4
+fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+\end{juliacode}
+%
+Dividing the $x$ and $y$ accordingly we obtain $N_{x}=3$
+grid points along $x$-direction
+%
+\begin{textcode}
+> println(fdgrid.x)
+[-5.0, 0.0, 5.0]
+\end{textcode}
+%
+and $N_{y}=4$ points along the $y$-direction
+\begin{textcode}
+> println(fdgrid.y)
+[-5.0, -1.6666666666666665, 1.666666666666667, 5.0]
+\end{textcode}
+%
+The actual grid points are stored in \txtinline{fdgrid.r}. Using the
+following snippet, we can printout all of the grid points:
+%
+\begin{juliacode}
+for ip = 1:fdgrid.Npoints
+    @printf("%3d %8.3f %8.3f\n", ip, fdgrid.r[1,ip], fdgrid.r[2,ip])
+end
+\end{juliacode}
+%
+The results are:
+%
+\begin{textcode}
+  1   -5.000   -5.000
+  2    0.000   -5.000
+  3    5.000   -5.000
+  4   -5.000   -1.667
+  5    0.000   -1.667
+  6    5.000   -1.667
+  7   -5.000    1.667
+  8    0.000    1.667
+  9    5.000    1.667
+ 10   -5.000    5.000
+ 11    0.000    5.000
+ 12    5.000    5.000
+\end{textcode}
+%
+We also can use the usual rearrange these points in the usual 2d grid rearrangement:
+%
+\begin{textcode}
+[  -5.000,  -5.000] [  -5.000,  -1.667] [  -5.000,   1.667] [  -5.000,   5.000] 
+[   0.000,  -5.000] [   0.000,  -1.667] [   0.000,   1.667] [   0.000,   5.000] 
+[   5.000,  -5.000] [   5.000,  -1.667] [   5.000,   1.667] [   5.000,   5.000]
+\end{textcode}
+%
+which can be produced from the following snippet:
+%
+\begin{juliacode}
+for i = 1:Nx
+    for j = 1:Ny
+        ip = fdgrid.idx_xy2ip[i,j]
+        @printf("[%8.3f,%8.3f] ", fdgrid.r[1,ip], fdgrid.r[2,ip])
+    end
+    @printf("\n")
+end
+\end{juliacode}
+
+
+
+\subsection{Laplacian operator}
+
+Having built out 2d grid, we now turn our attention to the second derivative operator or
+the Laplacian in the equation \ref{eq:sch_2d}.
+There are several ways to build a matrix representation of the Laplacian, but we will
+use the easiest one. 
+
+Before constructing the Laplacian matrix, there is an important observation that
+we should make about the second derivative matrix $\mathbb{D}^{(2)}$. We should note
+that the second derivative matrix contains mostly zeros. This type of matrix that
+most of its elements are zeros is called \textbf{sparse matrix}.
+In a sparse matrix data structure, we only store its non-zero elements with specific
+formats such as compressed sparse row/column format (CSR/CSC) and coordinate format.
+We have not made use of the sparsity of the second derivative matrix
+in the 1d case for simplicity. In the higher dimensions, however,
+we must make use of this sparsity, otherwise we will waste computational resources 
+by storing many zeros. The Laplacian matrix that we will build from
+$\mathbb{D}^{(2)}$ is also very sparse.
 
 Given second derivative matrix in $x$, $\mathbb{D}^{(2)}_{x}$,
 $y$ direction, $\mathbb{D}^{(2)}_{x}$,
@@ -70,42 +198,218 @@ where $\otimes$ is Kronecker product.
 In Julia, we can use the function \jlinline{kron} to form the Kronecker product
 between two matrices \jlinline{A} and \jlinline{B} as \jlinline{kron(A,B)}.
 
+The following function illustrates the above approach to construct matrix
+representation of the Laplacian operator.
 \begin{juliacode}
 function build_nabla2_matrix( fdgrid::FD2dGrid; func_1d=build_D2_matrix_3pt )
     Nx = fdgrid.Nx
     hx = fdgrid.hx
     Ny = fdgrid.Ny
     hy = fdgrid.hy
-
+    
     D2x = func_1d(Nx, hx)
     D2y = func_1d(Ny, hy)
 
-    ∇2 = kron(D2x, speye(Ny)) + kron(speye(Nx), D2y)
-    return ∇2
+    ∇² = kron(D2x, speye(Ny)) + kron(speye(Nx), D2y)
+    return ∇²
 end
 \end{juliacode}
 
-Example to the approximation of 2nd derivative of 2d Gaussian function
+In the Figure \ref{fig:fd_gaussian_2d}, an example to the approximation of 2nd derivative
+of 2d Gaussian function by using finite difference is shown.
 
 \begin{figure}[H]
 {\center
-\includegraphics[width=0.45\textwidth]{../codes/FD2d/IMG_gaussian2d.pdf}
+\includegraphics[width=0.45\textwidth]{../codes/FD2d/IMG_gaussian2d.pdf}\,%
 \includegraphics[width=0.45\textwidth]{../codes/FD2d/IMG_d2_gaussian2d.pdf}
 \par}
 \caption{Two-dimensional Gaussian function and its finite difference
 approximation of second derivative}
+\label{fig:fd_gaussian_2d}
 \end{figure}
 
-\section{Iterative methods for eigenvalue problem}
-
-The Hamiltonian matrix:
+The following program is used to produce the figure.
 \begin{juliacode}
-∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_9pt )
-Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
+using Printf
+using LinearAlgebra
+using SparseArrays
+    
+import PyPlot
+const plt = PyPlot
+    
+include("FD2dGrid.jl")
+include("build_nabla2_matrix.jl")
+include("../common/supporting_functions.jl")
+    
+function my_gaussian( fdgrid::FD2dGrid; α=1.0 )
+  Npoints = fdgrid.Npoints
+  f = zeros(Npoints)
+  for i in 1:Npoints
+    x = fdgrid.r[1,i]
+    y = fdgrid.r[2,i]
+    r2 = x^2 + y^2
+    f[i] = exp(-α*r2)
+  end
+  return f
+end
+    
+function main()  
+  Nx = 75
+  Ny = 75
+  fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    
+  ∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_9pt )
+    
+  fg = my_gaussian(fdgrid, α=0.5)
+  plt.clf()
+  plt.surf(fdgrid.x, fdgrid.y, reshape(fg, fdgrid.Nx, fdgrid.Ny), cmap=:jet)
+  plt.gca(projection="3d").view_init(30,7)
+  fileplot = "IMG_gaussian2d.pdf"
+  plt.savefig(fileplot)
+    
+  d2fg = ∇2*fg    
+  plt.clf()
+  plt.surf(fdgrid.x, fdgrid.y, reshape(d2fg, fdgrid.Nx, fdgrid.Ny), cmap=:jet)
+  plt.gca(projection="3d").view_init(30,7)    
+  fileplot = "IMG_d2_gaussian2d.pdf"
+  plt.savefig(fileplot)
+end
+    
+main()    
 \end{juliacode}
 
-The Hamiltonian matrix size is large. The use \jlinline{eigen} method
-to solve this eigenvalue problem is not practical.
-We also do not need to solve for all eigenvalues.
-We must resort to the
-so called iterative methods.
+
+\subsection{Iterative methods for eigenvalue problem}
+
+Now that we know how to build the Laplacian matrix, we now can build the Hamiltonian
+matrix given some potential:
+\begin{juliacode}
+∇² = build_nabla2_matrix( fdgrid )
+Ham = -0.5*∇² + spdiagm( 0 => Vpot )
+\end{juliacode}
+Note that we have used sparse diagonal matrix for building the potential matrix by
+using the function \txtinline{spdiagm}.
+Our next task after building the Hamiltonian matrix is to find the eigenvalues
+and eigenfunctions.
+However, note that the Hamiltonian matrix size is large.
+For example, if we use $N_x=50$ and $N_y=50$ we will end up with a Hamiltonian
+matrix with the size of $2500$.
+The use \txtinline{eigen} method to solve this eigenvalue problem is thus not practical.
+Actually, given enough computer memory and time, we can use the function
+\txtinline{eigen} anyway
+to find the eigenvalue and eigenfunction of the Hamiltonian, however it is not recommended
+nor practical for larger problem size.
+
+Typically, we also do not need to solve for all eigenvalue and eigenfunction pairs.
+We only need to solve for several eigenpairs with lowest eigenvalues. In typical density
+functional theory calculations, we typically solve for $N_{\mathrm{electrons}}$ or
+$N_{\mathrm{electrons}}/2$ lowest states, where $N_{\mathrm{electrons}}$ is the number
+of electrons in the system.
+
+In numerical methods, there are several methods to search for several eigenpairs
+of a matrix. These methods falls into the category of \textit{partial or iterative
+diagonalization methods}. Several known methods are Lanczos method, Davidson method,
+preconditioned conjugate gradients, etc.
+
+In this short article, we will not discuss about these methods in depth.
+However, we have prepared several implementation of iterative diagonalization methods
+for your convenience:
+\begin{itemize}
+\item \txtinline{diag_Emin_PCG}
+\item \txtinline{diag_davidson}
+\item \txtinline{diag_LOBPCG}
+\end{itemize}
+
+Almost all iterative methods need a good preconditioner to function properly. In this
+talk, we will use several preconditioners that have been implemented in several packages
+in Julia such as incomplete LU and multigrid preconditioners.
+
+Here we show an example of Julia program to solve the Schroedinger equation for two
+dimensional harmonic potentials. The complete program can be found in the
+\txtinline{sch_2d/main_harmonic.jl}.
+
+\begin{juliacode}
+function pot_harmonic( fdgrid::FD2dGrid; ω=1.0 )
+    Npoints = fdgrid.Npoints
+    Vpot = zeros(Npoints)
+    for i in 1:Npoints
+        x = fdgrid.r[1,i]
+        y = fdgrid.r[2,i]
+        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
+    end
+    return Vpot
+end
+
+function main()
+    Nx = 50
+    Ny = 50
+    fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    ∇2 = build_nabla2_matrix( fdgrid )
+    Vpot = pot_harmonic( fdgrid )
+    Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
+
+    # Preconditioner based on inverse kinetic
+    prec = ilu(-0.5*∇2)
+
+    Nstates = 10
+    Npoints = Nx*Ny
+    X = rand(Float64, Npoints, Nstates)
+    ortho_sqrt!(X)
+    
+    evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
+    X = X/sqrt(fdgrid.dA) # renormalize the eigenfunctions
+
+    @printf("\n\nEigenvalues\n")
+    for i in 1:Nstates
+        @printf("%5d %18.10f\n", i, evals[i])
+    end
+end
+\end{juliacode}
+
+
+The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
+
+\begin{figure}[H]
+{\centering
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_1.pdf}\\
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_2.pdf}%
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_3.pdf}\\
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_4.pdf}%
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_5.pdf}%
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_6.pdf}\\
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_7.pdf}%
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_8.pdf}%
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_9.pdf}%
+\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_10.pdf}
+\par}
+\label{fig:harm_2d_eigenfunctions}
+\end{figure}
+
+Eigenvalues ($N_{x} = N_{y} = 50$):
+\begin{textcode}
+    1       0.9999999862
+    2       1.9999998768
+    3       1.9999999392
+    4       2.9999992436
+    5       2.9999993054
+    6       2.9999997845
+    7       3.9999973668
+    8       3.9999976649
+    9       3.9999992565
+   10       3.9999998030
+\end{textcode}
+
+
+Energy
+\begin{textcode}
+n_x + n_y + 1  &  Values of n_x and n_y
+1              &  (0,0)
+2              &  (1,0) (0,1)
+3              &  (2,0) (1,1) (1,1)
+4              &  (3,0) (0,3) (2,1) (1,2)
+\end{textcode}
+
+Energy:
+\begin{equation}
+E_{n_{x} + n_{y}} = \hbar \omega \left( n_{x} + n_{y} + 1 \right)
+\end{equation}
