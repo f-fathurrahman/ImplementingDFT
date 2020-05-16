@@ -9,11 +9,11 @@ plt.rc("text", usetex=true)
 include("init_FD1d_grid.jl")
 include("build_D2_matrix_3pt.jl")
 
-function my_gaussian(x, α=1.0)
+function my_gaussian(x; α=1.0)
     return exp(-α*x^2)
 end
 
-function d2_my_gaussian(x, α=1.0)
+function d2_my_gaussian(x; α=1.0)
     return (-2*α + 4*α^2 * x^2) * exp(-α*x^2)
 end
 
