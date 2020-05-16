@@ -334,9 +334,6 @@ where $\mathbb{V}$ is a diagonal matrix whose elements are:
 \begin{equation}
 \mathbb{V}_{ij} = V(x_{i})\delta_{ij}
 \end{equation}
-Once the Hamiltonian matrix is build, we can solve for $E$ and $\{\psi\}$ by using standard
-methods. In Julia this can be achieved by simply using the \jlinline{eigen} function
-from \jlinline{LinearAlgebra} standard library.
 
 As an example, we will start with a simple potential with known exact solution,
 namely the harmonic potential:
@@ -344,7 +341,33 @@ namely the harmonic potential:
 V(x) = \frac{1}{2}\omega^2 x^2
 \end{equation}
 
-Code to solve harmonic oscillator:
+In Julia, we can the process of building the Hamiltonian matrix is very simple
+\begin{juliacode}
+x, h = init_FD1d_grid(xmin, xmax, N) # grid points
+D2 = build_D2_matrix_3pt(N, h)       # Build 2nd derivative matrix
+Vpot = pot_harmonic.(x)              # Potential
+Ham = -0.5*D2 + diagm( 0 => Vpot )   # Hamiltonian matrix
+\end{juliacode}
+
+The function \jlinline{pot_harmonic} is a function that calculate the harmonic potential
+\begin{juliacode}
+function pot_harmonic( x; ω=1.0 )
+  return 0.5 * ω^2 * x^2
+end
+\end{juliacode}
+
+Once the Hamiltonian matrix is built, we can solve for $E$ and $\{\psi\}$ by using standard
+methods. In Julia this can be achieved by simply using the \jlinline{eigen} function
+from \jlinline{LinearAlgebra} standard library as illustrated in the following code.
+\begin{juliacode}
+evals, evecs = eigen( Ham )
+\end{juliacode}
+The values of $E$ or eigenvalues are stored in one-dimensional array \jlinline{evals}
+and the corresponding wave functions or eigenvectors are stored by column in two-dimensional
+array or matrix \jlinline{evecs}.
+
+The complete Julia program to solve the Schroedinger equation for harmonic potential
+is as follows.
 
 \begin{juliacode}
 using Printf
@@ -363,18 +386,13 @@ function pot_harmonic( x; ω=1.0 )
 end
   
 function main()
-  # Initialize the grid points
   xmin = -5.0
   xmax =  5.0
   N = 51
   x, h = init_FD1d_grid(xmin, xmax, N)
-  # Build 2nd derivative matrix
   D2 = build_D2_matrix_3pt(N, h)
-  # Potential
   Vpot = pot_harmonic.(x)
-  # Hamiltonian
   Ham = -0.5*D2 + diagm( 0 => Vpot )
-  # Solve the eigenproblem
   evals, evecs = eigen( Ham )
   # We will show the 5 lowest eigenvalues
   Nstates = 5
@@ -407,7 +425,8 @@ end
 main()
 \end{juliacode}
 
-Compare with analytical solution.
+The program shows five lowest approximate eigenvalues and their comparison with analytical or
+exact eigenvalues. A sample output from running the program is as follows.
 \begin{textcode}
 Eigenvalues
 State         Approx              Exact          Difference
@@ -418,14 +437,28 @@ State         Approx              Exact          Difference
    5       4.4481438504       4.5000000000   5.1856149551e-02 
 \end{textcode}
 
-Plot of eigenfunctions:
+The program will also plot three lowest resulting eigenvectors (wave functions) to a file.
+An example plot is show in Figure \ref{fig:wfn_harm_01_51}.
 
 \begin{figure}[H]
 {\center
 \includegraphics[scale=0.65]{../codes/sch_1d/IMG_main_harmonic_01_51.pdf}
 \par}
 \caption{Eigenstates of harmonic oscillator}
+\label{fig:wfn_harm_01_51}
 \end{figure}
+
+You can get more accurate values of eigenvalues by using higher value for grid points.
+This is the result if we use $N=81$.
+\begin{textcode}
+Eigenvalues
+State         Approx              Exact          Difference
+   1       0.4995112405       0.5000000000   4.8875946328e-04
+   2       1.4975542824       1.5000000000   2.4457175928e-03
+   3       2.4936355672       2.5000000000   6.3644328157e-03
+   4       3.4877496130       3.5000000000   1.2250387024e-02
+   5       4.4798939398       4.5000000000   2.0106060206e-02 
+\end{textcode}
 
 
 \section{Higher order finite difference}
