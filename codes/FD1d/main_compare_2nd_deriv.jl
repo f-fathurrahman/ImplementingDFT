@@ -10,6 +10,7 @@ include("build_D2_matrix_3pt.jl")
 include("build_D2_matrix_5pt.jl")
 include("build_D2_matrix_7pt.jl")
 include("build_D2_matrix_9pt.jl")
+include("build_D2_matrix_11pt.jl")
 
 function my_gaussian(x, α=1.0)
     return exp(-α*x^2)
@@ -46,12 +47,16 @@ function main()
     D2_9pt = build_D2_matrix_9pt(N, h)
     d2_fx_9pt = D2_9pt*fx
 
+    D2_11pt = build_D2_matrix_11pt(N, h)
+    d2_fx_11pt = D2_11pt*fx
+
     plot_title = latexstring("Analytic vs Finite Difference: \$N = $N\$")
     plt.clf()
-    plt.plot(x, d2_fx_3pt, label="FD-3pt", marker="o")
-    plt.plot(x, d2_fx_5pt, label="FD-5pt", marker="o")
-    plt.plot(x, d2_fx_7pt, label="FD-7pt", marker="o")
-    plt.plot(x, d2_fx_9pt, label="FD-9pt", marker="o")
+    #plt.plot(x, d2_fx_3pt, label="FD-3pt", marker="o")
+    #plt.plot(x, d2_fx_5pt, label="FD-5pt", marker="o")
+    #plt.plot(x, d2_fx_7pt, label="FD-7pt", marker="o")
+    #plt.plot(x, d2_fx_9pt, label="FD-9pt", marker="o")
+    plt.plot(x, d2_fx_11pt, label="FD-11pt", marker="o")
     plt.plot(x, d2_fx, label="analytic")
     plt.legend()
     plt.title(plot_title)
@@ -61,10 +66,11 @@ function main()
 
     plot_title = latexstring("Finite Difference - Analytic: \$N = $N\$")
     plt.clf()
-    plt.plot(x, d2_fx_3pt - d2_fx, label="FD-3pt", marker="o")
-    plt.plot(x, d2_fx_5pt - d2_fx, label="FD-5pt", marker="o")
-    plt.plot(x, d2_fx_7pt - d2_fx, label="FD-7pt", marker="o")
-    plt.plot(x, d2_fx_9pt - d2_fx, label="FD-9pt", marker="o")
+    #plt.plot(x, d2_fx_3pt - d2_fx, label="FD-3pt", marker="o")
+    #plt.plot(x, d2_fx_5pt - d2_fx, label="FD-5pt", marker="o")
+    #plt.plot(x, d2_fx_7pt - d2_fx, label="FD-7pt", marker="o")
+    #plt.plot(x, d2_fx_9pt - d2_fx, label="FD-9pt", marker="o")
+    plt.plot(x, d2_fx_11pt - d2_fx, label="FD-11pt", marker="o")
     plt.legend()
     plt.title(plot_title)
     plt.tight_layout()
@@ -77,30 +83,36 @@ function main()
     println()
 
     err = sum(abs.(d2_fx_3pt - d2_fx))/N
-    @printf("3pt avg abs err = %18.10e\n", err)
+    @printf("3pt avg abs err  = %18.10e\n", err)
 
     err = sum(abs.(d2_fx_5pt - d2_fx))/N
-    @printf("5pt avg abs err = %18.10e\n", err)
+    @printf("5pt avg abs err  = %18.10e\n", err)
 
     err = sum(abs.(d2_fx_7pt - d2_fx))/N
-    @printf("7pt avg abs err = %18.10e\n", err)
+    @printf("7pt avg abs err  = %18.10e\n", err)
 
     err = sum(abs.(d2_fx_9pt - d2_fx))/N
-    @printf("9pt avg abs err = %18.10e\n", err)
+    @printf("9pt avg abs err  = %18.10e\n", err)
+
+    err = sum(abs.(d2_fx_11pt - d2_fx))/N
+    @printf("11pt avg abs err = %18.10e\n", err)
 
     println()
 
     err = sqrt( sum( (d2_fx_3pt - d2_fx).^2 )/N )
-    @printf("3pt RMS err = %18.10e\n", err)
+    @printf("3pt RMS err  = %18.10e\n", err)
 
     err = sqrt( sum( (d2_fx_5pt - d2_fx).^2 )/N )
-    @printf("5pt RMS err = %18.10e\n", err)
+    @printf("5pt RMS err  = %18.10e\n", err)
 
     err = sqrt( sum( (d2_fx_7pt - d2_fx).^2 )/N )
-    @printf("7pt RMS err = %18.10e\n", err)
+    @printf("7pt RMS err  = %18.10e\n", err)
 
     err = sqrt( sum( (d2_fx_9pt - d2_fx).^2 )/N )
-    @printf("9pt RMS err = %18.10e\n", err)
+    @printf("9pt RMS err  = %18.10e\n", err)
+
+    err = sqrt( sum( (d2_fx_11pt - d2_fx).^2 )/N )
+    @printf("11pt RMS err = %18.10e\n", err)
 
 end
 
