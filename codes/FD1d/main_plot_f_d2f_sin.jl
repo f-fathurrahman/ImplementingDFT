@@ -39,14 +39,14 @@ function main(N::Int64)
     #D2 = build_D2_matrix_p_7pt(N, h)
     #D2 = build_D2_matrix_p_9pt(N, h)
     D2 = build_D2_matrix_p_11pt(N, h)
-    d2_fx_3pt = D2*fx
+    d2_fx = D2*fx
 
     plot_title = latexstring("\$N = $N\$")
     
     plt.clf()
     plt.plot(x, fx, marker="o", label=L"Sampled $f(x)$")
     plt.plot(x_dense, fx_dense, label=L"f(x)")
-    plt.plot(x, d2_fx_3pt, marker="o", label=L"Approx $f''(x)$")
+    plt.plot(x, d2_fx, marker="o", label=L"Approx $f''(x)$")
     plt.plot(x_dense, d2_fx_dense, label=L"f''(x)")
     plt.legend()
     plt.grid()
