@@ -2,3 +2,183 @@
 
 Using local potential only
 
+\section{Hartree calculation}
+Ignoring the XC potential.
+
+We will introduce self-consistent field (SCF) method.
+
+New data structure: Hamiltonian
+
+\begin{juliacode}
+mutable struct Hamiltonian
+    fdgrid::FD3dGrid
+    Laplacian::SparseMatrixCSC{Float64,Int64}
+    V_Ps_loc::Vector{Float64}
+    V_Hartree::Vector{Float64}
+    rhoe::Vector{Float64}
+    precKin
+    precLaplacian
+end
+\end{juliacode}
+
+\begin{juliacode}
+function Hamiltonian( fdgrid::FD3dGrid, ps_loc_func::Function; func_1d=build_D2_matrix_5pt )
+    
+    Laplacian = build_nabla2_matrix( fdgrid, func_1d=func_1d )
+    
+    V_Ps_loc = ps_loc_func( fdgrid )
+    Npoints = fdgrid.Npoints
+    
+    V_Hartree = zeros(Float64, Npoints)
+
+    Rhoe = zeros(Float64, Npoints)
+
+    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+    precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
+    
+    return Hamiltonian( fdgrid, Laplacian, V_Ps_loc, V_Hartree, Rhoe, precKin, precLaplacian )
+end
+\end{juliacode}
+
+
+\begin{juliacode}
+import Base: *
+function *( Ham::Hamiltonian, psi::Matrix{Float64} )
+    Nbasis = size(psi,1)
+    Nstates = size(psi,2)
+    Hpsi = zeros(Float64,Nbasis,Nstates)
+    # include occupation number factor
+    Hpsi = -0.5*Ham.Laplacian * psi #* 2.0
+    for ist in 1:Nstates, ip in 1:Nbasis
+        Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] ) * psi[ip,ist]
+    end
+    return Hpsi
+end
+\end{juliacode}
+
+\begin{juliacode}
+function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
+    Ham.rhoe[:] = Rhoe[:]
+    Ham.V_Hartree = Poisson_solve_PCG( Ham.Laplacian, Ham.precLaplacian, -4*pi*Rhoe, 1000, verbose=false, TOL=1e-10 )
+    return
+end
+\end{juliacode}
+
+Calculate electron density:
+\begin{juliacode}
+function calc_rhoe( psi::Array{Float64,2} )
+    Nbasis = size(psi,1)
+    Nstates = size(psi,2)
+    Rhoe = zeros(Float64,Nbasis)
+    for ist in 1:Nstates
+        for ip in 1:Nbasis
+            Rhoe[ip] = Rhoe[ip] + 2.0*psi[ip,ist]*psi[ip,ist]
+        end
+    end
+    return Rhoe
+end
+\end{juliacode}
+
+Calculate energy terms:
+\begin{juliacode}
+mutable struct Energies
+    Kinetic::Float64
+    Ps_loc::Float64
+    Hartree::Float64
+end
+
+import Base: sum
+function sum( ene::Energies )
+    return ene.Kinetic + ene.Ps_loc + ene.Hartree
+end
+
+function calc_E_kin( Ham, psi::Array{Float64,2} )
+    Nbasis = size(psi,1)
+    Nstates = size(psi,2)
+    E_kin = 0.0
+    nabla2psi = zeros(Float64,Nbasis)
+    dVol = Ham.fdgrid.dVol
+    # Assumption: Focc = 2 for all states
+    for ist in 1:Nstates
+        @views nabla2psi = -0.5*Ham.Laplacian*psi[:,ist]
+        E_kin = E_kin + 2.0*dot( psi[:,ist], nabla2psi[:] )*dVol
+    end
+    return E_kin
+end
+
+function calc_energies( Ham::Hamiltonian, psi::Array{Float64,2} )
+    dVol = Ham.fdgrid.dVol
+    E_kin = calc_E_kin( Ham, psi )
+    E_Ps_loc = sum( Ham.V_Ps_loc .* Ham.rhoe )*dVol
+    E_Hartree = 0.5*sum( Ham.V_Hartree .* Ham.rhoe )*dVol
+
+    return Energies(E_kin, E_Ps_loc, E_Hartree)
+end
+\end{juliacode}
+
+Self-consisten field:
+\begin{juliacode}
+function pot_harmonic( fdgrid::FD3dGrid; ω=1.0, center=[0.0, 0.0, 0.0] )
+    Npoints = fdgrid.Npoints
+    Vpot = zeros(Npoints)
+    for i in 1:Npoints
+        x = fdgrid.r[1,i] - center[1]
+        y = fdgrid.r[2,i] - center[2]
+        z = fdgrid.r[3,i] - center[3]
+        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 + z^2 )
+    end
+    return Vpot
+end
+
+function main()
+    AA = [-3.0, -3.0, -3.0]
+    BB = [3.0, 3.0, 3.0]
+    NN = [25, 25, 25]
+
+    fdgrid = FD3dGrid( NN, AA, BB )
+    my_pot_harmonic( fdgrid ) = pot_harmonic( fdgrid, ω=2 )
+    Ham = Hamiltonian( fdgrid, my_pot_harmonic, func_1d=build_D2_matrix_9pt )
+
+    Nbasis = prod(NN)
+    dVol = fdgrid.dVol
+    Nstates = 4
+    psi = rand(Float64,Nbasis,Nstates)
+    ortho_sqrt!(psi)
+    psi = psi/sqrt(dVol)
+
+    Rhoe = calc_rhoe( psi )
+    @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
+    update!( Ham, Rhoe )
+
+    evals = zeros(Float64,Nstates)
+    Etot_old = 0.0
+    dEtot = 0.0
+    betamix = 0.5
+    dRhoe = 0.0
+    NiterMax = 100
+
+    for iterSCF in 1:NiterMax
+        evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=true )
+        psi = psi/sqrt(dVol)
+        Rhoe_new = calc_rhoe( psi )
+        @printf("Integrated Rhoe_new = %18.10f\n", sum(Rhoe_new)*dVol)
+        Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        @printf("Integrated Rhoe     = %18.10f\n", sum(Rhoe)*dVol)
+        update!( Ham, Rhoe )
+        Etot = sum( calc_energies( Ham, psi ) )
+        dRhoe = norm(Rhoe - Rhoe_new)
+        dEtot = abs(Etot - Etot_old)
+        @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
+        if dEtot < 1e-6
+            @printf("Convergence is achieved in %d iterations\n", iterSCF)
+            for i in 1:Nstates
+                @printf("%3d %18.10f\n", i, evals[i])
+            end
+            break
+        end
+
+        Etot_old = Etot
+    end
+end
+\end{juliacode}
+

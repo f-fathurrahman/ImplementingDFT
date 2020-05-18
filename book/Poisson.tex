@@ -1,10 +1,128 @@
 \chapter{Numerical solution of Poisson equation}
 
-We will turn our attention to the Poisson equation:
+In this section we will discuss a second type of equation
+that is important in solving Kohn-Sham equation,
+namely the Poisson equation. In the
+context of solving Kohn-Sham equation, Poisson equation is used to
+calculate classical electrostatic potential due to some electronic
+charge density.
+The Poisson equation that we will solve have the following form:
 \begin{equation}
-\nabla^2 V_{H}(\mathbf{r}) = 4\pi\rho(\mathbf{r})
+\nabla^2 V_{\mathrm{Ha}}(\mathbf{r}) = -4\pi\rho(\mathbf{r})
+\label{eq:poisson_3d}
 \end{equation}
+where $\rho(\mathbf{r})$ is the electronic density. Using finite
+difference discretization for the operator $\nabla^2$ we end up with
+the following linear equation:
+\begin{equation}
+\mathbb{L} \mathbf{V} = \mathbf{f}
+\label{eq:linear_eq_poisson}
+\end{equation}
+where $\mathbb{L}$ is the matrix representation of the Laplacian operator
+$\mathbf{f}$ is the discrete representation of the right hand side of the equation
+\ref{eq:poisson_3d}, and the unknown $\mathbf{V}$ is the discrete representation of
+the Hartree potential.
 
-Introduction to conjugate gradient problem
+There exist several methods for solving the linear equation \ref{eq:linear_eq_poisson}.
+We will use the so-called conjugate gradient method for solving this equation.
+This method is an iterative method, so it generally needs a good preconditioner to
+achieve good convergence. A detailed derivation about the algorithm is beyond this
+article and the readers are referred to several existing literatures \cite{Hestenes1952,Shewchuk1994}
+and a webpage \cite{wiki-Conjugate-gradient} for more
+information. The algorithm is described in \txtinline{Poisson_solve_PCG.jl}
 
-3d dimensional problem
+\begin{juliacode}
+function Poisson_solve_PCG( Lmat::SparseMatrixCSC{Float64,Int64},
+                            prec,
+                            f::Array{Float64,1}, NiterMax::Int64;
+                            TOL=5.e-10 )
+  Npoints = size(f,1)
+  phi = zeros( Float64, Npoints )
+  r = zeros( Float64, Npoints )
+  p = zeros( Float64, Npoints )
+  z = zeros( Float64, Npoints )
+  nabla2_phi = Lmat*phi
+  r = f - nabla2_phi
+  z = copy(r)
+  ldiv!(prec, z)
+  p = copy(z)
+  rsold = dot( r, z )
+  for iter = 1 : NiterMax
+    nabla2_phi = Lmat*p
+    alpha = rsold/dot( p, nabla2_phi )
+    phi = phi + alpha * p
+    r = r - alpha * nabla2_phi
+    z = copy(r)
+    ldiv!(prec, z)
+    rsnew = dot(z, r)
+    deltars = rsold - rsnew
+    if sqrt(abs(rsnew)) < TOL
+      break
+    end
+    p = z + (rsnew/rsold) * p
+    rsold = rsnew
+  end
+  return phi
+end
+\end{juliacode}
+
+To test our implementation we will adopt a problem given in Prof. Arias Practical
+DFT mini-course \cite{practical-DFT-mini-course}.
+In this problem we will solve Poisson equation for a given charge density built from
+superposition of two Gaussian charge density:
+\begin{equation}
+\rho(\mathbf{r}) = \frac{1}{(2\pi\sigma_{1}^{2})^{\frac{3}{2}}} \exp\left( -\frac{\mathbf{r}^2}{2\sigma_{1}^{2}} \right)
+- \frac{1}{(2\pi\sigma_{2}^{2})^{\frac{3}{2}}} \exp\left( -\frac{\mathbf{r}^2}{2\sigma_{2}^{2}} \right)
+\end{equation}
+After we obtain $V_{\mathrm{Ha}}(\mathbf{r})$, we calculate the Hartree energy:
+\begin{equation}
+E_{\mathrm{Ha}} = \frac{1}{2} \int \rho(\mathbf{r}) V_{\mathrm{Ha}}(\mathbf{r})\,\mathrm{d}\mathbf{r}
+\end{equation}
+and compare the result with the analytical formula.
+
+\begin{juliacode}
+function test_main( NN::Array{Int64} )
+  AA = [0.0, 0.0, 0.0]
+  BB = [16.0, 16.0, 16.0]
+  # Initialize grid
+  FD = FD3dGrid( NN, AA, BB )
+  # Box dimensions
+  Lx = BB[1] - AA[1]
+  Ly = BB[2] - AA[2]
+  Lz = BB[3] - AA[3]
+  # Center of the box
+  x0 = Lx/2.0
+  y0 = Ly/2.0
+  z0 = Lz/2.0
+  # Parameters for two gaussian functions
+  sigma1 = 0.75 
+  sigma2 = 0.50
+
+  Npoints = FD.Nx * FD.Ny * FD.Nz
+  rho = zeros(Float64, Npoints)
+  phi = zeros(Float64, Npoints)
+  # Initialization of charge density
+  dr = zeros(Float64,3)
+  for ip in 1:Npoints
+    dr[1] = FD.r[1,ip] - x0
+    dr[2] = FD.r[2,ip] - y0
+    dr[3] = FD.r[3,ip] - z0
+    r = norm(dr)
+    rho[ip] = exp( -r^2 / (2.0*sigma2^2) ) / (2.0*pi*sigma2^2)^1.5 -
+              exp( -r^2 / (2.0*sigma1^2) ) / (2.0*pi*sigma1^2)^1.5
+  end
+  deltaV = FD.hx * FD.hy * FD.hz
+  Laplacian3d = build_nabla2_matrix( FD, func_1d=build_D2_matrix_9pt )
+  prec = aspreconditioner(ruge_stuben(Laplacian3d))
+  @printf("Test norm charge: %18.10f\n", sum(rho)*deltaV)
+  print("Solving Poisson equation:\n")
+  phi = Poisson_solve_PCG( Laplacian3d, prec, -4*pi*rho, 1000, verbose=true, TOL=1e-10 )
+  # Calculation of Hartree energy
+  Unum = 0.5*sum( rho .* phi ) * deltaV
+  Uana = ((1.0/sigma1 + 1.0/sigma2 )/2.0 - sqrt(2.0)/sqrt(sigma1^2 + sigma2^2))/sqrt(pi)
+  @printf("Numeric  = %18.10f\n", Unum)
+  @printf("Uana     = %18.10f\n", Uana)
+  @printf("abs diff = %18.10e\n", abs(Unum-Uana))
+end
+test_main([64,64,64])
+\end{juliacode}
