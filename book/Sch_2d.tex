@@ -317,9 +317,8 @@ In numerical methods, there are several methods to search for several eigenpairs
 of a matrix. These methods falls into the category of \textit{partial or iterative
 diagonalization methods}. Several known methods are Lanczos method, Davidson method,
 preconditioned conjugate gradients, etc.
-
-In this short article, we will not discuss about these methods in depth.
-However, we have prepared several implementation of iterative diagonalization methods
+The discussion about these methods are deferred to Appendix XXX.
+We have prepared several implementation of iterative diagonalization methods
 for your convenience:
 \begin{itemize}
 \item \txtinline{diag_Emin_PCG}
@@ -327,14 +326,32 @@ for your convenience:
 \item \txtinline{diag_LOBPCG}
 \end{itemize}
 
-Almost all iterative methods need a good preconditioner to function properly. In this
-talk, we will use several preconditioners that have been implemented in several packages
-in Julia such as incomplete LU and multigrid preconditioners.
+These functions have similar function signatures. An example of \jlinline{diag_LOBPCG}
+is given below.
+\begin{juliacode}
+function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
+                       tol=1e-5, NiterMax=100, verbose=false,
+                       verbose_last=false, Nstates_conv=0 )
+\end{juliacode}
+The function accepts three mandatory arguments:
+\begin{itemize}
+\item \jlinline{Ham}: the Hamiltonian matrix
+\item \jlinline{X::Array{Float64,2}}: initial guess of eigenfunctions
+\item \jlinline{prec}: the preconditioner
+\end{itemize}
 
-Here we show an example of Julia program to solve the Schroedinger equation for two
-dimensional harmonic potentials. The complete program can be found in the
-\txtinline{sch_2d/main_harmonic.jl}.
+Almost all iterative methods need a good preconditioner to function properly.
+We will use several ready-to-use preconditioners that have been implemented
+in several packages in Julia such as incomplete LU and multigrid preconditioners.
 
+\section{2d harmonic potential}
+
+We will test our implementation for solving Schroedinger equation for two
+dimensional harmonic potentials:
+\begin{equation}
+V(x,y) = \frac{1}{2} \omega^2 (x^2 + y^2)
+\end{equation}
+This potential can be implemented in the following Julia code.
 \begin{juliacode}
 function pot_harmonic( fdgrid::FD2dGrid; ω=1.0 )
   Npoints = fdgrid.Npoints
@@ -346,7 +363,26 @@ function pot_harmonic( fdgrid::FD2dGrid; ω=1.0 )
   end
   return Vpot
 end
+\end{juliacode}
 
+Energy eigenvalues:
+\begin{textcode}
+n_x + n_y + 1  &  Values of n_x and n_y
+1              &  (0,0)
+2              &  (1,0) (0,1)
+3              &  (2,0) (1,1) (1,1)
+4              &  (3,0) (0,3) (2,1) (1,2)
+\end{textcode}
+
+Energy:
+\begin{equation}
+E_{n_{x} + n_{y}} = \hbar \omega \left( n_{x} + n_{y} + 1 \right)
+\end{equation}
+
+The complete program can be found in the file \txtinline{sch_2d/main_harmonic.jl}.
+Here we show the main function of the program.
+%
+\begin{juliacode}
 function main()
   Nx = 50
   Ny = 50
@@ -373,6 +409,35 @@ function main()
 end
 \end{juliacode}
 
+Eigenvalues ($N_{x} = N_{y} = 50$) (using 3pt):
+\begin{textcode}
+    Eigenvalues
+    1       0.9973901176
+    2       1.9921565440
+    3       1.9921566198
+    4       2.9816542867
+    5       2.9816544298
+    6       2.9869229641
+    7       3.9658411776
+    8       3.9658416551
+    9       3.9764210096
+   10       3.9764216828
+\end{textcode}
+
+Eigenvalues ($N_{x} = N_{y} = 50$) (using 9pt):
+\begin{textcode}
+    Eigenvalues
+    1       0.9999999862
+    2       1.9999998768
+    3       1.9999999392
+    4       2.9999992436
+    5       2.9999993054
+    6       2.9999997845
+    7       3.9999973668
+    8       3.9999976649
+    9       3.9999992565
+   10       3.9999998030
+\end{textcode}
 
 The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 
@@ -392,31 +457,4 @@ The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 \label{fig:harm_2d_eigenfunctions}
 \end{figure}
 
-Eigenvalues ($N_{x} = N_{y} = 50$):
-\begin{textcode}
-    1       0.9999999862
-    2       1.9999998768
-    3       1.9999999392
-    4       2.9999992436
-    5       2.9999993054
-    6       2.9999997845
-    7       3.9999973668
-    8       3.9999976649
-    9       3.9999992565
-   10       3.9999998030
-\end{textcode}
-
-
-Energy
-\begin{textcode}
-n_x + n_y + 1  &  Values of n_x and n_y
-1              &  (0,0)
-2              &  (1,0) (0,1)
-3              &  (2,0) (1,1) (1,1)
-4              &  (3,0) (0,3) (2,1) (1,2)
-\end{textcode}
-
-Energy:
-\begin{equation}
-E_{n_{x} + n_{y}} = \hbar \omega \left( n_{x} + n_{y} + 1 \right)
-\end{equation}
+TODO: degenerate states.
