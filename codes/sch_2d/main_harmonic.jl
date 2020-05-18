@@ -28,7 +28,7 @@ function main()
     Ny = 50
     fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
 
-    ∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_9pt )
+    ∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_11pt )
 
     Vpot = pot_harmonic( fdgrid )
     
@@ -51,20 +51,19 @@ function main()
         @printf("%5d %18.10f\n", i, evals[i])
     end
 
-    for i in 1:Nstates
-        #plt.clf()
-        #plt.surf(fdgrid.x, fdgrid.y, reshape(X[:,i], fdgrid.Nx, fdgrid.Ny), cmap=:jet)
-        #plt.tight_layout()
-        #plt.savefig("IMG_harmonic_psi_"*string(i)*".pdf")
-
-        ρ = X[:,i].*X[:,i]
-        plt.clf()
-        plt.contourf(fdgrid.x, fdgrid.y, reshape(ρ, fdgrid.Nx, fdgrid.Ny), cmap=:jet)
-        plt.axis("equal")
-        plt.tight_layout()
-        plt.savefig("IMG_harmonic_rho_"*string(i)*".png", dpi=150)
-
-    end
+    #for i in 1:Nstates
+    #    #plt.clf()
+    #    #plt.surf(fdgrid.x, fdgrid.y, reshape(X[:,i], fdgrid.Nx, fdgrid.Ny), cmap=:jet)
+    #    #plt.tight_layout()
+    #    #plt.savefig("IMG_harmonic_psi_"*string(i)*".pdf")
+#        ρ = X[:,i].*X[:,i]
+#        plt.clf()
+#        plt.contourf(fdgrid.x, fdgrid.y, reshape(ρ, fdgrid.Nx, fdgrid.Ny), cmap=:jet)
+#        plt.axis("equal")
+#        plt.tight_layout()
+#        plt.savefig("IMG_harmonic_rho_"*string(i)*".png", dpi=150)
+#
+#    end
 
 end
 
