@@ -10,7 +10,7 @@ function init_LF1d_sinc_grid(h::Float64, N::Int64)
     return x
 end
 
-function init_LF1d_sinc_grid(x_min::Float64, x_max::Float64, N::Int64)
+function init_LF1d_sinc_grid( x_min::Float64, x_max::Float64, N::Int64 )
     @assert x_min < 0.0
     @assert x_max > 0.0
     @assert abs(x_min) ≈ x_max
@@ -21,3 +21,5 @@ function init_LF1d_sinc_grid(x_min::Float64, x_max::Float64, N::Int64)
     end
     return x, h
 end
+
+init_LF1d_sinc_grid( X, N ) = init_LF1d_sinc_grid( X[1], X[2], N )
