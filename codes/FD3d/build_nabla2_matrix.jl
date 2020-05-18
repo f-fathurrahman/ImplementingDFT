@@ -2,6 +2,7 @@ include("../FD1d/build_D2_matrix_3pt.jl")
 include("../FD1d/build_D2_matrix_5pt.jl")
 include("../FD1d/build_D2_matrix_7pt.jl")
 include("../FD1d/build_D2_matrix_9pt.jl")
+include("../FD1d/build_D2_matrix_11pt.jl")
 
 const ⊗ = kron
 

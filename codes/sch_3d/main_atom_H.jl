@@ -53,19 +53,19 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 50
-    Ny = 50
-    Nz = 50
-    fdgrid = FD3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz )
+    Nx = 60
+    Ny = 60
+    Nz = 60
+    A = 6.0
+    fdgrid = FD3dGrid( (-A,A), Nx, (-A,A), Ny, (-A,A), Nz )
 
-    ∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_9pt )
+    ∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_11pt )
 
-    #Vpot = pot_H_atom( fdgrid )
-    Vpot = pot_Hps_HGH( fdgrid )
+    Vpot = pot_H_atom( fdgrid )
+    #Vpot = pot_Hps_HGH( fdgrid )
 
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
-    # may choose between these two
     println("Building preconditioner")
     prec = aspreconditioner(ruge_stuben(Ham))
     println("Done building preconditioner")
