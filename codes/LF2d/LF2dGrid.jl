@@ -1,7 +1,10 @@
 include("../LF1d/init_LF1d_c_grid.jl")
+include("../LF1d/init_LF1d_sinc_grid.jl")
 
 struct LF2dGrid
     Npoints::Int64
+    type_x::Symbol
+    type_y::Symbol
     #
     Lx::Float64
     Ly::Float64
@@ -26,11 +29,25 @@ function LF2dGrid(
     x_domain::Tuple{Float64,Float64},
     Nx::Int64,
     y_domain::Tuple{Float64,Float64},
-    Ny::Int64
+    Ny::Int64;
+    type_x=:C, type_y=:C
 )
 
-    x, hx = init_LF1d_c_grid(x_domain, Nx)
-    y, hy = init_LF1d_c_grid(y_domain, Ny)
+    if type_x == :C
+        x, hx = init_LF1d_c_grid(x_domain, Nx)
+    elseif type_x == :sinc
+        x, hx = init_LF1d_sinc_grid(x_domain, Nx)
+    else
+        error("Unsupported type_x = ", type_x)
+    end
+
+    if type_y == :C
+        y, hy = init_LF1d_c_grid(y_domain, Ny)
+    elseif type_y == :sinc
+        y, hy = init_LF1d_sinc_grid(y_domain, Ny)
+    else
+        error("Unsupported type_y = ", type_y)
+    end
 
     Lx = x_domain[2] - x_domain[1]
     Ly = y_domain[2] - y_domain[1]
@@ -53,7 +70,8 @@ function LF2dGrid(
         end
     end
     
-    return LF2dGrid(Npoints, Lx, Ly, Nx, Ny, hx, hy, dA, x, y, r, idx_ip2xy, idx_xy2ip)
+    return LF2dGrid( Npoints, type_x, type_y, Lx, Ly, Nx, Ny, hx, hy, dA,
+        x, y, r, idx_ip2xy, idx_xy2ip )
     
 end
 
