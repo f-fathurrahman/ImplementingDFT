@@ -163,6 +163,9 @@ function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
         end  # if nlock 
 
         iter = iter + 1
+
+        if verbose flush(stdout) end
+    
     end
 
     if !IS_CONVERGED && verbose
