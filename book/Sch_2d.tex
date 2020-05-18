@@ -202,17 +202,23 @@ The following function illustrates the above approach to construct matrix
 representation of the Laplacian operator.
 \begin{juliacode}
 function build_nabla2_matrix( fdgrid::FD2dGrid; func_1d=build_D2_matrix_3pt )
-    Nx = fdgrid.Nx
-    hx = fdgrid.hx
-    Ny = fdgrid.Ny
-    hy = fdgrid.hy
+  Nx = fdgrid.Nx
+  hx = fdgrid.hx
+  Ny = fdgrid.Ny
+  hy = fdgrid.hy
     
-    D2x = func_1d(Nx, hx)
-    D2y = func_1d(Ny, hy)
+  D2x = func_1d(Nx, hx)
+  D2y = func_1d(Ny, hy)
 
-    ∇² = kron(D2x, speye(Ny)) + kron(speye(Nx), D2y)
-    return ∇²
+  ∇2 = kron(D2x, speye(Ny)) + kron(speye(Nx), D2y)
+  return ∇2
 end
+\end{juliacode}
+
+The standard Julia library does not include definition for \jlinline{speye} function
+but it can be implemented by the following definition.
+\begin{juliacode}
+speye(N::Int64) = sparse( Matrix(1.0I, N, N) )
 \end{juliacode}
 
 In the Figure \ref{fig:fd_gaussian_2d}, an example to the approximation of 2nd derivative
@@ -239,7 +245,7 @@ const plt = PyPlot
     
 include("FD2dGrid.jl")
 include("build_nabla2_matrix.jl")
-include("../common/supporting_functions.jl")
+include("supporting_functions.jl")
     
 function my_gaussian( fdgrid::FD2dGrid; α=1.0 )
   Npoints = fdgrid.Npoints
@@ -284,8 +290,8 @@ main()
 Now that we know how to build the Laplacian matrix, we now can build the Hamiltonian
 matrix given some potential:
 \begin{juliacode}
-∇² = build_nabla2_matrix( fdgrid )
-Ham = -0.5*∇² + spdiagm( 0 => Vpot )
+∇2 = build_nabla2_matrix( fdgrid )
+Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 \end{juliacode}
 Note that we have used sparse diagonal matrix for building the potential matrix by
 using the function \txtinline{spdiagm}.
@@ -294,15 +300,16 @@ and eigenfunctions.
 However, note that the Hamiltonian matrix size is large.
 For example, if we use $N_x=50$ and $N_y=50$ we will end up with a Hamiltonian
 matrix with the size of $2500$.
-The use \txtinline{eigen} method to solve this eigenvalue problem is thus not practical.
+The use of \txtinline{eigen} method, as we have done in the 1d case,
+to solve this eigenvalue problem is thus not practical.
 Actually, given enough computer memory and time, we can use the function
-\txtinline{eigen} anyway
-to find the eigenvalue and eigenfunction of the Hamiltonian, however it is not recommended
+\txtinline{eigen} anyway to find all eigenvalue and eigenfunction pairs of
+the Hamiltonian, however it is not recommended
 nor practical for larger problem size.
 
-Typically, we also do not need to solve for all eigenvalue and eigenfunction pairs.
-We only need to solve for several eigenpairs with lowest eigenvalues. In typical density
-functional theory calculations, we typically solve for $N_{\mathrm{electrons}}$ or
+Typically, we do not need to solve for all eigenvalue and eigenfunction pairs.
+We only need to solve for several eigenpairs with lowest eigenvalues. In a typical density
+functional theory calculations, we only need to solve for $N_{\mathrm{electrons}}$ or
 $N_{\mathrm{electrons}}/2$ lowest states, where $N_{\mathrm{electrons}}$ is the number
 of electrons in the system.
 
@@ -330,39 +337,39 @@ dimensional harmonic potentials. The complete program can be found in the
 
 \begin{juliacode}
 function pot_harmonic( fdgrid::FD2dGrid; ω=1.0 )
-    Npoints = fdgrid.Npoints
-    Vpot = zeros(Npoints)
-    for i in 1:Npoints
-        x = fdgrid.r[1,i]
-        y = fdgrid.r[2,i]
-        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
-    end
-    return Vpot
+  Npoints = fdgrid.Npoints
+  Vpot = zeros(Npoints)
+  for i in 1:Npoints
+    x = fdgrid.r[1,i]
+    y = fdgrid.r[2,i]
+    Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
+  end
+  return Vpot
 end
 
 function main()
-    Nx = 50
-    Ny = 50
-    fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
-    ∇2 = build_nabla2_matrix( fdgrid )
-    Vpot = pot_harmonic( fdgrid )
-    Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
+  Nx = 50
+  Ny = 50
+  fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+  ∇2 = build_nabla2_matrix( fdgrid )
+  Vpot = pot_harmonic( fdgrid )
+  Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
-    # Preconditioner based on inverse kinetic
-    prec = ilu(-0.5*∇2)
+  # Preconditioner based on inverse kinetic
+  prec = ilu(-0.5*∇2)
 
-    Nstates = 10
-    Npoints = Nx*Ny
-    X = rand(Float64, Npoints, Nstates)
-    ortho_sqrt!(X)
+  Nstates = 10
+  Npoints = Nx*Ny
+  X = rand(Float64, Npoints, Nstates)
+  ortho_sqrt!(X)
     
-    evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
-    X = X/sqrt(fdgrid.dA) # renormalize the eigenfunctions
+  evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
+  X = X/sqrt(fdgrid.dA) # renormalize the eigenfunctions
 
-    @printf("\n\nEigenvalues\n")
-    for i in 1:Nstates
-        @printf("%5d %18.10f\n", i, evals[i])
-    end
+  @printf("\n\nEigenvalues\n")
+  for i in 1:Nstates
+    @printf("%5d %18.10f\n", i, evals[i])
+  end
 end
 \end{juliacode}
 
