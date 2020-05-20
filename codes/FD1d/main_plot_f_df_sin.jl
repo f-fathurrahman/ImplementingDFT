@@ -8,6 +8,10 @@ plt.rc("text", usetex=true)
 
 include("init_FD1d_p_grid.jl")
 include("build_D1_matrix_p_3pt.jl")
+include("build_D1_matrix_p_5pt.jl")
+include("build_D1_matrix_p_7pt.jl")
+include("build_D1_matrix_p_9pt.jl")
+include("build_D1_matrix_p_11pt.jl")
 
 function my_sin(x; ω=1.0)
     return sin(ω*x)
@@ -30,7 +34,11 @@ function main(N::Int64)
     fx_dense = my_sin.(x_dense, ω=ω)
     d1_fx_dense = d1_my_sin.(x_dense, ω=ω)
     
-    D1 = build_D1_matrix_p_3pt(N, h)
+    #D1 = build_D1_matrix_p_3pt(N, h)
+    #D1 = build_D1_matrix_p_5pt(N, h)
+    #D1 = build_D1_matrix_p_7pt(N, h)
+    #D1 = build_D1_matrix_p_9pt(N, h)
+    D1 = build_D1_matrix_p_11pt(N, h)
     d1_fx = D1*fx
 
     plot_title = latexstring("\$N = $N\$")
@@ -47,5 +55,5 @@ function main(N::Int64)
 
 end
 
-#main(15)
-main(51)
+main(15)
+#main(51)
