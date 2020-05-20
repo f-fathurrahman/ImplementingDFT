@@ -51,7 +51,7 @@ function main(N::Int64)
     plt.legend()
     plt.grid()
     plt.title(plot_title)
-    plt.savefig("IMG_sin_"*string(N)*".pdf")
+    plt.savefig("IMG_sin_df_"*string(N)*".pdf")
 
 end
 
