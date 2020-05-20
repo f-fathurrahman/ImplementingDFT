@@ -7,8 +7,8 @@ using SpecialFunctions
 
 using MyModule
 
-function pot_Hps_HGH( fdgrid, center )
-    Npoints = fdgrid.Npoints
+function pot_Hps_HGH( grid, center )
+    Npoints = grid.Npoints
     Vpot = zeros( Float64, Npoints )
 
     # Parameters
@@ -19,7 +19,7 @@ function pot_Hps_HGH( fdgrid, center )
 
     # TODO Add journal reference
     for ip = 1:Npoints
-        r = norm( fdgrid.r[:,ip] - center[:] )
+        r = norm( grid.r[:,ip] - center[:] )
         if r < eps()
             Vpot[ip] = -2*Zval/(sqrt(2*pi)*rloc) + C1
         else
@@ -31,6 +31,24 @@ function pot_Hps_HGH( fdgrid, center )
     return Vpot
 end
 
+function calc_E_NN( Zvals::Array{Float64,1}, r::Array{Float64,2} )
+    Natoms = length(Zvals)
+    @assert Natoms == size(r,2)
+
+    E_NN = 0.0
+    for ia in 1:Natoms
+        for ja in ia+1:Natoms
+            dx = r[1,ja] - r[1,ia]
+            dy = r[2,ja] - r[2,ia]
+            dz = r[3,ja] - r[3,ia]
+            r_ij = sqrt(dx^2 + dy^2 + dz^2)
+            E_NN = E_NN + Zvals[ia]*Zvals[ja]/r_ij
+        end
+    end
+
+    return E_NN
+end
+
 function main()
     Random.seed!(1234)
 
@@ -38,23 +56,30 @@ function main()
     BB =  8.0*ones(3)
     NN = [50, 50, 50]
 
-    fdgrid = FD3dGrid( NN, AA, BB )
+    grid = FD3dGrid( NN, AA, BB )
 
-    println("hx = ", fdgrid.hx)
-    println("hy = ", fdgrid.hy)
-    println("hz = ", fdgrid.hz)
-    println("dVol = ", fdgrid.dVol)
-    println(fdgrid.hx*fdgrid.hy*fdgrid.hz)
+    println("hx = ", grid.hx)
+    println("hy = ", grid.hy)
+    println("hz = ", grid.hz)
+    println("dVol = ", grid.dVol)
+    println(grid.hx*grid.hy*grid.hz)
 
-    my_pot_local( fdgrid ) = pot_Hps_HGH(fdgrid, 1e-9*ones(3))
+
+    r_1 = [ 0.75, 0.0, 0.0]
+    Vion_1 = pot_Hps_HGH(grid, r_1)
+    
+    r_2 = [-0.75, 0.0, 0.0]
+    Vion_2 = pot_Hps_HGH(grid, r_2)
+    
+    my_pot_local = Vion_1 .+ Vion_2
 
     Nstates = 1
-    Nelectrons = 1
-    Ham = Hamiltonian( fdgrid, my_pot_local, Nelectrons=1, func_1d=build_D2_matrix_11pt )
+    Nelectrons = 2
+    Ham = Hamiltonian( grid, my_pot_local, Nelectrons=Nelectrons, func_1d=build_D2_matrix_9pt )
 
     Nbasis = prod(NN)
 
-    dVol = fdgrid.dVol
+    dVol = grid.dVol
 
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi)
@@ -79,6 +104,12 @@ function main()
     betamix = 0.5
     dRhoe = 0.0
     NiterMax = 100
+
+    Natoms = 2
+    r = zeros(3,Natoms)
+    r[:,1] = r_1[:]
+    r[:,2] = r_2[:]
+    Ham.energies.NN = calc_E_NN( [1.0, 1.0], r )
 
     for iterSCF in 1:NiterMax
 

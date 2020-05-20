@@ -21,5 +21,5 @@ function calc_energies!( Ham::Hamiltonian, psi::Array{Float64,2} )
     Ham.energies.Hartree = 0.5*sum( Ham.V_Hartree .* Ham.rhoe )*dVol
     Ham.energies.XC = sum( excVWN(Ham.rhoe) .* Ham.rhoe )*dVol
 
-    return !
+    return
 end

@@ -15,7 +15,8 @@ export build_nabla2_matrix
 export build_D2_matrix_3pt,
        build_D2_matrix_5pt,
        build_D2_matrix_7pt,
-       build_D2_matrix_9pt
+       build_D2_matrix_9pt,
+       build_D2_matrix_11pt
 
 include("../common/diag_Emin_PCG.jl")
 include("../common/diag_davidson.jl")

@@ -40,6 +40,36 @@ function Hamiltonian( fdgrid::FD3dGrid, ps_loc_func::Function;
                         Rhoe, precKin, precLaplacian, energies )
 end
 
+"""
+Build a Hamiltonian with given FD grid and local potential.
+"""
+function Hamiltonian( fdgrid::FD3dGrid, V_loc_func::Array{Float64,1};
+    Nelectrons=2, Nstates_extra=0,
+    func_1d=build_D2_matrix_5pt
+)
+
+    Laplacian = build_nabla2_matrix( fdgrid, func_1d=func_1d )
+    V_Ps_loc = V_loc_func
+
+    Npoints = fdgrid.Npoints
+    V_Hartree = zeros(Float64, Npoints)
+
+    V_XC = zeros(Float64, Npoints)
+    Rhoe = zeros(Float64, Npoints)
+
+    @printf("Building preconditioners ...")
+    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+    precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
+    @printf("... done\n")
+
+    electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
+
+    energies = Energies()
+    return Hamiltonian( fdgrid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
+                        Rhoe, precKin, precLaplacian, energies )
+end
+
+
 import Base: *
 function *( Ham::Hamiltonian, psi::Matrix{Float64} )
     Nbasis = size(psi,1)
