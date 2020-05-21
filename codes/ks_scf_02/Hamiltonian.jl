@@ -4,6 +4,7 @@ mutable struct Hamiltonian
     V_Ps_loc::Vector{Float64}
     V_Hartree::Vector{Float64}
     V_XC::Vector{Float64}
+    pspots::Array{PsPot_GTH}
     pspotNL::PsPotNL
     electrons::Electrons
     atoms::Atoms
@@ -91,7 +92,7 @@ function Hamiltonian(
 
     energies = Energies()
 
-    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, pspotNL, electrons, atoms,
+    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, pspots, pspotNL, electrons, atoms,
                         rhoe, precKin, precLaplacian, energies )
 end
 

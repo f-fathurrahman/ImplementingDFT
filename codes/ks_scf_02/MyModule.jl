@@ -73,6 +73,6 @@ include("../common/LDA_VWN.jl")
 export excVWN, excpVWN
 
 include("calc_energies.jl")
-export calc_energies!
+export calc_E_NN, calc_energies!
 
 end

@@ -13,6 +13,7 @@ function Electrons(
 )
 
     Nelectrons = get_Nelectrons(atoms,pspots)
+    println("Nelectrons = ", Nelectrons)
 
     is_odd = round(Int64,Nelectrons)%2 == 1
 
