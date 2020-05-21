@@ -369,4 +369,14 @@ function get_Nelectrons( atoms::Atoms, pspots::Array{PsPot_GTH,1} )
     return Nelectrons
 end
 
+
+function get_Zvals( PsPots::Array{PsPot_GTH,1} )
+    Nspecies = size(PsPots)[1]
+    Zvals = zeros(Float64, Nspecies)
+    for isp = 1:Nspecies
+        Zvals[isp] = PsPots[isp].zval
+    end
+    return Zvals
+end
+
 include("PsPot_GTH_io.jl")
