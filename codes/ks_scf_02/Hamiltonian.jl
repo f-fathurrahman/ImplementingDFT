@@ -38,8 +38,8 @@ Build a Hamiltonian with given FD grid and local potential.
 """
 function Hamiltonian(
     atoms::Atoms, pspfiles::Array{String,1}, grid;
-    Nelectrons=2, Nstates_extra=0,
-    func_1d=build_D2_matrix_5pt
+    Nstates_extra=0,
+    func_1d=build_D2_matrix_9pt
 )
 
     # Need better mechanism for this
@@ -87,7 +87,7 @@ function Hamiltonian(
     V_XC = zeros(Float64, Npoints)
     rhoe = zeros(Float64, Npoints)
 
-    electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
+    electrons = Electrons( atoms, pspots, Nstates_empty=Nstates_extra )
 
     energies = Energies()
 
@@ -96,14 +96,63 @@ function Hamiltonian(
 end
 
 
+function op_V_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
+    Nstates = size(psi,2)
+
+    atoms = Ham.atoms
+    atm2species = atoms.atm2species
+    Natoms = atoms.Natoms
+    pspots = Ham.pspots
+    prj2beta = Ham.pspotNL.prj2beta
+    betaNL = Ham.pspotNL.betaNL
+
+    betaNL_psi = calc_betaNL_psi( Ham.pspotNL.betaNL, psi )
+    
+    Npoints = Ham.grid.Npoints
+    Vpsi = zeros(Float64,Npoints,Nstates)
+
+    for ist = 1:Nstates
+        for ia = 1:Natoms
+            isp = atm2species[ia]
+            psp = pspots[isp]
+            for l = 0:psp.lmax
+            for m = -l:l
+                for iprj = 1:psp.Nproj_l[l+1]
+                for jprj = 1:psp.Nproj_l[l+1]
+                    ibeta = prj2beta[iprj,ia,l+1,m+psp.lmax+1]
+                    jbeta = prj2beta[jprj,ia,l+1,m+psp.lmax+1]
+                    hij = psp.h[l+1,iprj,jprj]
+                    for ip = 1:Npoints
+                        Vpsi[ip,ist] = Vpsi[ip,ist] + hij*betaNL[ip,ibeta]*betaNL_psi[ist,jbeta]
+                    end
+                end # iprj
+                end # jprj
+            end # m
+            end # l
+        end
+    end
+    return Vpsi
+end
+
 import Base: *
 function *( Ham::Hamiltonian, psi::Matrix{Float64} )
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
     Hpsi = zeros(Float64,Nbasis,Nstates)
+    #
     Hpsi = -0.5*Ham.Laplacian * psi
-    for ist in 1:Nstates, ip in 1:Nbasis
-        Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
+    #
+    if Ham.pspotNL.NbetaNL > 0
+        Vnlpsi = op_V_Ps_nloc(Ham, psi)
+        for ist in 1:Nstates, ip in 1:Nbasis
+            Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
+                Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist] + Vnlpsi[ip,ist]
+        end
+    else
+        for ist in 1:Nstates, ip in 1:Nbasis
+            Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
+                Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
+        end
     end
     return Hpsi
 end

@@ -358,4 +358,15 @@ function eval_proj_G( psp::PsPot_GTH, l::Int64, iproj::Int64, Gm::Float64, CellV
     return Vprj
 end
 
+function get_Nelectrons( atoms::Atoms, pspots::Array{PsPot_GTH,1} )
+    Nelectrons = 0.0
+    Natoms = atoms.Natoms
+    atm2species = atoms.atm2species
+    for ia = 1:Natoms
+        isp = atm2species[ia]
+        Nelectrons = Nelectrons + pspots[isp].zval
+    end
+    return Nelectrons
+end
+
 include("PsPot_GTH_io.jl")
