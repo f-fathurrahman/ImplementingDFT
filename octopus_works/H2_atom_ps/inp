@@ -11,7 +11,11 @@ BoxShape = parallelepiped
  8 | 8 | 8
 %
 
-spacing = 0.32653061224489793
+spacing = 0.25
+
+MixField = density
+MixingScheme = Linear
+Mixing = 0.5
 
 PoissonSolver = cg
 FilterPotentials = filter_none
@@ -21,6 +25,6 @@ FilterPotentials = filter_none
 %
 
 % Coordinates
-  "X" | -0.75 | 0.0 | 0.0
-  "X" |  0.75 | 0.0 | 0.0
+  "X" | -0.75 | 1e-9 | 1e-9
+  "X" |  0.75 | 1e-9 | 1e-9
 %

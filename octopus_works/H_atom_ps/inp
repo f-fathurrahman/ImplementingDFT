@@ -11,13 +11,17 @@ BoxShape = parallelepiped
  8 | 8 | 8
 %
 
-spacing = 0.3
+spacing = 0.25
+
+MixField = density
+MixingScheme = linear
+Mixing = 0.5
 
 PoissonSolver = cg
 FilterPotentials = filter_none
 
 % Species
-  "X" | species_user_defined | potential_formula | "-1.0/r*erf(r/(sqrt(2.0)*0.2) ) + (-4.0663326 + 0.6678322*(5*r)^2)*exp(-0.5*(5*r)^2)" | valence | 2
+  "X" | species_user_defined | potential_formula | "-1.0/r*erf(r/(sqrt(2.0)*0.2) ) + (-4.0663326 + 0.6678322*(5*r)^2)*exp(-0.5*(5*r)^2)" | valence | 1
 %
 
 % Coordinates

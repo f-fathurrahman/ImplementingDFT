@@ -54,7 +54,7 @@ function main()
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
-    NN = [50, 50, 50]
+    NN = [65, 65, 65]
 
     grid = FD3dGrid( NN, AA, BB )
 
@@ -65,10 +65,10 @@ function main()
     println(grid.hx*grid.hy*grid.hz)
 
 
-    r_1 = [ 0.75, 0.0, 0.0]
+    r_1 = [ 0.75, 1e-9, 1e-9]
     Vion_1 = pot_Hps_HGH(grid, r_1)
     
-    r_2 = [-0.75, 0.0, 0.0]
+    r_2 = [-0.75, 1e-9, 1e-9]
     Vion_2 = pot_Hps_HGH(grid, r_2)
     
     my_pot_local = Vion_1 .+ Vion_2

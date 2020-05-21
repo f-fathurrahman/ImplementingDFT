@@ -36,7 +36,7 @@ function main()
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
-    NN = [53, 53, 53]
+    NN = [65, 65, 65]
 
     grid = FD3dGrid( NN, AA, BB )
 
@@ -44,7 +44,7 @@ function main()
     println("hy = ", grid.hy)
     println("hz = ", grid.hz)
     println("dVol = ", grid.dVol)
-    println(grid.hx*grid.hy*grid.hz)
+    println(grid.hx*grid.hy*grid.hz);
 
     my_pot_local( grid ) = pot_Hps_HGH(grid, 1e-9*ones(3))
 
