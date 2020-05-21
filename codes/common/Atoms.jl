@@ -214,6 +214,4 @@ function init_atoms_xyz_string(str::String; in_bohr=false, verbose=false)
     
 end
 
-include("Atoms_io.jl")
-include("Atoms_utils.jl")
 

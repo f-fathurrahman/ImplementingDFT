@@ -1,9 +1,11 @@
 mutable struct Hamiltonian
+    atoms::Atoms
     grid::Union{FD3dGrid,LF3dGrid}
     Laplacian::SparseMatrixCSC{Float64,Int64}
     V_Ps_loc::Vector{Float64}
     V_Hartree::Vector{Float64}
     V_XC::Vector{Float64}
+    pspotNL::PsPotNL
     electrons::Electrons
     rhoe::Vector{Float64}
     precKin
@@ -14,7 +16,7 @@ end
 """
 Build a Hamiltonian with given FD grid and local potential.
 """
-function Hamiltonian( grid, ps_loc_func::Function;
+function Hamiltonian( atoms, grid, pspots;
     Nelectrons=2, Nstates_extra=0,
     func_1d=build_D2_matrix_5pt
 )
@@ -25,7 +27,8 @@ function Hamiltonian( grid, ps_loc_func::Function;
     else
         Laplacian = build_nabla2_matrix( grid )
     end
-    V_Ps_loc = ps_loc_func( grid )
+
+    V_Ps_loc = init_V_ps_loc( atoms, pspots )
 
     Npoints = grid.Npoints
     V_Hartree = zeros(Float64, Npoints)
@@ -41,12 +44,12 @@ function Hamiltonian( grid, ps_loc_func::Function;
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
     energies = Energies()
-    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
+    return Hamiltonian( atoms, grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
                         Rhoe, precKin, precLaplacian, energies )
 end
 
 
-function Hamiltonian( grid, V_loc_func::Array{Float64,1};
+function Hamiltonian( atoms, grid, V_loc_func::Array{Float64,1};
     Nelectrons=2, Nstates_extra=0,
     func_1d=build_D2_matrix_5pt
 )
@@ -68,7 +71,7 @@ function Hamiltonian( grid, V_loc_func::Array{Float64,1};
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
     energies = Energies()
-    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
+    return Hamiltonian( atoms, grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
                         Rhoe, precKin, precLaplacian, energies )
 end
 
