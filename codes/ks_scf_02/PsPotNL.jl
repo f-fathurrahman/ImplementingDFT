@@ -10,7 +10,7 @@ function PsPotNL()
     return PsPotNL( 0, zeros(Int64,1,1,1,1), betaNL )
 end
 
-function PsPotNL( atoms::Atoms, grid, pspots::Array{PsPot_GTH,1}; check_norm=false )
+function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=false )
 
     Natoms = atoms.Natoms
     atm2species = atoms.atm2species
@@ -55,6 +55,7 @@ function PsPotNL( atoms::Atoms, grid, pspots::Array{PsPot_GTH,1}; check_norm=fal
     betaNL = zeros(Float64, Npoints, NbetaNL)
 
     ibeta = 0
+    dr = zeros(3)
     for ia = 1:Natoms
         isp = atm2species[ia]
         psp = pspots[isp]
@@ -63,11 +64,11 @@ function PsPotNL( atoms::Atoms, grid, pspots::Array{PsPot_GTH,1}; check_norm=fal
         for m = -l:l
             ibeta = ibeta + 1
             for ip in 1:Npoints
-                dx = grid.r[1,ip] - atoms.positions[1,ia]
-                dy = grid.r[2,ip] - atoms.positions[2,ia]
-                dz = grid.r[3,ip] - atoms.positions[3,ia]
-                dr = sqrt( dx^2 + dy^2 + dz^2 )
-                betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, dr)
+                dr[1] = grid.r[1,ip] - atoms.positions[1,ia]
+                dr[2] = grid.r[2,ip] - atoms.positions[2,ia]
+                dr[3] = grid.r[3,ip] - atoms.positions[3,ia]
+                drm = sqrt( dr[1]^2 + dr[2]^2 + dr[3]^2 )
+                betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
             end
         end
         end

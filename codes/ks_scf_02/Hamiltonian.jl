@@ -1,5 +1,4 @@
 mutable struct Hamiltonian
-    atoms::Atoms
     grid::Union{FD3dGrid,LF3dGrid}
     Laplacian::SparseMatrixCSC{Float64,Int64}
     V_Ps_loc::Vector{Float64}
@@ -7,72 +6,93 @@ mutable struct Hamiltonian
     V_XC::Vector{Float64}
     pspotNL::PsPotNL
     electrons::Electrons
+    atoms::Atoms
     rhoe::Vector{Float64}
     precKin
     precLaplacian
     energies::Energies
 end
 
+# FIXME: Not yet used
+struct GridInfo
+    #
+    grid_type::Symbol
+    #
+    x_min::Float64
+    x_max::Float64
+    #
+    y_min::Float64
+    y_max::Float64
+    #
+    z_min::Float64
+    z_max::Float64
+    #
+    Nx::Int64
+    Ny::Int64
+    Nz::Int64
+end
+
+
 """
 Build a Hamiltonian with given FD grid and local potential.
 """
-function Hamiltonian( atoms, grid, pspots;
+function Hamiltonian(
+    atoms::Atoms, pspfiles::Array{String,1}, grid;
     Nelectrons=2, Nstates_extra=0,
     func_1d=build_D2_matrix_5pt
 )
-    
+
     # Need better mechanism for this
+    @printf("Building Laplacian ...")
     if typeof(grid) == FD3dGrid
         Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
     else
         Laplacian = build_nabla2_matrix( grid )
     end
-
-    V_Ps_loc = init_V_ps_loc( atoms, pspots )
-
-    Npoints = grid.Npoints
-    V_Hartree = zeros(Float64, Npoints)
-
-    V_XC = zeros(Float64, Npoints)
-    Rhoe = zeros(Float64, Npoints)
+    @printf("... done\n")
 
     @printf("Building preconditioners ...")
     precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
     precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
     @printf("... done\n")
 
-    electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
-    energies = Energies()
-    return Hamiltonian( atoms, grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
-                        Rhoe, precKin, precLaplacian, energies )
-end
-
-
-function Hamiltonian( atoms, grid, V_loc_func::Array{Float64,1};
-    Nelectrons=2, Nstates_extra=0,
-    func_1d=build_D2_matrix_5pt
-)
-
-    Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
-    V_Ps_loc = V_loc_func
-
+    Nspecies = atoms.Nspecies
+    Natoms = atoms.Natoms
     Npoints = grid.Npoints
+
+    pspots = Array{PsPot_GTH}(undef,Nspecies)
+    for isp = 1:Nspecies
+        pspots[isp] = PsPot_GTH( pspfiles[isp] )
+    end
+
+    V_Ps_loc = zeros(Float64,Npoints)
+    atm2species = atoms.atm2species
+    for ia in 1:Natoms
+        isp = atm2species[ia]
+        for ip in 1:Npoints
+            dx = grid.r[1,ip] - atoms.positions[1,ia]
+            dy = grid.r[2,ip] - atoms.positions[2,ia]
+            dz = grid.r[3,ip] - atoms.positions[3,ia]
+            dr = sqrt(dx^2 + dy^2 + dz^2)
+            V_Ps_loc[ip] = V_Ps_loc[ip] + eval_Vloc_R( pspots[isp], dr )
+        end
+    end
+    println("sum V_Ps_loc = ", sum(V_Ps_loc))
+
+    pspotNL = PsPotNL( atoms, pspots, grid )
+    println("NbetaNL = ", pspotNL.NbetaNL)
+
     V_Hartree = zeros(Float64, Npoints)
-
     V_XC = zeros(Float64, Npoints)
-    Rhoe = zeros(Float64, Npoints)
-
-    @printf("Building preconditioners ...")
-    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
-    precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
-    @printf("... done\n")
+    rhoe = zeros(Float64, Npoints)
 
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
     energies = Energies()
-    return Hamiltonian( atoms, grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
-                        Rhoe, precKin, precLaplacian, energies )
+
+    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, pspotNL, electrons, atoms,
+                        rhoe, precKin, precLaplacian, energies )
 end
 
 
