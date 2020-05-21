@@ -1,5 +1,5 @@
 mutable struct Hamiltonian
-    fdgrid::FD3dGrid
+    grid::Union{FD3dGrid,LF3dGrid}
     Laplacian::SparseMatrixCSC{Float64,Int64}
     V_Ps_loc::Vector{Float64}
     V_Hartree::Vector{Float64}
@@ -14,15 +14,20 @@ end
 """
 Build a Hamiltonian with given FD grid and local potential.
 """
-function Hamiltonian( fdgrid::FD3dGrid, ps_loc_func::Function;
+function Hamiltonian( grid, ps_loc_func::Function;
     Nelectrons=2, Nstates_extra=0,
     func_1d=build_D2_matrix_5pt
 )
+    
+    # Need better mechanism for this
+    if typeof(grid) == FD3dGrid
+        Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
+    else
+        Laplacian = build_nabla2_matrix( grid )
+    end
+    V_Ps_loc = ps_loc_func( grid )
 
-    Laplacian = build_nabla2_matrix( fdgrid, func_1d=func_1d )
-    V_Ps_loc = ps_loc_func( fdgrid )
-
-    Npoints = fdgrid.Npoints
+    Npoints = grid.Npoints
     V_Hartree = zeros(Float64, Npoints)
 
     V_XC = zeros(Float64, Npoints)
@@ -36,22 +41,20 @@ function Hamiltonian( fdgrid::FD3dGrid, ps_loc_func::Function;
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
     energies = Energies()
-    return Hamiltonian( fdgrid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
+    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
                         Rhoe, precKin, precLaplacian, energies )
 end
 
-"""
-Build a Hamiltonian with given FD grid and local potential.
-"""
-function Hamiltonian( fdgrid::FD3dGrid, V_loc_func::Array{Float64,1};
+
+function Hamiltonian( grid, V_loc_func::Array{Float64,1};
     Nelectrons=2, Nstates_extra=0,
     func_1d=build_D2_matrix_5pt
 )
 
-    Laplacian = build_nabla2_matrix( fdgrid, func_1d=func_1d )
+    Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
     V_Ps_loc = V_loc_func
 
-    Npoints = fdgrid.Npoints
+    Npoints = grid.Npoints
     V_Hartree = zeros(Float64, Npoints)
 
     V_XC = zeros(Float64, Npoints)
@@ -65,7 +68,7 @@ function Hamiltonian( fdgrid::FD3dGrid, V_loc_func::Array{Float64,1};
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
     energies = Energies()
-    return Hamiltonian( fdgrid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
+    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
                         Rhoe, precKin, precLaplacian, energies )
 end
 
