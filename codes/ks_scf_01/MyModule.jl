@@ -18,6 +18,13 @@ export build_D2_matrix_3pt,
        build_D2_matrix_9pt,
        build_D2_matrix_11pt
 
+include("../LF3d/LF3dGrid.jl")
+export LF3dGrid
+
+include("../LF3d/build_nabla2_matrix.jl")
+export build_D2_matrix_LF1d_c,
+       build_D2_matrix_LF1d_sinc
+
 include("../common/diag_Emin_PCG.jl")
 include("../common/diag_davidson.jl")
 include("../common/diag_LOBPCG.jl")

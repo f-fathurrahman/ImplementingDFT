@@ -7,13 +7,13 @@ using SpecialFunctions
 
 using MyModule
 
-function pot_harmonic( fdgrid::FD3dGrid; ω=1.0, center=[0.0, 0.0, 0.0] )
-    Npoints = fdgrid.Npoints
+function pot_harmonic( grid::FD3dGrid; ω=1.0, center=[0.0, 0.0, 0.0] )
+    Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
-        x = fdgrid.r[1,i] - center[1]
-        y = fdgrid.r[2,i] - center[2]
-        z = fdgrid.r[3,i] - center[3]
+        x = grid.r[1,i] - center[1]
+        y = grid.r[2,i] - center[2]
+        z = grid.r[3,i] - center[3]
         Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 + z^2 )
     end
     return Vpot
@@ -26,23 +26,23 @@ function main()
     BB = [3.0, 3.0, 3.0]
     NN = [25, 25, 25]
 
-    fdgrid = FD3dGrid( NN, AA, BB )
+    grid = FD3dGrid( NN, AA, BB )
 
-    println("hx = ", fdgrid.hx)
-    println("hy = ", fdgrid.hy)
-    println("hz = ", fdgrid.hz)
-    println("dVol = ", fdgrid.dVol)
-    println(fdgrid.hx*fdgrid.hy*fdgrid.hz)
+    println("hx = ", grid.hx)
+    println("hy = ", grid.hy)
+    println("hz = ", grid.hz)
+    println("dVol = ", grid.dVol)
+    println(grid.hx*grid.hy*grid.hz)
 
-    my_pot_harmonic( fdgrid ) = pot_harmonic( fdgrid, ω=2 )
+    my_pot_harmonic( grid ) = pot_harmonic( grid, ω=2 )
 
     Nstates = 4
     Nelectrons = 2*Nstates
-    Ham = Hamiltonian( fdgrid, my_pot_harmonic, Nelectrons=Nelectrons, func_1d=build_D2_matrix_9pt )
+    Ham = Hamiltonian( grid, my_pot_harmonic, Nelectrons=Nelectrons, func_1d=build_D2_matrix_9pt )
 
     Nbasis = prod(NN)
 
-    dVol = fdgrid.dVol
+    dVol = grid.dVol
 
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi)
