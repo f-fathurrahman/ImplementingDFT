@@ -7,8 +7,8 @@ using SpecialFunctions
 
 using MyModule
 
-function pot_Hps_HGH( fdgrid, center )
-    Npoints = fdgrid.Npoints
+function pot_Hps_HGH( grid, center )
+    Npoints = grid.Npoints
     Vpot = zeros( Float64, Npoints )
 
     # Parameters
@@ -19,7 +19,7 @@ function pot_Hps_HGH( fdgrid, center )
 
     # TODO Add journal reference
     for ip = 1:Npoints
-        r = norm( fdgrid.r[:,ip] - center[:] )
+        r = norm( grid.r[:,ip] - center[:] )
         if r < eps()
             Vpot[ip] = -2*Zval/(sqrt(2*pi)*rloc) + C1
         else
@@ -36,25 +36,25 @@ function main()
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
-    NN = [50, 50, 50]
+    NN = [53, 53, 53]
 
-    fdgrid = FD3dGrid( NN, AA, BB )
+    grid = FD3dGrid( NN, AA, BB )
 
-    println("hx = ", fdgrid.hx)
-    println("hy = ", fdgrid.hy)
-    println("hz = ", fdgrid.hz)
-    println("dVol = ", fdgrid.dVol)
-    println(fdgrid.hx*fdgrid.hy*fdgrid.hz)
+    println("hx = ", grid.hx)
+    println("hy = ", grid.hy)
+    println("hz = ", grid.hz)
+    println("dVol = ", grid.dVol)
+    println(grid.hx*grid.hy*grid.hz)
 
-    my_pot_local( fdgrid ) = pot_Hps_HGH(fdgrid, 1e-9*ones(3))
+    my_pot_local( grid ) = pot_Hps_HGH(grid, 1e-9*ones(3))
 
     Nstates = 1
     Nelectrons = 1
-    Ham = Hamiltonian( fdgrid, my_pot_local, Nelectrons=1, func_1d=build_D2_matrix_11pt )
+    Ham = Hamiltonian( grid, my_pot_local, Nelectrons=1, func_1d=build_D2_matrix_9pt )
 
     Nbasis = prod(NN)
 
-    dVol = fdgrid.dVol
+    dVol = grid.dVol
 
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi)
