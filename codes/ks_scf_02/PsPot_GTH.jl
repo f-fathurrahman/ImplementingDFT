@@ -131,11 +131,17 @@ end
 
 function eval_Vloc_R( psp::PsPot_GTH, r::Float64 )
     term1 = psp.c[1]
+    SMALL = eps()
     rrloc = r/psp.rlocal
     for i = 2:4
         term1 = term1 + psp.c[i]*rrloc^(2.0*(i-1))
     end
-    Vloc = -psp.zval/r * erf( rrloc/sqrt(2.0) ) + exp(-0.5*rrloc^2)*term1
+    SMALL = eps()
+    if r < SMALL
+        Vloc = -psp.zval * erf( SMALL )/SMALL + exp(-0.5*rrloc^2)*term1
+    else
+        Vloc = -psp.zval * erf( rrloc/sqrt(2.0) )/r + exp(-0.5*rrloc^2)*term1
+    end
     return Vloc
 end
 

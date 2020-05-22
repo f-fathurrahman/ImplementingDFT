@@ -17,9 +17,10 @@ MixField = density
 MixingScheme = Linear
 Mixing = 0.5
 
+PoissonSolver = cg
 FilterPotentials = filter_none
 
 UnitsXYZFiles = angstrom_units
-XYZCoordinates = "NH3.xyz"
+XYZCoordinates = "Ne.xyz"
 
 PseudopotentialSet = hgh_lda
