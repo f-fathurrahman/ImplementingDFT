@@ -16,10 +16,11 @@ function main()
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
-    NN = [40, 40, 40]
+    NN = [41, 41, 41]
 
     grid = FD3dGrid( NN, AA, BB )
-
+    #grid = LF3dGrid( NN, AA, BB )
+    
     println("hx = ", grid.hx)
     println("hy = ", grid.hy)
     println("hz = ", grid.hz)
@@ -85,8 +86,11 @@ function main()
 
         #Rhoe_new = calc_rhoe( Ham, psi )
         calc_rhoe!( Ham, psi, Rhoe_new )
+        @printf("Integrated Rhoe              = %18.10f\n", sum(Rhoe)*dVol)
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+
+        @printf("Integrated Rhoe after mixing = %18.10f\n", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 
