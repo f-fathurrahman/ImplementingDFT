@@ -39,7 +39,8 @@ function calc_E_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
     # calculate E_NL
     E_Ps_nloc = 0.0
 
-    betaNL_psi = calc_betaNL_psi( Ham.pspotNL.betaNL, psi )
+    dVol = Ham.grid.dVol
+    betaNL_psi = calc_betaNL_psi( Ham.pspotNL.betaNL, psi )*dVol
     for ist = 1:Nstates
         enl1 = 0.0
         for ia = 1:Natoms
