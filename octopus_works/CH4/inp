@@ -11,7 +11,7 @@ BoxShape = parallelepiped
  8 | 8 | 8
 %
 
-spacing = 0.20
+spacing = 0.40
 
 MixField = density
 MixingScheme = Linear
@@ -21,6 +21,6 @@ PoissonSolver = cg
 FilterPotentials = filter_none
 
 UnitsXYZFiles = angstrom_units
-XYZCoordinates = "NH3.xyz"
+XYZCoordinates = "CH4.xyz"
 
 PseudopotentialSet = hgh_lda
