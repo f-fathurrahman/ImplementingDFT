@@ -40,22 +40,23 @@ Build a Hamiltonian with given FD grid and local potential.
 function Hamiltonian(
     atoms::Atoms, pspfiles::Array{String,1}, grid;
     Nstates_extra=0,
+    verbose=false,
     func_1d=build_D2_matrix_9pt
 )
 
     # Need better mechanism for this
-    @printf("Building Laplacian ...")
+    verbose && @printf("Building Laplacian ...")
     if typeof(grid) == FD3dGrid
         Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
     else
         Laplacian = build_nabla2_matrix( grid )
     end
-    @printf("... done\n")
+    verbose && @printf("... done\n")
 
-    @printf("Building preconditioners ...")
+    verbose && @printf("Building preconditioners ...")
     precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
     precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
-    @printf("... done\n")
+    verbose && @printf("... done\n")
 
 
     Nspecies = atoms.Nspecies
@@ -79,10 +80,9 @@ function Hamiltonian(
             V_Ps_loc[ip] = V_Ps_loc[ip] + eval_Vloc_R( pspots[isp], dr )
         end
     end
-    println("sum V_Ps_loc = ", sum(V_Ps_loc))
+    verbose && println("sum V_Ps_loc = ", sum(V_Ps_loc))
 
     pspotNL = PsPotNL( atoms, pspots, grid )
-    println("NbetaNL = ", pspotNL.NbetaNL)
 
     V_Hartree = zeros(Float64, Npoints)
     V_XC = zeros(Float64, Npoints)

@@ -370,7 +370,6 @@ function get_Nelectrons( atoms::Atoms, pspots::Array{PsPot_GTH,1} )
     for ia = 1:Natoms
         isp = atm2species[ia]
         Nelectrons = Nelectrons + pspots[isp].zval
-        println("zval = ", pspots[isp].zval)
     end
     return Nelectrons
 end
