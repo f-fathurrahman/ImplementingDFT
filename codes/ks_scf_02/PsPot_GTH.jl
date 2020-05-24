@@ -227,7 +227,6 @@ function eval_proj_R( psp::PsPot_GTH, l, i, r::Float64 )
 end
 
 
-
 """
 Evaluate GTH projector function in G-space.
 """

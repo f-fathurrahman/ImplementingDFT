@@ -9,41 +9,29 @@ using MyModule
 
 function main()
     
-    atoms = Atoms( xyz_string=
-        """
-        1
-
-        Ne  0.0  0.0  0.0
-        """ )
+    atoms = Atoms( xyz_file="CH4.xyz" )
     println(atoms)
 
-    pspfiles = ["Ne-q8.gth"]
+    pspfiles = ["C-q4.gth", "H-q1.gth"]
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [41, 41, 41]
-
     grid = FD3dGrid( NN, AA, BB )
     #grid = LF3dGrid( NN, AA, BB )
+    #grid = LF3dGrid( NN, AA, BB, type_x=:sinc, type_y=:sinc, type_z=:sinc)
     
     println("hx = ", grid.hx)
     println("hy = ", grid.hy)
     println("hz = ", grid.hz)
     println("dVol = ", grid.dVol)
-    println(grid.hx*grid.hy*grid.hz)
+    println(grid.hx*grid.hy*grid.hz);
 
     Ham = Hamiltonian( atoms, pspfiles, grid )
 
     Nbasis = prod(NN)
     Nstates = Ham.electrons.Nstates
     dVol = grid.dVol
-
-    NbetaNL = Ham.pspotNL.NbetaNL
-    betaNL = Ham.pspotNL.betaNL
-    for ibeta in 1:NbetaNL
-        @printf("%3d %18.10f\n", ibeta, sum(betaNL[:,ibeta].*betaNL[:,ibeta])*dVol)
-    end
-    exit()
 
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi)
@@ -66,7 +54,7 @@ function main()
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
-    betamix = 0.1
+    betamix = 0.5
     dRhoe = 0.0
     NiterMax = 100
 
@@ -96,13 +84,9 @@ function main()
 
         psi = psi/sqrt(dVol) # renormalize
 
-        #Rhoe_new = calc_rhoe( Ham, psi )
         calc_rhoe!( Ham, psi, Rhoe_new )
-        @printf("Integrated Rhoe              = %18.10f\n", sum(Rhoe)*dVol)
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-
-        @printf("Integrated Rhoe after mixing = %18.10f\n", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 

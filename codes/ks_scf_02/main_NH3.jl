@@ -9,18 +9,17 @@ using MyModule
 
 function main()
     
-    atoms = Atoms( xyz_file="NH3_nocenter.xyz" )
+    atoms = Atoms( xyz_file="NH3.xyz" )
     println(atoms)
 
     pspfiles = ["N-q5.gth", "H-q1.gth"]
 
-    #AA = -8.0*ones(3)
-    #BB =  8.0*ones(3)
-    AA = zeros(3)
-    BB = 16.0*ones(3)
-    NN = [41, 41, 41]
-    grid = FD3dGrid( NN, AA, BB )
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    NN = [31, 31, 31]
+    #grid = FD3dGrid( NN, AA, BB )
     #grid = LF3dGrid( NN, AA, BB )
+    grid = LF3dGrid( NN, AA, BB, type_x=:sinc, type_y=:sinc, type_z=:sinc)
     
     println("hx = ", grid.hx)
     println("hy = ", grid.hy)
@@ -85,13 +84,9 @@ function main()
 
         psi = psi/sqrt(dVol) # renormalize
 
-        #Rhoe_new = calc_rhoe( Ham, psi )
         calc_rhoe!( Ham, psi, Rhoe_new )
-        @printf("Integrated Rhoe              = %18.10f\n", sum(Rhoe)*dVol)
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-
-        @printf("Integrated Rhoe after mixing = %18.10f\n", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 
