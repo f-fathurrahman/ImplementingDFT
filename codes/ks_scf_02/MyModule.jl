@@ -55,7 +55,7 @@ include("Energies.jl")
 export Energies
 
 include("PsPot_GTH.jl")
-export PsPot_GTH, eval_Vloc_R, eval_proj_R
+export PsPot_GTH, PsPot_GTH_octopus, eval_Vloc_R, eval_proj_R
 
 include("PsPotNL.jl")
 export PsPotNL, calc_betaNL_psi

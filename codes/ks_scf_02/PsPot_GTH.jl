@@ -34,6 +34,7 @@ Initialize PsPot_GTH with parameters given in file given by path
 `filename`.
 """
 function PsPot_GTH( filename::String )
+
     c = zeros(Float64,4)
     rlocal = 0.0
     rc = zeros(Float64,4)
@@ -108,6 +109,107 @@ function PsPot_GTH( filename::String )
     return PsPot_GTH(filename, atsymb, zval, rlocal, rc, c, h, lmax, Nproj_l, rcut_NL)
 
 end
+
+
+# Using 
+function PsPot_GTH_octopus( filename::String )
+
+    c = zeros(Float64,4)
+    rlocal = 0.0
+    rc = zeros(Float64,4)
+    h = zeros(Float64,4,3,3)
+    Nproj_l = zeros(Int64,4)
+    rcut_NL = zeros(Float64,4)
+
+    f = open(filename)
+
+    line = readline(f)
+    l = split(line)
+    atsymb = l[1]
+
+    line = readline(f)
+    l = split(line)
+    n_s = parse( Int64, l[1] )
+    n_p = parse( Int64, l[2] )
+    n_d = parse( Int64, l[3] )
+    n_f = parse( Int64, l[4] )
+
+    zval = n_s + n_p + n_d + n_f
+
+    line = readline(f)
+    l = split(line)
+    rlocal = parse( Float64, l[1] )
+    n_c_local = parse( Int64, l[2] )
+
+    line = readline(f)
+    l = split(line)
+    for i = 1:n_c_local
+        c[i] = parse( Float64, l[i] )
+    end
+
+    line = readline(f)
+    l = split(line)
+    lmax = parse( Int64, l[1] ) - 1
+
+
+    # l = 1 -> s
+    # l = 2 -> p
+    # l = 3 -> d
+    # l = 4 -> f
+
+    # lmax is however use the usual physics convention
+
+    for i = 1:lmax+1
+        line = readline(f)
+        l = split(line)
+        rc[i] = parse( Float64, l[1] )
+        Nproj_l[i] = parse( Float64, l[2] )
+        for ii = 1:Nproj_l[i]
+            line = readline(f)
+            l = split(line)
+            iread = 0
+            for iii = ii:Nproj_l[i]
+                iread = iread + 1
+                h[i,ii,iii] = parse( Float64, l[iread] )
+            end
+        end
+    end
+
+    close(f)
+
+    # Using OCTOPUS definiton of off-diagonal h matrix.
+    M_HALF = 0.5
+    M_THREE = 3.0
+    M_FIVE = 5.0
+    M_ONE = 1.0
+
+    h[0+1, 1, 2] = -M_HALF    * sqrt(M_THREE/M_FIVE) * h[0+1, 2, 2]
+    h[0+1, 1, 3] =  M_HALF    * sqrt(M_FIVE/21.0)    * h[0+1, 3, 3]
+    h[0+1, 2, 3] = -M_HALF    * sqrt(100.0/63.0)     * h[0+1, 3, 3]
+    #
+    h[1+1, 1, 2] = -M_HALF    * sqrt(M_FIVE/7.0)     * h[1+1, 2, 2]
+    h[1+1, 1, 3] =  M_ONE/6.0 * sqrt(35.0/11.0)      * h[1+1, 3, 3]
+    h[1+1, 2, 3] = -M_ONE/6.0 * ( 14.0 / sqrt(11.0)) * h[1+1, 3, 3]
+    #
+    h[2+1, 1, 2] = -M_HALF    * sqrt(7.0/9.0)        * h[2+1, 2, 2]
+    h[2+1, 1, 3] =  M_HALF    * sqrt(63.0/143.0)     * h[2+1, 3, 3]
+    h[2+1, 2, 3] = -M_HALF    * (18.0/sqrt(143.0))   * h[2+1, 3, 3]
+
+    # Parameters are symmetric.
+    # be careful of index !!!
+    for ik = 1:4
+      for i = 1:3
+        for j = i+1:3
+          h[ik, j, i] = h[ik, i, j]
+        end
+      end
+    end
+
+    return PsPot_GTH(filename, atsymb, zval, rlocal, rc, c, h, lmax, Nproj_l, rcut_NL)
+
+end
+
+
 
 """
 Evaluate GTH local pseudopotential in R-space
