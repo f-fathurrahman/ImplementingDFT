@@ -53,7 +53,7 @@ function calc_E_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
                 ibeta = prj2beta[iprj,ia,l+1,m+psp.lmax+1]
                 jbeta = prj2beta[jprj,ia,l+1,m+psp.lmax+1]
                 hij = psp.h[l+1,iprj,jprj]
-                enl1 = enl1 + hij* betaNL_psi[ist,ibeta]^2
+                enl1 = enl1 + hij * betaNL_psi[ist,ibeta] * betaNL_psi[ist,jbeta]
             end
             end
             end # m
