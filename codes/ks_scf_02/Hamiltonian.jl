@@ -65,7 +65,7 @@ function Hamiltonian(
 
     pspots = Array{PsPot_GTH}(undef,Nspecies)
     for isp = 1:Nspecies
-        pspots[isp] = PsPot_GTH( pspfiles[isp] )
+        pspots[isp] = PsPot_GTH_octopus( pspfiles[isp] )
     end
 
     V_Ps_loc = zeros(Float64,Npoints)
