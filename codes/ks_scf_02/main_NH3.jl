@@ -16,10 +16,10 @@ function main()
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
-    NN = [31, 31, 31]
-    #grid = FD3dGrid( NN, AA, BB )
+    NN = [41, 41, 41]
+    grid = FD3dGrid( NN, AA, BB )
     #grid = LF3dGrid( NN, AA, BB )
-    grid = LF3dGrid( NN, AA, BB, type_x=:sinc, type_y=:sinc, type_z=:sinc)
+    #grid = LF3dGrid( NN, AA, BB, type_x=:sinc, type_y=:sinc, type_z=:sinc)
     
     println("hx = ", grid.hx)
     println("hy = ", grid.hy)

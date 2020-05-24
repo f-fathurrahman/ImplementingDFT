@@ -7,17 +7,19 @@ using SpecialFunctions
 
 using MyModule
 
+const DIR_PSP = "../pseudopotentials/pade_gth/"
+
 function main()
     
     atoms = Atoms( xyz_string=
         """
         1
 
-        Ne  0.0  0.0  0.0
+        Ar  0.0  0.0  0.0
         """ )
     println(atoms)
 
-    pspfiles = ["Ne-q8.gth"]
+    pspfiles = [ joinpath(DIR_PSP, "Ar-q8.gth") ]
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
