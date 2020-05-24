@@ -65,7 +65,7 @@ function Hamiltonian(
 
     pspots = Array{PsPot_GTH}(undef,Nspecies)
     for isp = 1:Nspecies
-        pspots[isp] = PsPot_GTH_octopus( pspfiles[isp] )
+        pspots[isp] = PsPot_GTH( pspfiles[isp] )
     end
 
     V_Ps_loc = zeros(Float64,Npoints)
@@ -157,6 +157,10 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
         end
     end
     return Hpsi
+end
+
+function op_H(Ham, psi)
+    return Ham*psi
 end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )

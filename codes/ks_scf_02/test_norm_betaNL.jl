@@ -74,6 +74,17 @@ function create_Ham_SiH4(N::Int64)
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
+function create_Ham_H2O()
+    atoms = Atoms( xyz_file="H2O.xyz" )
+    pspfiles = [ joinpath(DIR_PSP,"O-q6.gth"),
+                 joinpath(DIR_PSP, "H-q1.gth") ]
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    NN = [41, 41, 41]
+    grid = FD3dGrid( NN, AA, BB )
+    Ham = Hamiltonian( atoms, pspfiles, grid )
+end
+
 function main(;N=41)
     
     #Ham = create_Ham_NH3(N)

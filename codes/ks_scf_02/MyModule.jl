@@ -64,7 +64,7 @@ include("Electrons.jl")
 export Electrons
 
 include("Hamiltonian.jl")
-export Hamiltonian, update!
+export Hamiltonian, update!, op_H
 
 include("calc_rhoe.jl")
 export calc_rhoe, calc_rhoe!
