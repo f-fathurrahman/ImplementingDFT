@@ -53,7 +53,7 @@ function decide_D2_func1d( order, pbc::Bool )
 
 end
 
-function build_nabla2_matrix( grid::FD3dGrid; stencil_order=3 )
+function build_nabla2_matrix( grid::FD3dGrid; stencil_order=9 )
 
     func_1d = decide_D2_func1d( stencil_order, grid.pbc[1] )
     D2x = func_1d(grid.Nx, grid.hx)
