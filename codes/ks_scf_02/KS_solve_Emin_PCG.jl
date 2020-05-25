@@ -34,7 +34,6 @@ function calc_energies_grad!( Ham, psi, Rhoe, g, Kg, Hsub )
     for ist in 1:Nstates
         @views ldiv!(Ham.precKin, Kg[:,ist])
     end
-    #println("dot(Kg,Kg) = ", dot(Kg,Kg))
     return sum( Ham.energies )
 end
 
@@ -58,7 +57,6 @@ function linmin_grad!( Ham, psi, g, d; αt = 3e-5 )
     dVol= Ham.grid.dVol
 
     psic = psi + αt*d
-    #ortho_sqrt!( psic, dVol )
     ortho_sqrt!(psic)
     psic = psic/sqrt(dVol)
 
@@ -143,11 +141,11 @@ function KS_solve_Emin_PCG!(
 
     for iter in 1:NiterMax
 
-        gKnorm = 2*dot(g,Kg)*dVol
+        gKnorm = dot(g,Kg)*dVol
         if !force_grad_dir
             dotgd = dot(g,d)*dVol
             if gPrevUsed
-                dotgPrevKg = 2*dot(gPrev, Kg)*dVol
+                dotgPrevKg = dot(gPrev, Kg)*dVol
             else
                 dotgPrevKg = 0.0
             end
@@ -155,7 +153,7 @@ function KS_solve_Emin_PCG!(
         end
 
         if β < 0.0
-            println("Resetting β")
+            #println("Resetting β")
             β = 0.0
         end
 
@@ -172,7 +170,6 @@ function KS_solve_Emin_PCG!(
         constrain_search_dir!( d, psi, dVol )
 
         α = linmin_grad!( Ham, psi, g, d )
-        println("α = ", α)
 
         Rhoe_old = copy(Ham.rhoe)
 
@@ -212,32 +209,25 @@ function KS_solve_Emin_PCG!(
     end
 
     # Calculate eigenvalues
-    #evecs = zeros(ComplexF64,Nstates,Nstates)
-    #for ispin in 1:Nspin, ik in 1:Nkpt
-    #    Ham.ik = ik
-    #    Ham.ispin = ispin
-    #    ikspin = ik + (ispin - 1)*Nkpt
-    #    psiks[ikspin] = ortho_sqrt(psiks[ikspin])
-    #    Hr = Hermitian(psiks[ikspin]' * op_H(Ham, psiks[ikspin]))
-    #    evals, evecs = eigen(Hr)
-    #    Ham.electrons.ebands[:,ik] = evals
-    #    psiks[ikspin] = psiks[ikspin]*evecs
-    #end
-
-    #if verbose && print_final_ebands
-    #    @printf("\n")
-    #    @printf("----------------------------\n")
-    #    @printf("Final Kohn-Sham eigenvalues:\n")
-    #    @printf("----------------------------\n")
-    #    @printf("\n")
-    #    print_ebands(Ham.electrons, Ham.pw.gvecw.kpoints, unit="eV")
-    #end
+    evals, evecs = eigen(Symmetric(Hsub))
+    psi = psi*evecs
 
     if verbose
         @printf("\n")
-        @printf("-------------------------\n")
+        @printf("----------------------------\n")
+        @printf("Final Kohn-Sham eigenvalues:\n")
+        @printf("----------------------------\n")
+        @printf("\n")
+        for i in 1:Nstates
+            @printf("%3d %18.10f\n", i, evals[i])
+        end
+    end
+
+    if verbose
+        @printf("\n")
+        @printf("----------------------------\n")
         @printf("Final Kohn-Sham energies:\n")
-        @printf("-------------------------\n")
+        @printf("----------------------------\n")
         @printf("\n")
         println(Ham.energies)
     end

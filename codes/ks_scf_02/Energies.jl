@@ -18,10 +18,6 @@ end
 
 import Base: println
 function println( ene::Energies )
-
-    @printf("----------------------------\n")
-    @printf("Total energy components\n")
-    @printf("----------------------------\n")
     @printf("Kinetic = %18.10f\n", ene.Kinetic)
     @printf("Ps_loc  = %18.10f\n", ene.Ps_loc)
     @printf("Ps_nloc = %18.10f\n", ene.Ps_nloc)
