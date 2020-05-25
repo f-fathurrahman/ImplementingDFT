@@ -9,9 +9,9 @@ include("INC_poisson_3d.jl")
 function test_main( NN::Array{Int64} )
     AA = [-8.0, -8.0, -8.0]
     BB = [ 8.0,  8.0,  8.0]
-    #grid = FD3dGrid( NN, AA, BB )
+    grid = FD3dGrid( NN, AA, BB )
     #grid = LF3dGrid( NN, AA, BB )
-    grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sin) )
+    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc) )
 
     # Box dimensions
     Lx = BB[1] - AA[1]
