@@ -10,12 +10,12 @@ const plt = PyPlot
 
 include("INC_sch_2d.jl")
 
-function pot_poeschl_teller( fdgrid::FD2dGrid )
-    Npoints = fdgrid.Npoints
+function pot_poeschl_teller( grid::FD2dGrid )
+    Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
-        x = fdgrid.r[1,i]
-        y = fdgrid.r[2,i]
+        x = grid.r[1,i]
+        y = grid.r[2,i]
         r = sqrt(x^2 + y^2)
         Vpot[i] = -1/cosh(r)^2
     end
@@ -28,11 +28,11 @@ function main()
 
     Nx = 50
     Ny = 50
-    fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
 
-    ∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_9pt )
+    ∇2 = build_nabla2_matrix( grid )
 
-    Vpot = pot_poeschl_teller( fdgrid )
+    Vpot = pot_poeschl_teller( grid )
     
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
