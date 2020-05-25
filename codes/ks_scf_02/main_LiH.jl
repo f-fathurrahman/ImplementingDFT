@@ -20,12 +20,6 @@ function main()
     grid = FD3dGrid( NN, AA, BB )
     #grid = LF3dGrid( NN, AA, BB )
     #grid = LF3dGrid( NN, AA, BB, type_x=:sinc, type_y=:sinc, type_z=:sinc)
-    
-    println("hx = ", grid.hx)
-    println("hy = ", grid.hy)
-    println("hz = ", grid.hz)
-    println("dVol = ", grid.dVol)
-    println(grid.hx*grid.hy*grid.hz);
 
     Ham = Hamiltonian( atoms, pspfiles, grid )
 

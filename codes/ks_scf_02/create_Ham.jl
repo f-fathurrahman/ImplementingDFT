@@ -1,3 +1,16 @@
+function create_Ham_LiH( N::Int64 )
+    atoms = Atoms( xyz_file="LiH.xyz" )
+    pspfiles = [ joinpath("H-q1.gth"),
+                 joinpath("Li-q1.gth") ]
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    NN = [41, 41, 41]
+    #grid = FD3dGrid( NN, AA, BB )
+    #grid = LF3dGrid( NN, AA, BB )
+    grid = LF3dGrid( NN, AA, BB, type_x=:sinc, type_y=:sinc, type_z=:sinc)
+    return Hamiltonian( atoms, pspfiles, grid )    
+end
+
 function create_Ham_H2O( N::Int64 )
     atoms = Atoms( xyz_file="H2O.xyz" )
     pspfiles = [ joinpath(DIR_PSP,"O-q6.gth"),
@@ -42,7 +55,6 @@ function create_Ham_CH4( N::Int64 )
     BB =  8.0*ones(3)
     NN = [N,N,N]
     grid = FD3dGrid( NN, AA, BB )
-    
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
