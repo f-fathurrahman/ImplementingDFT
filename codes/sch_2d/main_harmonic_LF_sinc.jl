@@ -9,12 +9,12 @@ const plt = PyPlot
 
 include("INC_sch_2d_LF.jl")
 
-function pot_harmonic( lfgrid::LF2dGrid; ω=1.0 )
-    Npoints = lfgrid.Npoints
+function pot_harmonic( grid::LF2dGrid; ω=1.0 )
+    Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
-        x = lfgrid.r[1,i]
-        y = lfgrid.r[2,i]
+        x = grid.r[1,i]
+        y = grid.r[2,i]
         Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
     end
     return Vpot
@@ -26,11 +26,11 @@ function main()
 
     Nx = 50
     Ny = 50
-    lfgrid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, type_x=:sinc, type_y=:sinc )
+    grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, types=(:sinc,:sinc) )
 
-    ∇2 = build_nabla2_matrix( lfgrid )
+    ∇2 = build_nabla2_matrix( grid )
 
-    Vpot = pot_harmonic( lfgrid )
+    Vpot = pot_harmonic( grid )
     
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
@@ -44,7 +44,7 @@ function main()
     ortho_sqrt!(X)
     evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
     #evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
-    X = X/sqrt(lfgrid.dA) # renormalize
+    X = X/sqrt(grid.dA) # renormalize
 
     @printf("\n\nEigenvalues\n")
     for i in 1:Nstates
