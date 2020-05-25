@@ -3,6 +3,11 @@ include("../FD1d/init_FD1d_p_grid.jl")
 
 struct FD3dGrid
     Npoints::Int64
+
+    Lx::Float64
+    Ly::Float64
+    Lz::Float64
+
     Nx::Int64
     Ny::Int64
     Nz::Int64
@@ -51,6 +56,10 @@ function FD3dGrid(
         z, hz = init_FD1d_grid(z_domain, Nz)
     end
 
+    Lx = x_domain[2] - x_domain[1]
+    Ly = y_domain[2] - y_domain[1]
+    Lz = z_domain[2] - z_domain[1]
+
     Npoints = Nx*Ny*Nz
     
     r = zeros(3,Npoints)
@@ -72,7 +81,7 @@ function FD3dGrid(
         idx_xyz2ip[i,j,k] = ip
     end
     
-    return FD3dGrid(Npoints, Nx, Ny, Nz, hx, hy, hz, dVol,
+    return FD3dGrid(Npoints, Lx, Ly, Lz, Nx, Ny, Nz, hx, hy, hz, dVol,
         x, y, z, r, idx_ip2xyz, idx_xyz2ip, pbc)
     
 end

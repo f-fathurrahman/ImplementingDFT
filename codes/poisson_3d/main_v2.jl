@@ -3,15 +3,17 @@ using LinearAlgebra
 using SparseArrays
 using IncompleteLU
 using AlgebraicMultigrid
+using FFTW
 
 include("INC_poisson_3d.jl")
+include("GVectors.jl")
+include("Poisson_solve_fft.jl")
 
 function test_main( NN::Array{Int64} )
     AA = [-8.0, -8.0, -8.0]
     BB = [ 8.0,  8.0,  8.0]
-    #grid = FD3dGrid( NN, AA, BB )
-    #grid = LF3dGrid( NN, AA, BB )
-    grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sin) )
+    grid = FD3dGrid( NN, AA, BB, pbc=(true,true,true) )
+    gvec = GVectors(grid)
 
     # Box dimensions
     Lx = BB[1] - AA[1]
@@ -44,23 +46,10 @@ function test_main( NN::Array{Int64} )
 
     dVol = grid.dVol
 
-    println("Building ∇2")
-    ∇2 = build_nabla2_matrix( grid )
-
-    println("Building preconditioner")
-    #prec = ilu(∇2)
-    #prec = ilu(∇2, τ = 0.001)
-    prec = aspreconditioner(ruge_stuben(∇2))
-    #prec = aspreconditioner(smoothed_aggregation(∇2))
-
-    @printf("Size of ∇2   = %f MiB\n", Base.summarysize(∇2)/(1024*1024))
-    @printf("Size of prec = %f MiB\n", Base.summarysize(prec)/(1024*1024))
-
     @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
+    
     print("Solving Poisson equation:\n")
-
-    #phi = Poisson_solve_CG( ∇2, -4*pi*rho, 1000, verbose=true, TOL=1e-10 )
-    phi = Poisson_solve_PCG( ∇2, prec, -4*pi*rho, 1000, verbose=true, TOL=1e-10 )
+    phi = Poisson_solve_fft( grid, gvec, rho )
 
     # Calculation of Hartree energy
     Unum = 0.5*sum( rho .* phi ) * dVol
@@ -68,7 +57,8 @@ function test_main( NN::Array{Int64} )
     @printf("Numeric  = %18.10f\n", Unum)
     @printf("Uana     = %18.10f\n", Uana)
     @printf("abs diff = %18.10e\n", abs(Unum-Uana))
+
 end
 
-test_main([45,45,45])
+test_main([64,64,64])
 
