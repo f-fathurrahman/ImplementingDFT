@@ -3,8 +3,7 @@ include("../LF1d/init_LF1d_sinc_grid.jl")
 
 struct LF2dGrid
     Npoints::Int64
-    type_x::Symbol
-    type_y::Symbol
+    types::Tuple{Symbol,Symbol}
     #
     Lx::Float64
     Ly::Float64
@@ -22,31 +21,31 @@ struct LF2dGrid
     #
     idx_ip2xy::Array{Int64,2}
     idx_xy2ip::Array{Int64,2}
+    #
+    pbc::Tuple{Bool,Bool}
 end
 
 # FIXME: Add different BC
 function LF2dGrid(
-    x_domain::Tuple{Float64,Float64},
-    Nx::Int64,
-    y_domain::Tuple{Float64,Float64},
-    Ny::Int64;
-    type_x=:C, type_y=:C
+    x_domain::Tuple{Float64,Float64}, Nx::Int64,
+    y_domain::Tuple{Float64,Float64}, Ny::Int64;
+    types=(:C,:C)
 )
 
-    if type_x == :C
+    if types[1] == :C
         x, hx = init_LF1d_c_grid(x_domain, Nx)
-    elseif type_x == :sinc
+    elseif types[2] == :sinc
         x, hx = init_LF1d_sinc_grid(x_domain, Nx)
     else
-        error("Unsupported type_x = ", type_x)
+        error("Unsupported types[1] = ", types[1])
     end
 
-    if type_y == :C
+    if types[2] == :C
         y, hy = init_LF1d_c_grid(y_domain, Ny)
-    elseif type_y == :sinc
+    elseif types[2] == :sinc
         y, hy = init_LF1d_sinc_grid(y_domain, Ny)
     else
-        error("Unsupported type_y = ", type_y)
+        error("Unsupported types[2] = ", types[2])
     end
 
     Lx = x_domain[2] - x_domain[1]
@@ -70,25 +69,28 @@ function LF2dGrid(
         end
     end
     
-    return LF2dGrid( Npoints, type_x, type_y, Lx, Ly, Nx, Ny, hx, hy, dA,
-        x, y, r, idx_ip2xy, idx_xy2ip )
+    pbc1 = (types[1] == :P)
+    pbc2 = (types[2] == :P)
+
+    return LF2dGrid( Npoints, types, Lx, Ly, Nx, Ny, hx, hy, dA,
+        x, y, r, idx_ip2xy, idx_xy2ip, (pbc1,pbc2) )
     
 end
 
-function LF2dGrid( NN::Array{Int64,1}, AA::Array{Float64,1}, BB::Array{Float64,1} )
+function LF2dGrid( NN::Array{Int64,1}, AA::Array{Float64,1}, BB::Array{Float64,1}; kwargs... )
     return LF2dGrid( (AA[1], BB[1]), NN[1],
-                     (AA[2], BB[2]), NN[2] ) 
+                     (AA[2], BB[2]), NN[2]; kwargs... ) 
 end
 
 import Base: show
-function show( io::IO, lfgrid::LF2dGrid )
+function show( io::IO, grid::LF2dGrid )
 
     @printf("-----------------\n")
     @printf("LF2dGrid instance\n")
     @printf("-----------------\n")
 
-    @printf(io, "Nx = %8d, hx = %18.10f\n", lfgrid.Nx, lfgrid.hx)
-    @printf(io, "Ny = %8d, hy = %18.10f\n", lfgrid.Ny, lfgrid.hy)    
-    @printf(io, "dA = %18.10f\n", lfgrid.dA)
+    @printf(io, "Nx = %8d, hx = %18.10f\n", grid.Nx, grid.hx)
+    @printf(io, "Ny = %8d, hy = %18.10f\n", grid.Ny, grid.hy)
+    @printf(io, "dA = %18.10f\n", grid.dA)
 end
-show( fdgrid::LF2dGrid ) = show(stdout, lfgrid)
+show( fdgrid::LF2dGrid ) = show(stdout, grid)

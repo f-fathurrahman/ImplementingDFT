@@ -11,15 +11,15 @@ include("build_nabla2_matrix.jl")
 function test_multiplication()
     Nx = 20
     Ny = 20
-    lfgrid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
 
     println("Nx = ", Nx)
     println("Ny = ", Ny)
 
-    ∇2 = build_nabla2_matrix( lfgrid )
+    ∇2 = build_nabla2_matrix( grid )
 
-    psi1 = rand( lfgrid.Nx, lfgrid.Ny )
-    psi2 = rand( lfgrid.Npoints )
+    psi1 = rand( grid.Nx, grid.Ny )
+    psi2 = rand( grid.Npoints )
 
     println("Using views:")
     @btime begin

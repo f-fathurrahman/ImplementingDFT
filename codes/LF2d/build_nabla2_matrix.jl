@@ -1,21 +1,21 @@
 include("../LF1d/build_D2_matrix_LF1d_c.jl")
 include("../LF1d/build_D2_matrix_LF1d_sinc.jl")
 
-function build_nabla2_matrix( lfgrid::LF2dGrid )
+function build_nabla2_matrix( grid::LF2dGrid )
 
-    if lfgrid.type_x == :sinc
-        D2x = build_D2_matrix_LF1d_sinc( lfgrid.x, lfgrid.hx, lfgrid.Nx )
+    if grid.types[1] == :sinc
+        D2x = build_D2_matrix_LF1d_sinc( grid.x, grid.hx, grid.Nx )
     else
-        D2x = build_D2_matrix_LF1d_c( lfgrid.Lx, lfgrid.Nx )
+        D2x = build_D2_matrix_LF1d_c( grid.Lx, grid.Nx )
     end
 
-    if lfgrid.type_y == :sinc
-        D2y = build_D2_matrix_LF1d_sinc( lfgrid.y, lfgrid.hy, lfgrid.Ny )
+    if grid.types[2] == :sinc
+        D2y = build_D2_matrix_LF1d_sinc( grid.y, grid.hy, grid.Ny )
     else
-        D2y = build_D2_matrix_LF1d_c( lfgrid.Ly, lfgrid.Ny )
+        D2y = build_D2_matrix_LF1d_c( grid.Ly, grid.Ny )
     end
 
-    ∇2 = kron(D2x, speye(lfgrid.Ny)) + kron(speye(lfgrid.Nx), D2y)
+    ∇2 = kron(D2x, speye(grid.Ny)) + kron(speye(grid.Nx), D2y)
     return ∇2
 
 end

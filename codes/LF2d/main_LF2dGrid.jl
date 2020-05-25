@@ -5,19 +5,19 @@ include("LF2dGrid.jl")
 function main_c()
     Nx = 3
     Ny = 4
-    lfgrid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
-    println(lfgrid)
-    println(lfgrid.x)
-    println(lfgrid.y)
-    for ip = 1:lfgrid.Npoints
-        @printf("%3d %8.3f %8.3f\n", ip, lfgrid.r[1,ip], lfgrid.r[2,ip])
+    grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    println(grid)
+    println(grid.x)
+    println(grid.y)
+    for ip = 1:grid.Npoints
+        @printf("%3d %8.3f %8.3f\n", ip, grid.r[1,ip], grid.r[2,ip])
     end
 
     println()
     for i = 1:Nx
         for j = 1:Ny
-            ip = lfgrid.idx_xy2ip[i,j]
-            @printf("[%8.3f,%8.3f] ", lfgrid.r[1,ip], lfgrid.r[2,ip])
+            ip = grid.idx_xy2ip[i,j]
+            @printf("[%8.3f,%8.3f] ", grid.r[1,ip], grid.r[2,ip])
         end
         @printf("\n")
     end
@@ -27,19 +27,19 @@ end
 function main_sinc()
     Nx = 3
     Ny = 4
-    lfgrid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, type_x=:sinc, type_y=:sinc )
-    println(lfgrid)
-    println(lfgrid.x)
-    println(lfgrid.y)
-    for ip = 1:lfgrid.Npoints
-        @printf("%3d %8.3f %8.3f\n", ip, lfgrid.r[1,ip], lfgrid.r[2,ip])
+    grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, types=(:sinc,:sinc) )
+    println(grid)
+    println(grid.x)
+    println(grid.y)
+    for ip = 1:grid.Npoints
+        @printf("%3d %8.3f %8.3f\n", ip, grid.r[1,ip], grid.r[2,ip])
     end
 
     println()
     for i = 1:Nx
         for j = 1:Ny
-            ip = lfgrid.idx_xy2ip[i,j]
-            @printf("[%8.3f,%8.3f] ", lfgrid.r[1,ip], lfgrid.r[2,ip])
+            ip = grid.idx_xy2ip[i,j]
+            @printf("[%8.3f,%8.3f] ", grid.r[1,ip], grid.r[2,ip])
         end
         @printf("\n")
     end
