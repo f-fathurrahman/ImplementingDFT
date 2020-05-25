@@ -9,13 +9,13 @@ using Serialization
 
 include("INC_sch_3d.jl")
 
-function pot_harmonic( fdgrid::FD3dGrid; ω=1.0 )
-    Npoints = fdgrid.Npoints
+function pot_harmonic( grid::FD3dGrid; ω=1.0 )
+    Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
-        x = fdgrid.r[1,i]
-        y = fdgrid.r[2,i]
-        z = fdgrid.r[3,i]
+        x = grid.r[1,i]
+        y = grid.r[2,i]
+        z = grid.r[3,i]
         Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 + z^2 )
     end
     return Vpot
@@ -28,11 +28,11 @@ function main()
     Nx = 50
     Ny = 50
     Nz = 50
-    fdgrid = FD3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz )
+    grid = FD3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz )
 
-    ∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_9pt )
+    ∇2 = build_nabla2_matrix( grid, stencil_order=9 )
 
-    Vpot = pot_harmonic( fdgrid )
+    Vpot = pot_harmonic( grid )
     
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 

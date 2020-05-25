@@ -9,13 +9,13 @@ using Serialization
 
 include("INC_sch_3d_LF.jl")
 
-function pot_harmonic( lfgrid::LF3dGrid; ω=1.0 )
-    Npoints = lfgrid.Npoints
+function pot_harmonic( grid::LF3dGrid; ω=1.0 )
+    Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
-        x = lfgrid.r[1,i]
-        y = lfgrid.r[2,i]
-        z = lfgrid.r[3,i]
+        x = grid.r[1,i]
+        y = grid.r[2,i]
+        z = grid.r[3,i]
         Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 + z^2 )
     end
     return Vpot
@@ -25,15 +25,15 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 25
-    Ny = 25
-    Nz = 25
-    lfgrid = LF3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz,
+    Nx = 45
+    Ny = 45
+    Nz = 45
+    grid = LF3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz,
         type_x=:sinc, type_y=:sinc, type_z=:sinc )
 
-    ∇2 = build_nabla2_matrix( lfgrid )
+    ∇2 = build_nabla2_matrix( grid )
 
-    Vpot = pot_harmonic( lfgrid )
+    Vpot = pot_harmonic( grid )
     
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
