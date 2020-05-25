@@ -3,9 +3,7 @@ include("../LF1d/init_LF1d_sinc_grid.jl")
 
 struct LF3dGrid
     Npoints::Int64
-    type_x::Symbol
-    type_y::Symbol
-    type_z::Symbol
+    types::Tuple{Symbol,Symbol,Symbol}
 
     Lx::Float64
     Ly::Float64
@@ -29,6 +27,8 @@ struct LF3dGrid
     
     idx_ip2xyz::Array{Int64,2}
     idx_xyz2ip::Array{Int64,3}
+
+    pbc::Tuple{Bool,Bool,Bool}
 end
 
 
@@ -36,31 +36,31 @@ function LF3dGrid(
     x_domain::Tuple{Float64,Float64}, Nx::Int64,
     y_domain::Tuple{Float64,Float64}, Ny::Int64,
     z_domain::Tuple{Float64,Float64}, Nz::Int64;
-    type_x=:C, type_y=:C, type_z=:C
+    types=(:C, :C, :C)
 )
 
-    if type_x == :C
+    if types[1] == :C
         x, hx = init_LF1d_c_grid(x_domain, Nx)
-    elseif type_x == :sinc
+    elseif types[1] == :sinc
         x, hx = init_LF1d_sinc_grid(x_domain, Nx)
     else
-        error("Unsupported type_x = ", type_x)
+        error("Unsupported types[1] = ", types[1])
     end
 
-    if type_y == :C
+    if types[2] == :C
         y, hy = init_LF1d_c_grid(y_domain, Ny)
-    elseif type_x == :sinc
+    elseif types[2] == :sinc
         y, hy = init_LF1d_sinc_grid(y_domain, Ny)
     else
-        error("Unsupported type_y = ", type_y)
+        error("Unsupported types[2] = ", types[2])
     end
 
-    if type_z == :C
+    if types[3] == :C
         z, hz = init_LF1d_c_grid(z_domain, Nz)
-    elseif type_x == :sinc
+    elseif types[3] == :sinc
         z, hz = init_LF1d_sinc_grid(z_domain, Nz)
     else
-        error("Unsupported type_z = ", type_z)
+        error("Unsupported types[3] = ", types[3])
     end
 
     Lx = x_domain[2] - x_domain[1]
@@ -87,10 +87,14 @@ function LF3dGrid(
         idx_ip2xyz[3,ip] = k
         idx_xyz2ip[i,j,k] = ip
     end
+
+    pbc1 = (types[1] == :P)
+    pbc2 = (types[2] == :P)
+    pbc3 = (types[3] == :P)
     
-    return LF3dGrid( Npoints, type_x, type_y, type_z, 
+    return LF3dGrid( Npoints, types, 
         Lx, Lx, Lz, Nx, Ny, Nz, hx, hy, hz, dVol,
-        x, y, z, r, idx_ip2xyz, idx_xyz2ip )
+        x, y, z, r, idx_ip2xyz, idx_xyz2ip, (pbc1,pbc2,pbc3) )
     
 end
 

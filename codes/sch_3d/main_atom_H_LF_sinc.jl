@@ -19,7 +19,7 @@ function main()
     Nz = 50
     A = 6.0
     grid = LF3dGrid( (-A,A), Nx, (-A,A), Ny, (-A,A), Nz,
-                       type_x=:sinc, type_y=:sinc, type_z=:sinc )
+                     types=(:sinc, :sinc, :sinc) )
 
     ∇2 = build_nabla2_matrix( grid )
 

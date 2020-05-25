@@ -26,7 +26,7 @@ function main()
     #Vpot = pot_Hps_HGH( grid )
 
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
-    println(Ham.m)
+
     println("Building preconditioner")
     prec = aspreconditioner(ruge_stuben(Ham))
     println("Done building preconditioner")
