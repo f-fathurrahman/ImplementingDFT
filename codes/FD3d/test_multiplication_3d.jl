@@ -4,23 +4,26 @@ using BenchmarkTools
 
 include("FD3dGrid.jl")
 include("build_nabla2_matrix.jl")
-include("../supporting_functions.jl")
+include("../common/supporting_functions.jl")
 
 function test_multiplication()
     Nx = 50
     Ny = 50
     Nz = 50
-    fdgrid = FD3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz )
+    grid = FD3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz )
 
     println("Nx = ", Nx)
     println("Ny = ", Ny)
     println("Nz = ", Nz)
 
-    @time ∇2 = build_nabla2_matrix( fdgrid )
-    @time ∇2 = build_nabla2_matrix( fdgrid )
+    print("Building ∇2 (1st call): ")
+    @time ∇2 = build_nabla2_matrix( grid )
+    
+    print("Building ∇2 (2nd call): ")
+    @time ∇2 = build_nabla2_matrix( grid )
 
-    psi1 = rand( fdgrid.Nx, fdgrid.Ny, fdgrid.Nz )
-    psi2 = rand( fdgrid.Npoints )
+    psi1 = rand( grid.Nx, grid.Ny, grid.Nz )
+    psi2 = rand( grid.Npoints )
 
     println("Using views:")
     @btime begin
