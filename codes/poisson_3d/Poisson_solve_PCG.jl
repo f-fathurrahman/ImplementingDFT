@@ -38,7 +38,7 @@ function Poisson_solve_PCG( Lmat::SparseMatrixCSC{Float64,Int64},
         #
         if sqrt(abs(rsnew)) < TOL
             if verbose
-                @printf("Convergence achieved in solve_poison_pcg: N, iter: %d %d\n", Npoints, iter)
+                @printf("Convergence achieved in Poisson_solve_PCG in iter: %d\n", iter)
             end
             break
         end

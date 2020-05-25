@@ -1,6 +1,6 @@
 function Poisson_solve_CG( Lmat::SparseMatrixCSC{Float64,Int64},
-                                                     rho::Array{Float64,1}, NiterMax::Int64;
-                                                     verbose=false, TOL=5.e-10 )
+                           rho::Array{Float64,1}, NiterMax::Int64;
+                           verbose=false, TOL=5.e-10 )
     #
     Npoints = size(rho)[1]
     phi = zeros( Float64, Npoints ) # XXX or use some starting guess
@@ -32,7 +32,7 @@ function Poisson_solve_CG( Lmat::SparseMatrixCSC{Float64,Int64},
         #
         if sqrt(rsnew) < TOL
             if verbose
-                @printf("Convergence achieved in Poisson_solve_CG: N, iter: %d %d\n", Npoints, iter)
+                @printf("Convergence achieved in Poisson_solve_CG in iter: %d\n", iter)
             end
             break
         end
