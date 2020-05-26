@@ -16,12 +16,12 @@ Build a Hamiltonian with given FD grid and local potential.
 """
 function Hamiltonian( grid, ps_loc_func::Function;
     Nelectrons=2, Nstates_extra=0,
-    func_1d=build_D2_matrix_5pt
+    stencil_order=9
 )
     
     # Need better mechanism for this
     if typeof(grid) == FD3dGrid
-        Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
+        Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
     else
         Laplacian = build_nabla2_matrix( grid )
     end
@@ -48,10 +48,10 @@ end
 
 function Hamiltonian( grid, V_loc_func::Array{Float64,1};
     Nelectrons=2, Nstates_extra=0,
-    func_1d=build_D2_matrix_5pt
+    stencil_order=9
 )
 
-    Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
+    Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
     V_Ps_loc = V_loc_func
 
     Npoints = grid.Npoints

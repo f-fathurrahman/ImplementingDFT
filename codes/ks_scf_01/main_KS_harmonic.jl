@@ -38,7 +38,7 @@ function main()
 
     Nstates = 4
     Nelectrons = 2*Nstates
-    Ham = Hamiltonian( grid, my_pot_harmonic, Nelectrons=Nelectrons, func_1d=build_D2_matrix_9pt )
+    Ham = Hamiltonian( grid, my_pot_harmonic, Nelectrons=Nelectrons )
 
     Nbasis = prod(NN)
 

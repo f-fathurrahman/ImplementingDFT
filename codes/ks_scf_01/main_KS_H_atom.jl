@@ -50,7 +50,7 @@ function main()
 
     Nstates = 1
     Nelectrons = 1
-    Ham = Hamiltonian( grid, my_pot_local, Nelectrons=1, func_1d=build_D2_matrix_9pt )
+    Ham = Hamiltonian( grid, my_pot_local, Nelectrons=1, stencil_order=9 )
 
     Nbasis = prod(NN)
 
