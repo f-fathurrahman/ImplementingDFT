@@ -45,7 +45,7 @@ function test_main( NN::Array{Int64} )
 
     dVol = grid.dVol
 
-    @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
+    @printf("Test norm charge: %18.10f (should be close to zero)\n", sum(rho)*dVol)
     print("Solving Poisson equation:\n")
 
     phi = Poisson_solve_DAGE(psolver, grid, rho)
@@ -59,5 +59,5 @@ function test_main( NN::Array{Int64} )
 
 end
 
-test_main([64,64,64])
+test_main([60,60,60])
 
