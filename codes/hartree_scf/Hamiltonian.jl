@@ -1,5 +1,5 @@
 mutable struct Hamiltonian
-    fdgrid::FD3dGrid
+    grid
     Laplacian::SparseMatrixCSC{Float64,Int64}
     V_Ps_loc::Vector{Float64}
     V_Hartree::Vector{Float64}
@@ -8,10 +8,10 @@ mutable struct Hamiltonian
     precLaplacian
 end
 
-function Hamiltonian( fdgrid::FD3dGrid, ps_loc_func::Function; func_1d=build_D2_matrix_5pt )
-    Laplacian = build_nabla2_matrix( fdgrid, func_1d=func_1d )
-    V_Ps_loc = ps_loc_func( fdgrid )
-    Npoints = fdgrid.Npoints
+function Hamiltonian( grid, ps_loc_func::Function )
+    Laplacian = build_nabla2_matrix( grid )
+    V_Ps_loc = ps_loc_func( grid )
+    Npoints = grid.Npoints
     V_Hartree = zeros(Float64, Npoints)
 
     Rhoe = zeros(Float64, Npoints)
@@ -20,7 +20,7 @@ function Hamiltonian( fdgrid::FD3dGrid, ps_loc_func::Function; func_1d=build_D2_
     precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
     precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
     @printf("... done\n")
-    return Hamiltonian( fdgrid, Laplacian, V_Ps_loc, V_Hartree, Rhoe, precKin, precLaplacian )
+    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, Rhoe, precKin, precLaplacian )
 end
 
 import Base: *

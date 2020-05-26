@@ -14,7 +14,7 @@ function calc_E_kin( Ham, psi::Array{Float64,2} )
     Nstates = size(psi,2)
     E_kin = 0.0
     nabla2psi = zeros(Float64,Nbasis)
-    dVol = Ham.fdgrid.dVol
+    dVol = Ham.grid.dVol
     # Assumption: Focc = 2 for all states
     for ist in 1:Nstates
         @views nabla2psi = -0.5*Ham.Laplacian*psi[:,ist]
@@ -24,7 +24,7 @@ function calc_E_kin( Ham, psi::Array{Float64,2} )
 end
 
 function calc_energies( Ham::Hamiltonian, psi::Array{Float64,2} )
-    dVol = Ham.fdgrid.dVol
+    dVol = Ham.grid.dVol
     E_kin = calc_E_kin( Ham, psi )
     E_Ps_loc = sum( Ham.V_Ps_loc .* Ham.rhoe )*dVol
     E_Hartree = 0.5*sum( Ham.V_Hartree .* Ham.rhoe )*dVol
