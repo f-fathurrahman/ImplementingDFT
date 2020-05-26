@@ -41,13 +41,13 @@ function Hamiltonian(
     atoms::Atoms, pspfiles::Array{String,1}, grid;
     Nstates_extra=0,
     verbose=false,
-    func_1d=build_D2_matrix_9pt
+    stencil_order=9
 )
 
     # Need better mechanism for this
     verbose && @printf("Building Laplacian ...")
     if typeof(grid) == FD3dGrid
-        Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
+        Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
     else
         Laplacian = build_nabla2_matrix( grid )
     end
