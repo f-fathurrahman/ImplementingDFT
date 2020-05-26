@@ -1,8 +1,9 @@
 function Poisson_solve_PCG( Lmat::SparseMatrixCSC{Float64,Int64},
                             prec,
-                            rho::Array{Float64,1}, NiterMax::Int64;
+                            rho_::Array{Float64,1}, NiterMax::Int64;
                             verbose=false, TOL=5.e-10 )
     #
+    rho = -4*pi*rho_ # factor of -4pi enters here
     Npoints = size(rho,1)
     phi = zeros( Float64, Npoints ) # XXX or use some starting guess
     #

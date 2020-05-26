@@ -59,8 +59,8 @@ function test_main( NN::Array{Int64} )
     @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
     print("Solving Poisson equation:\n")
 
-    #phi = Poisson_solve_CG( ∇2, -4*pi*rho, 1000, verbose=true, TOL=1e-10 )
-    phi = Poisson_solve_PCG( ∇2, prec, -4*pi*rho, 1000, verbose=true, TOL=1e-10 )
+    #phi = Poisson_solve_CG( ∇2, rho, 1000, verbose=true, TOL=1e-10 )
+    phi = Poisson_solve_PCG( ∇2, prec, rho, 1000, verbose=true, TOL=1e-10 )
 
     # Calculation of Hartree energy
     Unum = 0.5*sum( rho .* phi ) * dVol
