@@ -165,7 +165,7 @@ end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
     Ham.rhoe = Rhoe
-    Ham.V_Hartree = Poisson_solve_PCG( Ham.Laplacian, Ham.precLaplacian, Rhoe, 1000, verbose=false, TOL=1e-10 )
+    Ham.V_Hartree = Poisson_solve_PCG( Ham.Laplacian, Ham.precLaplacian, Rhoe, 1000 )
     Ham.V_XC = excVWN( Rhoe ) + Rhoe .* excpVWN( Rhoe )
     return
 end
