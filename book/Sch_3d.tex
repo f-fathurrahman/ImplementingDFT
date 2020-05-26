@@ -38,14 +38,16 @@ Introducing 3d xsf
 Code
 \begin{juliacode}
 const ⊗ = kron
-function build_nabla2_matrix( fdgrid::FD3dGrid; func_1d=build_D2_matrix_3pt )
-    D2x = func_1d(fdgrid.Nx, fdgrid.hx)
-    D2y = func_1d(fdgrid.Ny, fdgrid.hy)
-    D2z = func_1d(fdgrid.Nz, fdgrid.hz)
-    IIx = speye(fdgrid.Nx)
-    IIy = speye(fdgrid.Ny)
-    IIz = speye(fdgrid.Nz)
+function build_nabla2_matrix( grid::FD3dGrid )
+    # ... SNIPPED
+    # build D2x, D2y, and D2z matrices
+    
+    IIx = speye(grid.Nx)
+    IIy = speye(grid.Ny)
+    IIz = speye(grid.Nz)
+    
     ∇2 = D2x⊗IIy⊗IIz + IIx⊗D2y⊗IIz + IIx⊗IIy⊗D2z 
+    
     return ∇2
 end
 \end{juliacode}
@@ -99,13 +101,13 @@ V(r) = -\frac{1}{\left|\mathbf{r} - \mathbf{R}_{0}\right|}
 %
 The following Julia code implement the H atom potential:
 \begin{juliacode}
-function pot_H_atom( fdgrid::FD3dGrid; r0=(0.0, 0.0, 0.0) )
-    Npoints = fdgrid.Npoints
+function pot_H_atom( grid::FD3dGrid; r0=(0.0, 0.0, 0.0) )
+    Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
-        dx = fdgrid.r[1,i] - r0[1]
-        dy = fdgrid.r[2,i] - r0[2]
-        dz = fdgrid.r[3,i] - r0[3]
+        dx = grid.r[1,i] - r0[1]
+        dy = grid.r[2,i] - r0[2]
+        dz = grid.r[3,i] - r0[3]
         Vpot[i] = -1.0/sqrt(dx^2 + dy^2 + dz^2)
     end
     return Vpot
@@ -115,9 +117,9 @@ end
 With only minor modification to our program for harmonic potential, we can solve the Schroedinger
 equation for the hydrogen atom:
 \begin{juliacode}
-fdgrid = FD3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz )
-∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_9pt )
-Vpot = pot_H_atom( fdgrid )
+grid = FD3dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, (-5.0,5.0), Nz )
+∇2 = build_nabla2_matrix( grid, func_1d=build_D2_matrix_9pt )
+Vpot = pot_H_atom( grid )
 Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 prec = aspreconditioner(ruge_stuben(Ham))
 Nstates = 1  # only choose the lowest lying state
@@ -175,8 +177,8 @@ $Z_{\mathrm{val}}=1$, $C_{1}=-4.0663326$, and $C_{2}=0.6678322$.
 
 The code
 \begin{juliacode}
-function pot_Hps_HGH( fdgrid::FD3dGrid; r0=(0.0, 0.0, 0.0) )
-    Npoints = fdgrid.Npoints
+function pot_Hps_HGH( grid::FD3dGrid; r0=(0.0, 0.0, 0.0) )
+    Npoints = grid.Npoints
     Vpot = zeros( Float64, Npoints )
 
     # Parameters
@@ -185,9 +187,9 @@ function pot_Hps_HGH( fdgrid::FD3dGrid; r0=(0.0, 0.0, 0.0) )
     C1 = -4.0663326
     C2 = 0.6678322
     for ip = 1:Npoints
-        dx2 = ( fdgrid.r[1,ip] - r0[1] )^2
-        dy2 = ( fdgrid.r[2,ip] - r0[2] )^2
-        dz2 = ( fdgrid.r[3,ip] - r0[3] )^2
+        dx2 = ( grid.r[1,ip] - r0[1] )^2
+        dy2 = ( grid.r[2,ip] - r0[2] )^2
+        dz2 = ( grid.r[3,ip] - r0[3] )^2
         r = sqrt(dx2 + dy2 + dz2)
         if r < eps()
             Vpot[ip] = -2*Zval/(sqrt(2*pi)*rloc) + C1

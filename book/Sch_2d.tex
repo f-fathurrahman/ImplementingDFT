@@ -50,25 +50,25 @@ An instance of \txtinline{FD2dGrid} can be initialized using the following const
 %
 \begin{juliacode}
 function FD2dGrid( x_domain, Nx, y_domain, Ny )
-    x, hx = init_FD1d_grid(x_domain, Nx)
-    y, hy = init_FD1d_grid(y_domain, Ny)
-    dA = hx*hy
-    Npoints = Nx*Ny
-    r = zeros(2,Npoints)
-    ip = 0
-    idx_ip2xy = zeros(Int64,2,Npoints)
-    idx_xy2ip = zeros(Int64,Nx,Ny)
-    for j in 1:Ny
-        for i in 1:Nx
-            ip = ip + 1
-            r[1,ip] = x[i]
-            r[2,ip] = y[j]
-            idx_ip2xy[1,ip] = i
-            idx_ip2xy[2,ip] = j
-            idx_xy2ip[i,j] = ip
-        end
+  x, hx = init_FD1d_grid(x_domain, Nx)
+  y, hy = init_FD1d_grid(y_domain, Ny)
+  dA = hx*hy
+  Npoints = Nx*Ny
+  r = zeros(2,Npoints)
+  ip = 0
+  idx_ip2xy = zeros(Int64,2,Npoints)
+  idx_xy2ip = zeros(Int64,Nx,Ny)
+  for j in 1:Ny
+    for i in 1:Nx
+      ip = ip + 1
+      r[1,ip] = x[i]
+      r[2,ip] = y[j]
+      idx_ip2xy[1,ip] = i
+      idx_ip2xy[2,ip] = j
+      idx_xy2ip[i,j] = ip
     end
-    return FD2dGrid(Npoints, Nx, Ny, hx, hy, dA, x, y, r, idx_ip2xy, idx_xy2ip) 
+  end
+  return FD2dGrid(Npoints, Nx, Ny, hx, hy, dA, x, y, r, idx_ip2xy, idx_xy2ip) 
 end
 \end{juliacode}
 
@@ -100,29 +100,29 @@ Using the above constructor for \txtinline{FD2dGrid}:
 \begin{juliacode}
 Nx = 3
 Ny = 4
-fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
 \end{juliacode}
 %
 Dividing the $x$ and $y$ accordingly we obtain $N_{x}=3$
 grid points along $x$-direction
 %
 \begin{textcode}
-> println(fdgrid.x)
+> println(grid.x)
 [-5.0, 0.0, 5.0]
 \end{textcode}
 %
 and $N_{y}=4$ points along the $y$-direction
 \begin{textcode}
-> println(fdgrid.y)
+> println(grid.y)
 [-5.0, -1.6666666666666665, 1.666666666666667, 5.0]
 \end{textcode}
 %
-The actual grid points are stored in \txtinline{fdgrid.r}. Using the
+The actual grid points are stored in \txtinline{grid.r}. Using the
 following snippet, we can printout all of the grid points:
 %
 \begin{juliacode}
-for ip = 1:fdgrid.Npoints
-    @printf("%3d %8.3f %8.3f\n", ip, fdgrid.r[1,ip], fdgrid.r[2,ip])
+for ip = 1:grid.Npoints
+    @printf("%3d %8.3f %8.3f\n", ip, grid.r[1,ip], grid.r[2,ip])
 end
 \end{juliacode}
 %
@@ -156,8 +156,8 @@ which can be produced from the following snippet:
 \begin{juliacode}
 for i = 1:Nx
     for j = 1:Ny
-        ip = fdgrid.idx_xy2ip[i,j]
-        @printf("[%8.3f,%8.3f] ", fdgrid.r[1,ip], fdgrid.r[2,ip])
+        ip = grid.idx_xy2ip[i,j]
+        @printf("[%8.3f,%8.3f] ", grid.r[1,ip], grid.r[2,ip])
     end
     @printf("\n")
 end
@@ -201,11 +201,11 @@ between two matrices \jlinline{A} and \jlinline{B} as \jlinline{kron(A,B)}.
 The following function illustrates the above approach to construct matrix
 representation of the Laplacian operator.
 \begin{juliacode}
-function build_nabla2_matrix( fdgrid::FD2dGrid; func_1d=build_D2_matrix_3pt )
-  Nx = fdgrid.Nx
-  hx = fdgrid.hx
-  Ny = fdgrid.Ny
-  hy = fdgrid.hy
+function build_nabla2_matrix( grid::FD2dGrid; func_1d=build_D2_matrix_3pt )
+  Nx = grid.Nx
+  hx = grid.hx
+  Ny = grid.Ny
+  hy = grid.hy
     
   D2x = func_1d(Nx, hx)
   D2y = func_1d(Ny, hy)
@@ -247,12 +247,12 @@ include("FD2dGrid.jl")
 include("build_nabla2_matrix.jl")
 include("supporting_functions.jl")
     
-function my_gaussian( fdgrid::FD2dGrid; α=1.0 )
-  Npoints = fdgrid.Npoints
+function my_gaussian( grid::FD2dGrid; α=1.0 )
+  Npoints = grid.Npoints
   f = zeros(Npoints)
   for i in 1:Npoints
-    x = fdgrid.r[1,i]
-    y = fdgrid.r[2,i]
+    x = grid.r[1,i]
+    y = grid.r[2,i]
     r2 = x^2 + y^2
     f[i] = exp(-α*r2)
   end
@@ -262,20 +262,20 @@ end
 function main()  
   Nx = 75
   Ny = 75
-  fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+  grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
     
-  ∇2 = build_nabla2_matrix( fdgrid, func_1d=build_D2_matrix_9pt )
+  ∇2 = build_nabla2_matrix( grid, func_1d=build_D2_matrix_9pt )
     
-  fg = my_gaussian(fdgrid, α=0.5)
+  fg = my_gaussian(grid, α=0.5)
   plt.clf()
-  plt.surf(fdgrid.x, fdgrid.y, reshape(fg, fdgrid.Nx, fdgrid.Ny), cmap=:jet)
+  plt.surf(grid.x, grid.y, reshape(fg, grid.Nx, grid.Ny), cmap=:jet)
   plt.gca(projection="3d").view_init(30,7)
   fileplot = "IMG_gaussian2d.pdf"
   plt.savefig(fileplot)
     
   d2fg = ∇2*fg    
   plt.clf()
-  plt.surf(fdgrid.x, fdgrid.y, reshape(d2fg, fdgrid.Nx, fdgrid.Ny), cmap=:jet)
+  plt.surf(grid.x, grid.y, reshape(d2fg, grid.Nx, grid.Ny), cmap=:jet)
   plt.gca(projection="3d").view_init(30,7)    
   fileplot = "IMG_d2_gaussian2d.pdf"
   plt.savefig(fileplot)
@@ -290,7 +290,7 @@ main()
 Now that we know how to build the Laplacian matrix, we now can build the Hamiltonian
 matrix given some potential:
 \begin{juliacode}
-∇2 = build_nabla2_matrix( fdgrid )
+∇2 = build_nabla2_matrix( grid )
 Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 \end{juliacode}
 Note that we have used sparse diagonal matrix for building the potential matrix by
@@ -353,12 +353,12 @@ V(x,y) = \frac{1}{2} \omega^2 (x^2 + y^2)
 \end{equation}
 This potential can be implemented in the following Julia code.
 \begin{juliacode}
-function pot_harmonic( fdgrid::FD2dGrid; ω=1.0 )
-  Npoints = fdgrid.Npoints
+function pot_harmonic( grid::FD2dGrid; ω=1.0 )
+  Npoints = grid.Npoints
   Vpot = zeros(Npoints)
   for i in 1:Npoints
-    x = fdgrid.r[1,i]
-    y = fdgrid.r[2,i]
+    x = grid.r[1,i]
+    y = grid.r[2,i]
     Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
   end
   return Vpot
@@ -386,9 +386,9 @@ Here we show the main function of the program.
 function main()
   Nx = 50
   Ny = 50
-  fdgrid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
-  ∇2 = build_nabla2_matrix( fdgrid )
-  Vpot = pot_harmonic( fdgrid )
+  grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+  ∇2 = build_nabla2_matrix( grid )
+  Vpot = pot_harmonic( grid )
   Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
   # Preconditioner based on inverse kinetic
@@ -400,7 +400,7 @@ function main()
   ortho_sqrt!(X)
     
   evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
-  X = X/sqrt(fdgrid.dA) # renormalize the eigenfunctions
+  X = X/sqrt(grid.dA) # renormalize the eigenfunctions
 
   @printf("\n\nEigenvalues\n")
   for i in 1:Nstates
