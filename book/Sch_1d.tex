@@ -470,6 +470,7 @@ derivative operator. An example is by using 5-point finite-difference formula:
 \frac{-\psi_{i+2} + 16\psi_{i+1} - 30\psi_{i} + 16\psi_{i-1} - \psi_{i-2}}{12h^2}
 \label{eq:fd_2nd_deriv_5pt}
 \end{equation}
+
 The corresponding second derivative matrix can be built using the following
 function.
 \begin{juliacode}
@@ -492,19 +493,38 @@ function build_D2_matrix_5pt( N::Int64, h::Float64 )
 end
 \end{juliacode}
 
-Other approximation formulas for second derivative also can be used. We have implemented 3-,
-5-, 7-, 9-, and 11-points formulas.
+We will refer to the number of points used to approximate the derivative operator as
+stencil order, thus the Equation \eqref{eq:fd_2nd_deriv_5pt} has stencil order of 5
+and Equation \eqref{eq:fd_2nd_deriv_3pt} has stencil order of 3.
+Other approximation formulas for second derivative also can be used.
+In the source code reposityory, we have implemented 3-,
+5-, 7-, 9-, and 11-points formulas. The web page
+{\footnotesize\url{http://web.media.mit.edu/~crtaylor/calculator.html}}
+can be consulted to obtain the
+coefficients of finite-difference approximation.
 
-In the following we plot the difference (approximation - exact) of second derivative of
+In Figure \ref{fig:fd_2nd_compare_N15} we plot the difference (approximation - exact)
+of second derivative of
 the Gaussian function for several approximation formulas using $N=15$ grid points.
+The errors have have different magnitude for each points with the maximum error
+occurs at the center of the Gaussian.
+We can readily see that the errors for each point are decreasing with increasing stencil
+order.
 \begin{figure}[h]
 {\center
 \includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_compare_d2_gaussian_error_15.pdf}
 \par}
 \caption{Error of 2nd derivative approx}
+\label{fig:fd_2nd_compare_N15}
 \end{figure}
 
-Program:
+
+\section{Harmonic potential with higher order finite-difference formulas}
+
+We can compare the effect of different stencil order to the accuracy of numerical approximation
+to the Schroedinger equation. In the following program, we try to compare the accuracy of
+first eigenvalue of Schroedinger equation with harmonic potential.
+
 \begin{juliacode}
 function solve_eigvals(N::Int64, D2_func)
   # Initialize the grid points
@@ -543,7 +563,11 @@ end
 main()
 \end{juliacode}
 
-Example result:
+The results for fixed point ($N=20$) and different stencil order are given below.
+The second colum is the first eigenvalue and the third colum in the difference with
+exact value (0.5 Hartree). The results clearly shows that the error decreases with
+with increasing stencil order.
+
 \begin{textcode}
   build_D2_matrix_3pt:       0.4911851752   8.8148248058e-03
   build_D2_matrix_5pt:       0.4992583463   7.4165366457e-04
@@ -552,6 +576,10 @@ Example result:
  build_D2_matrix_11pt:       0.4999952673   4.7326636594e-06
 \end{textcode}
 
+
 \section{Exercises}
 
+Potential well
+
 Gaussian potential
+
