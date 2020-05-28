@@ -29,7 +29,7 @@ function create_Ham_H( N::Int64 )
 
         H  0.0  0.0  0.0
         """ )
-    pspfiles = ["H-q1.gth"]
+    pspfiles = [joinpath(DIR_PSP,"H-q1.gth")]
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
