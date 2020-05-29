@@ -12,7 +12,7 @@ struct FD2dGrid
     #
     hx::Float64
     hy::Float64
-    dA::Float64
+    dVol::Float64
     #
     x::Array{Float64,1}
     y::Array{Float64,1}
