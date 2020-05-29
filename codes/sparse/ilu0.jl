@@ -14,6 +14,8 @@ function init_ilu0!( n, a, ja, ia, alu, jlu, ju, iw )
 
 #  CALL ilu0( Npoints, -0.5d0*nzval, rowval, colptr, alu_ilu0, jlu_ilu0, ju_ilu0, iw_ilu0, ierr )
 
+    SMALL = 1e-10
+
     ju0 = n + 2
     jlu[1] = ju0
     
@@ -30,7 +32,7 @@ function init_ilu0!( n, a, ja, ia, alu, jlu, ju, iw )
         # generating row number ii of L and U.
         for j in ia[ii]:ia[ii+1]-1
             
-            #copy row ii of a, ja, ia into row ii of alu, jlu (L/U) matrix.
+            # copy row ii of a, ja, ia into row ii of alu, jlu (L/U) matrix.
             jcol = ja[j]
             
             if jcol == ii
@@ -41,7 +43,7 @@ function init_ilu0!( n, a, ja, ia, alu, jlu, ju, iw )
                alu[ju0] = a[j]
                jlu[ju0] = ja[j]
                iw[jcol] = ju0
-               ju0 = ju0+1
+               ju0 = ju0 + 1
             end
         end
 
@@ -57,14 +59,16 @@ function init_ilu0!( n, a, ja, ia, alu, jlu, ju, iw )
             # perform  linear combination
             for jj in ju[jrow]:jlu[jrow+1]-1
                 jw = iw[ jlu[jj] ]
-                if jw .ne. 0
+                if jw != 0
                     alu[jw] = alu[jw] - tl*alu[jj]
                 end
             end
         end 
 
         # invert  and store diagonal element.
-        if alu[ii] <= SMALL
+        if abs(alu[ii]) <= SMALL
+            println("ii = ", ii)
+            println("alu[ii] = ", alu[ii])
             # zero pivot :
             #600 ierr = ii
             error("Small pivot element")
@@ -74,7 +78,7 @@ function init_ilu0!( n, a, ja, ia, alu, jlu, ju, iw )
 
         # reset pointer iw to zero
         iw[ii] = 0
-        do i in js:jf
+        for i in js:jf
             iw[jlu[i]] = 0
         end
 
@@ -82,4 +86,21 @@ function init_ilu0!( n, a, ja, ia, alu, jlu, ju, iw )
       
     return
 
+end
+
+function lusol!(n, y, x, alu, jlu, ju)
+    for i in 1:n
+        x[i] = y[i]
+        for k in jlu[i]:ju[i]-1
+            x[i] = x[i] - alu[k]* x[jlu[k]]
+        end
+    end
+    # backward solve.
+    for i = n:-1:1
+        for k in ju[i]:jlu[i+1]-1
+            x[i] = x[i] - alu[k]*x[jlu[k]]
+        end
+        x[i] = alu[i]*x[i]
+    end
+    return
 end
