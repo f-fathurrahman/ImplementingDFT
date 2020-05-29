@@ -12,6 +12,7 @@ include("../common/ortho_gram_schmidt.jl")
 
 include("ilu0.jl")
 include("diag_Emin_PCG.jl")
+include("diag_LOBPCG.jl")
 
 function pot_harmonic( grid; ω=1.0 )
     Npoints = grid.Npoints
@@ -64,7 +65,9 @@ function main()
         end
     end
 
-    evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
+    #evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
+    
+    evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
     
     X = X/sqrt(grid.dVol) # renormalize
 

@@ -51,9 +51,6 @@ function diag_Emin_PCG!( Ham, X, prec;
     IS_CONVERGED = false
 
     # ILU0 precond
-    a = Ham.nzval
-    ja = Ham.rowval
-    ia = Ham.colptr
 
     Nnzval = length(Ham.nzval)
     alu_ilu0 = zeros( Float64, Nnzval+1 )
