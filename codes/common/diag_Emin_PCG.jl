@@ -135,6 +135,9 @@ function diag_Emin_PCG!( Ham, X::Array{Float64,2}, prec;
         d_old = copy(d)
         Kg_old = copy(Kg)
         Ebands_old = Ebands
+
+        if verbose flush(stdout) end
+
     end
 
     if !IS_CONVERGED
