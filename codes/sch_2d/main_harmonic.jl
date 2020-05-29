@@ -28,7 +28,7 @@ function main()
     Ny = 50
     grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
 
-    ∇2 = build_nabla2_matrix( grid, stencil_order=11 )
+    ∇2 = build_nabla2_matrix( grid, stencil_order=9 )
 
     Vpot = pot_harmonic( grid )
     
@@ -38,32 +38,54 @@ function main()
     #prec = ilu(-0.5*∇2)
     prec = ilu(Ham) # this should result in faster convergence
 
+    @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
+    @printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
+
+    dVol = grid.dVol
     Nstates = 10
     Npoints = Nx*Ny
     X = rand(Float64, Npoints, Nstates)
-    ortho_sqrt!(X)
-    #evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
-    evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
-    X = X/sqrt(grid.dA) # renormalize
+    ortho_sqrt!(X, dVol)
 
-    @printf("\n\nEigenvalues\n")
+    println("Check normalization")
     for i in 1:Nstates
-        @printf("%5d %18.10f\n", i, evals[i])
+        @printf("dot: %18.10f\n", dot(X[:,i],X[:,i])*dVol)
     end
 
+    println("Check orthogonal")
+    ist = 1
+    for i in 1:Nstates
+        if i != ist
+            @printf("dot: %18.10f\n", dot(X[:,i],X[:,ist])*dVol)
+        end
+    end
+
+    #evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
+    #evals = diag_LOBPCG!( Ham, X, prec, verbose=true, tol=1e-10 )
+    
+    X = X*sqrt(dVol)
+    evals = diag_davidson!( Ham, X, prec, verbose=true, tol=1e-10 )
+
+    X = X/sqrt(grid.dVol) # renormalize
+
+    println("Check normalization")
+    for i in 1:Nstates
+        @printf("dot: %18.10f\n", dot(X[:,i],X[:,i])*dVol)
+    end
+
+    println("Check orthogonal")
+    ist = 1
+    for i in 1:Nstates
+        if i != ist
+            @printf("dot: %18.10f\n", dot(X[:,i],X[:,ist])*dVol)
+        end
+    end
+
+
+    #@printf("\n\nEigenvalues\n")
     #for i in 1:Nstates
-    #    #plt.clf()
-    #    #plt.surf(grid.x, grid.y, reshape(X[:,i], grid.Nx, grid.Ny), cmap=:jet)
-    #    #plt.tight_layout()
-    #    #plt.savefig("IMG_harmonic_psi_"*string(i)*".pdf")
-#        ρ = X[:,i].*X[:,i]
-#        plt.clf()
-#        plt.contourf(grid.x, grid.y, reshape(ρ, grid.Nx, grid.Ny), cmap=:jet)
-#        plt.axis("equal")
-#        plt.tight_layout()
-#        plt.savefig("IMG_harmonic_rho_"*string(i)*".png", dpi=150)
-#
-#    end
+    #    @printf("%5d %18.10f\n", i, evals[i])
+    #end
 
 end
 
