@@ -3,6 +3,7 @@ OLD_*
 TEMP_*
 LOG_*
 IMG_*
+ORIG_*
 
 *.swp
 *.swo
