@@ -15,16 +15,17 @@ where $\nabla^2$ is the Laplacian operator:
 
 
 
-\subsection{Describing grid in 2d}
+\section{Describing grid in 2d}
 
 Now we have two directions $x$ and $y$. Our approach to solving the Schroedinger equation
 is similar to the one we have used before in 1d, however several technical difficulties
 will arise.
 
 To describe the computational grid, we now need to specify
-$x_{\mathrm{max}}, x_{\mathrm{min}}$ for the X-domain
-and $y_{\mathrm{max}}, y_{\mathrm{min}}$ for Y-domain. We also need to specify number of grid
-points in for each x and y-directions, i.e. $N_{x}$ and $N_{y}$. That are quite lot of variables.
+$x_{\mathrm{max}}, x_{\mathrm{min}}$ for the $x$-domain
+and $y_{\mathrm{max}}, y_{\mathrm{min}}$ for $y$-domain. We also need to specify number of grid
+points in for each x and y-directions, i.e. $N_{x}$ and $N_{y}$.
+There are quite lot of variables.
 For easier management, we will collect our grid related variables in one data structure or
 \txtinline{struct} in Julia. A \txtinline{struct} in Julia looks very much like C-struct.
 It also defines a new custom data type in Julia.
@@ -32,17 +33,20 @@ It also defines a new custom data type in Julia.
 Our struct definition looks like this.
 \begin{juliacode}
 struct FD2dGrid
-    Npoints::Int64
-    Nx::Int64
-    Ny::Int64
-    hx::Float64
-    hy::Float64
-    dA::Float64
-    x::Array{Float64,1}
-    y::Array{Float64,1}
-    r::Array{Float64,2}
-    idx_ip2xy::Array{Int64,2}
-    idx_xy2ip::Array{Int64,2}
+  Npoints::Int64
+  Lx::Float64
+  Ly::Float64
+  Nx::Int64
+  Ny::Int64
+  hx::Float64
+  hy::Float64
+  dA::Float64
+  x::Array{Float64,1}
+  y::Array{Float64,1}
+  r::Array{Float64,2}
+  idx_ip2xy::Array{Int64,2}
+  idx_xy2ip::Array{Int64,2}
+  pbc::Tuple{Bool,Bool}
 end
 \end{juliacode}
 %
@@ -107,13 +111,13 @@ Dividing the $x$ and $y$ accordingly we obtain $N_{x}=3$
 grid points along $x$-direction
 %
 \begin{textcode}
-> println(grid.x)
+julia> println(grid.x)
 [-5.0, 0.0, 5.0]
 \end{textcode}
 %
 and $N_{y}=4$ points along the $y$-direction
 \begin{textcode}
-> println(grid.y)
+julia> println(grid.y)
 [-5.0, -1.6666666666666665, 1.666666666666667, 5.0]
 \end{textcode}
 %
@@ -165,7 +169,7 @@ end
 
 
 
-\subsection{Laplacian operator}
+\section{Laplacian operator}
 
 Having built out 2d grid, we now turn our attention to the second derivative operator or
 the Laplacian in the equation \ref{eq:sch_2d}.
@@ -201,7 +205,7 @@ between two matrices \jlinline{A} and \jlinline{B} as \jlinline{kron(A,B)}.
 The following function illustrates the above approach to construct matrix
 representation of the Laplacian operator.
 \begin{juliacode}
-function build_nabla2_matrix( grid::FD2dGrid; func_1d=build_D2_matrix_3pt )
+function build_nabla2_matrix( grid::FD2dGrid )
   Nx = grid.Nx
   hx = grid.hx
   Ny = grid.Ny
@@ -247,7 +251,7 @@ include("FD2dGrid.jl")
 include("build_nabla2_matrix.jl")
 include("supporting_functions.jl")
     
-function my_gaussian( grid::FD2dGrid; α=1.0 )
+function my_gaussian( grid; α=1.0 )
   Npoints = grid.Npoints
   f = zeros(Npoints)
   for i in 1:Npoints
@@ -264,7 +268,7 @@ function main()
   Ny = 75
   grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
     
-  ∇2 = build_nabla2_matrix( grid, func_1d=build_D2_matrix_9pt )
+  ∇2 = build_nabla2_matrix( grid )
     
   fg = my_gaussian(grid, α=0.5)
   plt.clf()
@@ -285,7 +289,111 @@ main()
 \end{juliacode}
 
 
-\subsection{Iterative methods for eigenvalue problem}
+\section{More about sparse matrices in Julia}
+
+Using the function \jlinline{typeof} we can know the type of the variable
+\jlinline{∇2} which was returned by the function \jlinline{build_nabla2_matrix}:
+\begin{textcode}
+julia> typeof(∇2)
+SparseMatrixCSC{Float64,Int64}  
+\end{textcode}
+The \jlinline{CSC} part here is actually describe a certain format to store
+a sparse matrix. It stands for \textbf{C}ompressed \textbf{S}parse \textbf{C}olumn
+format. There are other formats as well: such as Compressed Sparse Row format (CSR),
+coordinate list format (COO), and several others.
+
+The CSC format stores a sparse matrix $\mathbf{A}$ with size $m \times n$
+using three (one-dimensional) arrays (nzval, colptr, rowval).
+Let Nnz denote the number of nonzero entries in $\mathbf{A}$.
+
+The arrays nzval and rowval are of length Nnz, and contain the non-zero values
+and the row indices of those values respectively.
+
+An integer array colptr contains pointers to the beginning of each column in the
+arrays nzval and rowval. Thus the content of colptr[i] is the position in
+arrays nzval and rowval where the i-th row starts.
+The length of colptr is n + 1 with colptr[n + 1] containing
+the number colptr[1] + Nnz, i.e., the address in
+nzval and rowval of the beginning of a
+fictitious column m + 1.
+
+The array colptr has one element per column in the matrix and encodes
+the index in nzval where the given column starts. 
+It may contain an extra end element which is set to Nnz.
+
+Field names:
+\begin{textcode}
+julia> fieldnames(typeof(∇2))
+(:m, :n, :colptr, :rowval, :nzval)  
+\end{textcode}
+
+From the documentation
+\begin{juliacode}
+struct SparseMatrixCSC{Tv,Ti<:Integer} <: AbstractSparseMatrix{Tv,Ti}
+  m::Int                  # Number of rows
+  n::Int                  # Number of columns
+  colptr::Vector{Ti}      # Column j is in colptr[j]:(colptr[j+1]-1)
+  rowval::Vector{Ti}      # Row indices of stored values
+  nzval::Vector{Tv}       # Stored values, typically nonzeros
+end
+\end{juliacode}
+
+Example 1:
+\begin{equation}
+A = \begin{bmatrix}
+0  &  0  &  1.0 &  0.0 \\
+5  &  8  &  0.0 &  0.0 \\
+0  &  0  &  3.0 &  0.0 \\
+0  &  6  &  0.0 &  0.0 \\
+0  &  0  &  0.0 &  0.0
+\end{bmatrix}
+\end{equation}
+
+\begin{textcode}
+nzval = [5.0, 8.0, 6.0, 1.0, 3.0]
+rowval = [2, 2, 4, 1, 3]
+colptr = [1, 2, 4, 6, 6]
+\end{textcode}
+
+Example 2:
+\begin{equation}
+\mathbf{B} = \begin{bmatrix}
+0  &  0  &  1  &  5 \\
+5  &  0  &  0  &  0 \\
+0  &  0  &  3  &  0 \\
+0  &  0  &  0  &  0 \\
+0  &  0  &  1  &  0 \\
+5  &  0  &  0  &  6
+\end{bmatrix}
+\end{equation}
+
+\begin{textcode}
+nzval  = [5.0, 5.0, 1.0, 3.0, 1.0, 5.0, 6.0]
+rowval = [2, 6, 1, 3, 5, 1, 6]
+colptr = [1, 3, 3, 6, 8]
+\end{textcode}
+
+Example 3:
+\begin{equation}
+\mathbf{C} = \begin{bmatrix}
+ -2  &  1  &  0  &  0  &  0 \\
+  1  & -2  &  1  &  0  &  0 \\
+  0  &  1  & -2  &  1  &  0 \\
+  0  &  0  &  1  & -2  &  1 \\
+  0  &  0  &  0  &  1  & -2
+\end{bmatrix}
+\end{equation}
+
+\begin{textcode}
+nzval  = [-2.0, 1.0, 1.0, -2.0, 1.0, 1.0, -2.0, 1.0, 1.0, -2.0, 1.0, 1.0, -2.0]
+rowval = [1, 2, 1, 2, 3, 2, 3, 4, 3, 4, 5, 4, 5]
+colptr = [1, 3, 6, 9, 12, 14]
+\end{textcode}
+
+Another way:
+sparse(I,J,V) then constructs a sparse matrix such that S[I[k], J[k]] = V[k].
+
+\section{Iterative methods for eigenvalue problem}
 
 Now that we know how to build the Laplacian matrix, we now can build the Hamiltonian
 matrix given some potential:
