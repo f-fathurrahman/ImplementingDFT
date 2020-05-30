@@ -6,6 +6,10 @@ using Random
 
 include("../FD2d/FD2dGrid.jl")
 include("../FD2d/build_nabla2_matrix.jl")
+
+include("../LF2d/LF2dGrid.jl")
+include("../LF2d/build_nabla2_matrix.jl")
+
 include("../common/supporting_functions.jl")
 include("../common/ortho_sqrt.jl")
 include("../common/ortho_gram_schmidt.jl")
@@ -29,11 +33,12 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 50
-    Ny = 50
-    grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    Nx = 30
+    Ny = 30
+    #grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, types=(:sinc,:sinc) )
 
-    ∇2 = build_nabla2_matrix( grid, stencil_order=9 )
+    ∇2 = build_nabla2_matrix( grid )
 
     Vpot = pot_harmonic( grid )
     
@@ -65,9 +70,9 @@ function main()
         end
     end
 
-    #evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
+    evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
     
-    evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
+    #evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
     
     X = X/sqrt(grid.dVol) # renormalize
 
