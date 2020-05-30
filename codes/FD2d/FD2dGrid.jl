@@ -46,7 +46,7 @@ function FD2dGrid(
     Lx = x_domain[2] - y_domain[1]
     Ly = y_domain[2] - y_domain[1]
 
-    dA = hx*hy
+    dVol = hx*hy
     
     Npoints = Nx*Ny
     r = zeros(2,Npoints)
@@ -64,7 +64,7 @@ function FD2dGrid(
         end
     end
     
-    return FD2dGrid(Npoints, Lx, Ly, Nx, Ny, hx, hy, dA, x, y, r, idx_ip2xy, idx_xy2ip, pbc)
+    return FD2dGrid(Npoints, Lx, Ly, Nx, Ny, hx, hy, dVol, x, y, r, idx_ip2xy, idx_xy2ip, pbc)
     
 end
 
@@ -80,8 +80,7 @@ function show( io::IO, grid::FD2dGrid )
     @printf("FD2dGrid instance\n")
     @printf("-----------------\n")
 
-    @printf(io, "Nx = %8d, hx = %18.10f\n", grid.Nx, grid.hx)
-    @printf(io, "Ny = %8d, hy = %18.10f\n", grid.Ny, grid.hy)    
-    @printf(io, "dA = %18.10f\n", grid.dA)
+    @printf(io, "Nx   = %8d, hx = %18.10f\n", grid.Nx, grid.hx)
+    @printf(io, "Ny   = %8d, hy = %18.10f\n", grid.Ny, grid.hy)    
 end
 show( grid::FD2dGrid ) = show(stdout, grid)

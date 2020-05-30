@@ -13,7 +13,7 @@ struct LF2dGrid
     #
     hx::Float64
     hy::Float64
-    dA::Float64
+    dVol::Float64
     #
     x::Array{Float64,1}
     y::Array{Float64,1}
@@ -51,7 +51,7 @@ function LF2dGrid(
     Lx = x_domain[2] - x_domain[1]
     Ly = y_domain[2] - y_domain[1]
 
-    dA = hx*hy
+    dVol = hx*hy
     
     Npoints = Nx*Ny
     r = zeros(2,Npoints)
@@ -72,7 +72,7 @@ function LF2dGrid(
     pbc1 = (types[1] == :P)
     pbc2 = (types[2] == :P)
 
-    return LF2dGrid( Npoints, types, Lx, Ly, Nx, Ny, hx, hy, dA,
+    return LF2dGrid( Npoints, types, Lx, Ly, Nx, Ny, hx, hy, dVol,
         x, y, r, idx_ip2xy, idx_xy2ip, (pbc1,pbc2) )
     
 end
@@ -91,6 +91,5 @@ function show( io::IO, grid::LF2dGrid )
 
     @printf(io, "Nx = %8d, hx = %18.10f\n", grid.Nx, grid.hx)
     @printf(io, "Ny = %8d, hy = %18.10f\n", grid.Ny, grid.hy)
-    @printf(io, "dA = %18.10f\n", grid.dA)
 end
 show( fdgrid::LF2dGrid ) = show(stdout, grid)
