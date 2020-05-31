@@ -38,6 +38,9 @@ function main()
     #prec = ilu(-0.5*∇2)
     prec = ilu(Ham) # this should result in faster convergence
 
+    @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
+    @printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
+
     Nstates = 10
     Npoints = Nx*Ny
     X = rand(Float64, Npoints, Nstates)

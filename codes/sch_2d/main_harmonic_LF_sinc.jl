@@ -24,8 +24,8 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 50
-    Ny = 50
+    Nx = 30
+    Ny = 30
     grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, types=(:sinc,:sinc) )
 
     ∇2 = build_nabla2_matrix( grid )
@@ -37,6 +37,9 @@ function main()
     # may choose between these two
     #prec = ilu(-0.5*∇2)
     prec = ilu(Ham) # this should result in faster convergence
+
+    @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
+    @printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
 
     Nstates = 10
     Npoints = Nx*Ny
