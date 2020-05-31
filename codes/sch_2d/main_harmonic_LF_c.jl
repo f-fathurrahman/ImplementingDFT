@@ -24,8 +24,8 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 35
-    Ny = 35
+    Nx = 25
+    Ny = 25
     grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
 
     ∇2 = build_nabla2_matrix( grid )
@@ -44,26 +44,12 @@ function main()
     ortho_sqrt!(X)
     #evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
     evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
-    X = X/sqrt(grid.dA) # renormalize
+    X = X/sqrt(grid.dVol) # renormalize
 
     @printf("\n\nEigenvalues\n")
     for i in 1:Nstates
         @printf("%5d %18.10f\n", i, evals[i])
     end
-
-    #for i in 1:Nstates
-    #    #plt.clf()
-    #    #plt.surf(grid.x, grid.y, reshape(X[:,i], grid.Nx, grid.Ny), cmap=:jet)
-    #    #plt.tight_layout()
-    #    #plt.savefig("IMG_harmonic_psi_"*string(i)*".pdf")
-#        ρ = X[:,i].*X[:,i]
-#        plt.clf()
-#        plt.contourf(grid.x, grid.y, reshape(ρ, grid.Nx, grid.Ny), cmap=:jet)
-#        plt.axis("equal")
-#        plt.tight_layout()
-#        plt.savefig("IMG_harmonic_rho_"*string(i)*".png", dpi=150)
-#
-#    end
 
 end
 

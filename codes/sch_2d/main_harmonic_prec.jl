@@ -44,7 +44,7 @@ function main()
     ortho_sqrt!(X)
     #evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
     evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
-    X = X/sqrt(grid.dA) # renormalize
+    X = X/sqrt(grid.dVol) # renormalize
 
     @printf("\n\nEigenvalues\n")
     for i in 1:Nstates
