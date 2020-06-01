@@ -33,8 +33,8 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 30
-    Ny = 30
+    Nx = 15
+    Ny = 15
     #grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
     grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, types=(:sinc,:sinc) )
 
@@ -48,8 +48,8 @@ function main()
     #prec = ilu(-0.5*∇2)
     prec = ilu(Ham) # this should result in faster convergence
 
-    #@printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
-    #@printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
+    @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
+    @printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
 
     dVol = grid.dVol
     Nstates = 10
@@ -57,42 +57,42 @@ function main()
     X = rand(Float64, Npoints, Nstates)
     ortho_sqrt!(X, dVol)
 
-    println("Check normalization")
-    for i in 1:Nstates
-        @printf("dot: %18.10f\n", dot(X[:,i],X[:,i])*dVol)
-    end
+    #println("Check normalization")
+    #for i in 1:Nstates
+    #    @printf("dot: %18.10f\n", dot(X[:,i],X[:,i])*dVol)
+    #end
 
-    println("Check orthogonal")
-    ist = 1
-    for i in 1:Nstates
-        if i != ist
-            @printf("dot: %18.10f\n", dot(X[:,i],X[:,ist])*dVol)
-        end
-    end
+    #println("Check orthogonal")
+    #ist = 1
+    #for i in 1:Nstates
+    #    if i != ist
+    #        @printf("dot: %18.10f\n", dot(X[:,i],X[:,ist])*dVol)
+    #    end
+    #end
 
-    evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
+    #evals = diag_Emin_PCG!( Ham, X, prec, verbose_last=true )
     
-    #evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
+    evals = diag_LOBPCG!( Ham, X, prec, verbose_last=true )
     
     X = X/sqrt(grid.dVol) # renormalize
 
-    println("Check normalization")
-    for i in 1:Nstates
-        @printf("dot: %18.10f\n", dot(X[:,i],X[:,i])*dVol)
-    end
+    #println("Check normalization")
+    #for i in 1:Nstates
+    #    @printf("dot: %18.10f\n", dot(X[:,i],X[:,i])*dVol)
+    #end
 
-    println("Check orthogonal")
-    ist = 1
-    for i in 1:Nstates
-        if i != ist
-            @printf("dot: %18.10f\n", dot(X[:,i],X[:,ist])*dVol)
-        end
-    end
+    #println("Check orthogonal")
+    #ist = 1
+    #for i in 1:Nstates
+    #    if i != ist
+    #        @printf("dot: %18.10f\n", dot(X[:,i],X[:,ist])*dVol)
+    #    end
+    #end
 
-    @printf("\n\nEigenvalues\n")
-    for i in 1:Nstates
-        @printf("%5d %18.10f\n", i, evals[i])
-    end
+    #@printf("\n\nEigenvalues\n")
+    #for i in 1:Nstates
+    #    @printf("%5d %18.10f\n", i, evals[i])
+    #end
 
 end
 

@@ -119,7 +119,7 @@ function diag_Emin_PCG!( Ham, X, prec;
         if nconv >= Nstates_conv
             IS_CONVERGED = true
             if verbose || verbose_last
-                @printf("Convergence is achieved based on nconv\n")
+                @printf("Emin_PCG convergence: nconv = %d in %d iterations\n", nconv, iter)
             end
             break
         end
