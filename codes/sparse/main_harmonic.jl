@@ -16,6 +16,7 @@ include("../common/supporting_functions.jl")
 include("../common/ortho_sqrt.jl")
 include("../common/ortho_gram_schmidt.jl")
 
+include("NoPreconditioner.jl")
 include("ILU0Preconditioner.jl")
 include("diag_Emin_PCG.jl")
 include("diag_LOBPCG.jl")
@@ -48,12 +49,14 @@ function main()
 
     # may choose between these using kinetic matrix or full Hamiltonian matrix
     #prec = ilu(-0.5*∇2)
-    prec = ilu(Ham) # this should result in faster convergence
+    #prec = ilu(Ham) # this should result in faster convergence
 
     # AlgebraicMultigrid preconditioner
     #prec = aspreconditioner(ruge_stuben(Ham))
 
     #prec = ILU0Preconditioner(Ham)
+
+    prec = NoPreconditioner(Ham)
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
     @printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
@@ -77,9 +80,9 @@ function main()
     #    end
     #end
 
-    evals = diag_Emin_PCG!( Ham, X, prec, verbose_last=true )
+    #evals = diag_Emin_PCG!( Ham, X, prec, verbose_last=true )
     
-    #evals = diag_LOBPCG!( Ham, X, prec, verbose_last=true )
+    evals = diag_LOBPCG!( Ham, X, prec, verbose_last=true )
     
     X = X/sqrt(grid.dVol) # renormalize
 
