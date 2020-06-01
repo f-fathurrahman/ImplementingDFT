@@ -38,12 +38,17 @@ function main()
 
     # may choose between these two
     println("Building preconditioner")
+    
     #prec = ilu(-0.5*∇2)
     #prec = ilu(Ham) # this should result in faster convergence
+    
     prec = aspreconditioner(ruge_stuben(Ham))
     #prec = aspreconditioner(smoothed_aggregation(Ham))
     #prec = aspreconditioner(ruge_stuben(-0.5*∇2))
     #prec = aspreconditioner(smoothed_aggregation(-0.5*∇2))
+    
+    #prec = ILU0Preconditioner(Ham)
+
     println("Done building preconditioner")
 
     Nstates = 10
