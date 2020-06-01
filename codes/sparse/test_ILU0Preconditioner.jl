@@ -7,7 +7,7 @@ include("../FD2d/FD2dGrid.jl")
 include("../FD2d/build_nabla2_matrix.jl")
 include("../common/supporting_functions.jl")
 
-include("ILU0Preconditioner.jl")
+include("../common/ILU0Preconditioner.jl")
 
 function main()
     Nx = 5

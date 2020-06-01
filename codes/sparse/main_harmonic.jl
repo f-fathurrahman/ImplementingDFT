@@ -16,8 +16,9 @@ include("../common/supporting_functions.jl")
 include("../common/ortho_sqrt.jl")
 include("../common/ortho_gram_schmidt.jl")
 
-include("NoPreconditioner.jl")
-include("ILU0Preconditioner.jl")
+include("../common/NoPreconditioner.jl")
+include("../common/ILU0Preconditioner.jl")
+
 include("diag_Emin_PCG.jl")
 include("diag_LOBPCG.jl")
 
@@ -36,10 +37,10 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 25
-    Ny = 25
-    #grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
-    grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, types=(:sinc,:sinc) )
+    Nx = 45
+    Ny = 45
+    grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    #grid = LF2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny, types=(:sinc,:sinc) )
 
     ∇2 = build_nabla2_matrix( grid )
 
