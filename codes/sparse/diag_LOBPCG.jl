@@ -22,23 +22,9 @@ function diag_LOBPCG!( Ham, X, prec;
     devals = ones(Float64,Nstates)
     evals_old = copy(evals)
 
-    #tfudge = 1e5
     SMALL = 10.0*eps()
 
     IS_CONVERGED = false
-    
-
-    # ILU0 precond
-
-    Nnzval = length(Ham.nzval)
-    alu_ilu0 = zeros( Float64, Nnzval+1 )
-    jlu_ilu0 = zeros( Int64, Nnzval+1 )
-    ju_ilu0 = zeros( Int64, Nbasis )
-    iw_ilu0 = zeros( Int64, Nbasis ) # work array
-
-    init_ilu0!( Nbasis, Ham.nzval, Ham.rowval, Ham.colptr,
-        alu_ilu0, jlu_ilu0, ju_ilu0, iw_ilu0 )
-
 
     for iter = 1:NiterMax
 
@@ -83,12 +69,8 @@ function diag_LOBPCG!( Ham, X, prec;
         # apply preconditioner
         
         W = copy(R)
-        #for i in 1:size(W,2)
-        #    @views ldiv!(prec, W[:,i])
-        #end
-        
-        for i in 1:Nstates
-            @views lusol!(Nbasis, R[:,i], W[:,i], alu_ilu0, jlu_ilu0, ju_ilu0)
+        for i in 1:size(W,2)
+            @views ldiv!(prec, W[:,i])
         end
 
         if Nlock > 0

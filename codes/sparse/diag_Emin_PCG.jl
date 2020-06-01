@@ -50,28 +50,13 @@ function diag_Emin_PCG!( Ham, X, prec;
 
     IS_CONVERGED = false
 
-    # ILU0 precond
-
-    Nnzval = length(Ham.nzval)
-    alu_ilu0 = zeros( Float64, Nnzval+1 )
-    jlu_ilu0 = zeros( Int64, Nnzval+1 )
-    ju_ilu0 = zeros( Int64, Nbasis )
-    iw_ilu0 = zeros( Int64, Nbasis ) # work array
-
-    init_ilu0!( Nbasis, Ham.nzval, Ham.rowval, Ham.colptr,
-        alu_ilu0, jlu_ilu0, ju_ilu0, iw_ilu0 )
-
     for iter = 1:NiterMax
 
         calc_grad_evals!( Ham, X, g, Hsub )
         
-        #Kg = copy(g)
-        #for i in 1:Nstates
-        #    @views ldiv!(prec, Kg[:,i])
-        #end
-
+        Kg[:] = g[:] # copy
         for i in 1:Nstates
-            @views lusol!(Nbasis, g[:,i], Kg[:,i], alu_ilu0, jlu_ilu0, ju_ilu0)
+            @views ldiv!(prec, Kg[:,i])
         end
 
         if iter != 1
