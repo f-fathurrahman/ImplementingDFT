@@ -67,14 +67,19 @@ function main()
 
     #prec = ilu(-0.5*∇2)
     #prec = ilu(Ham) # this should result in faster convergence
+    
+    #prec = aspreconditioner(ruge_stuben(Ham))
+    
     prec = ILU0Preconditioner(Ham)
+    #prec = ILU0Preconditioner(-0.5*∇2)
+    
     #prec = NoPreconditioner()
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
     @printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
 
     dVol = grid.dVol
-    Nstates = 10
+    Nstates = 3
     Npoints = Nx*Ny
     X = rand(Float64, Npoints, Nstates)
     ortho_sqrt!(X, dVol)
@@ -194,7 +199,8 @@ function main()
 
 end
 
-main()
+@time main()
+@time main()
 
 
 
