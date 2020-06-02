@@ -11,8 +11,10 @@ function test_main( NN::Array{Int64} )
     AA = [-7.0, -7.0, -7.0]
     BB = [ 7.0,  7.0,  7.0]
 
-    grid = FD3dGrid( NN, AA, BB )
-    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    #grid = FD3dGrid( NN, AA, BB )
+    grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+
+    println(grid)
 
     psolver = PoissonSolverDAGE(grid)
 
@@ -60,20 +62,27 @@ function test_main( NN::Array{Int64} )
     Unum = 0.5*sum( rho .* phi ) * dVol
     Uana = 0.5*sum( rho .* phi_analytic ) * dVol
 
-    @printf("Numeric  = %18.10f\n", Unum)
-    @printf("Uana     = %18.10f\n", Uana)
-    @printf("abs diff = %18.10e\n", abs(Unum-Uana))
+    integ_phi   = sum( phi ) * dVol
+    integ_phi_a = sum( phi_analytic ) * dVol
 
     phi = reshape(phi, (NN[1],NN[2],NN[3]))
     phi_analytic = reshape(phi_analytic, (NN[1],NN[2],NN[3]))
 
-    iy = NN[2]
+    ix = NN[1]
     iz = NN[3]
-    for ix in 1:NN[1]
-        @printf("%18.10f %18.10f %18.10f\n", grid.x[ix], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+    for iy in 1:NN[2]
+        @printf("%18.10f %18.10f %18.10f\n", grid.y[iy], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
     end
+
+    @printf("Numeric  = %18.10f\n", Unum)
+    @printf("Uana     = %18.10f\n", Uana)
+    @printf("abs diff = %18.10e\n", abs(Unum-Uana))
+
+    @printf("integ_phi   = %18.10f\n", integ_phi)
+    @printf("integ_phi_a = %18.10f\n", integ_phi_a)
+    @printf("abs diff    = %18.10e\n", abs(integ_phi-integ_phi_a))
 
 end
 
-test_main([50,50,50])
+test_main([80,80,80])
 
