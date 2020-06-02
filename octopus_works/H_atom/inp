@@ -11,7 +11,7 @@ BoxShape = parallelepiped
  8 | 8 | 8
 %
 
-spacing = 0.4
+spacing = 0.25
 
 MixField = density
 MixingScheme = Linear

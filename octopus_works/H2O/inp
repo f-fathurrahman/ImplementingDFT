@@ -11,13 +11,12 @@ BoxShape = parallelepiped
  8 | 8 | 8
 %
 
-spacing = 0.40
+spacing = 0.25
 
 MixField = density
 MixingScheme = Linear
 Mixing = 0.5
 
-PoissonSolver = cg
 FilterPotentials = filter_none
 
 UnitsXYZFiles = angstrom_units
