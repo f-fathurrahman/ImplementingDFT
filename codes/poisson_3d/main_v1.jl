@@ -9,9 +9,9 @@ include("INC_poisson_3d.jl")
 function test_main( NN::Array{Int64} )
     AA = [-8.0, -8.0, -8.0]
     BB = [ 8.0,  8.0,  8.0]
-    grid = FD3dGrid( NN, AA, BB )
-    #grid = LF3dGrid( NN, AA, BB )
-    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc) )
+    
+    #grid = FD3dGrid( NN, AA, BB )
+    grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
 
     # Box dimensions
     Lx = BB[1] - AA[1]
@@ -59,8 +59,9 @@ function test_main( NN::Array{Int64} )
     @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
     print("Solving Poisson equation:\n")
 
-    #phi = Poisson_solve_CG( ∇2, rho, 1000, verbose=true, TOL=1e-10 )
-    phi = Poisson_solve_PCG( ∇2, prec, rho, 1000, verbose=true, TOL=1e-10 )
+    phi = Poisson_solve_PCG( ∇2, prec, rho, 1000, TOL=1e-10 )
+
+    println("sum phi = ", sum(phi))
 
     # Calculation of Hartree energy
     Unum = 0.5*sum( rho .* phi ) * dVol

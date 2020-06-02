@@ -49,6 +49,7 @@ function test_main( NN::Array{Int64} )
     print("Solving Poisson equation:\n")
 
     phi = Poisson_solve_DAGE(psolver, grid, rho)
+    println("sum phi = ", sum(phi))
 
     # Calculation of Hartree energy
     Unum = 0.5*sum( rho .* phi ) * dVol
@@ -59,5 +60,5 @@ function test_main( NN::Array{Int64} )
 
 end
 
-test_main([60,60,60])
+test_main([45,45,45])
 
