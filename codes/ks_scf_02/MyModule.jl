@@ -30,6 +30,8 @@ include("../LF3d/build_nabla2_matrix.jl")
 export build_D2_matrix_LF1d_c,
        build_D2_matrix_LF1d_sinc
 
+include("../common/ILU0Preconditioner.jl")
+
 include("../common/diag_Emin_PCG.jl")
 include("../common/diag_davidson.jl")
 include("../common/diag_LOBPCG.jl")

@@ -8,6 +8,7 @@ using SpecialFunctions
 using MyModule
 
 const DIR_PSP = "../pseudopotentials/pade_gth/"
+const DIR_STRUCTURES = "../structures"
 
 include("create_Ham.jl")
 
@@ -16,9 +17,11 @@ include("KS_solve_Emin_PCG.jl")
 function main()
     
     #Ham = create_Ham_H2O(41)
-    #Ham = create_Ham_H(41)
+    Ham = create_Ham_H(41)
     #Ham = create_Ham_Ne(41)
-    Ham = create_Ham_LiH(41)
+    #Ham = create_Ham_LiH(41)
+
+    @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 
     Nbasis = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates

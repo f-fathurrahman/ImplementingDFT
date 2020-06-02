@@ -41,7 +41,8 @@ function Hamiltonian(
     atoms::Atoms, pspfiles::Array{String,1}, grid;
     Nstates_extra=0,
     verbose=false,
-    stencil_order=9
+    stencil_order=9,
+    prec_type=:ILU0
 )
 
     # Need better mechanism for this
@@ -54,8 +55,13 @@ function Hamiltonian(
     verbose && @printf("... done\n")
 
     verbose && @printf("Building preconditioners ...")
-    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
-    precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
+    if prec_type == :amg
+        precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+        precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
+    else
+        precKin = ILU0Preconditioner(-0.5*Laplacian)
+        precLaplacian = ILU0Preconditioner(Laplacian)
+    end
     verbose && @printf("... done\n")
 
 
