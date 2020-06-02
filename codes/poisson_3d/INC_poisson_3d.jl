@@ -8,3 +8,4 @@ include("../common/supporting_functions.jl")
 
 include("Poisson_solve_CG.jl")
 include("Poisson_solve_PCG.jl")
+include("Poisson_solve_DAGE.jl")

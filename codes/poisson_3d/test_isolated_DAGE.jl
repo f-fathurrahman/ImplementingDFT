@@ -1,15 +1,18 @@
 using Printf
 using LinearAlgebra
 using SparseArrays
+using AlgebraicMultigrid
+
+using SpecialFunctions: erf
 
 include("INC_poisson_3d.jl")
 
 function test_main( NN::Array{Int64} )
-    
-    AA = [-8.0, -8.0, -8.0]
-    BB = [ 8.0,  8.0,  8.0]
-    
-    grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    AA = [-7.0, -7.0, -7.0]
+    BB = [ 7.0,  7.0,  7.0]
+
+    grid = FD3dGrid( NN, AA, BB )
+    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
 
     psolver = PoissonSolverDAGE(grid)
 
@@ -24,13 +27,14 @@ function test_main( NN::Array{Int64} )
     z0 = AA[3] + Lz/2.0
 
     # Parameters for two gaussian functions
-    sigma1 = 0.75
-    sigma2 = 0.50
+    σ = 1.0
     Npoints = grid.Npoints
 
     rho = zeros(Float64, Npoints)
     phi = zeros(Float64, Npoints)
 
+    phi_analytic = zeros(Float64, Npoints)
+    
     # Initialization of charge density
     dr = zeros(Float64,3)
     for ip in 1:Npoints
@@ -38,13 +42,15 @@ function test_main( NN::Array{Int64} )
         dr[2] = grid.r[2,ip] - y0
         dr[3] = grid.r[3,ip] - z0
         r = sqrt(dr[1]^2 + dr[2]^2 + dr[3]^2)
-        rho[ip] = exp( -r^2 / (2.0*sigma2^2) ) / (2.0*pi*sigma2^2)^1.5 -
-                  exp( -r^2 / (2.0*sigma1^2) ) / (2.0*pi*sigma1^2)^1.5
+        rho[ip] = exp( -r^2 / (2.0*σ^2) )
+        phi_analytic[ip] = (2*pi*σ^2)^1.5 * erf(r/(sqrt(2)*σ))/r
     end
+
+    println("sum phi_analytic = ", sum(phi_analytic))
 
     dVol = grid.dVol
 
-    @printf("Test norm charge: %18.10f (should be close to zero)\n", sum(rho)*dVol)
+    @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
     print("Solving Poisson equation:\n")
 
     phi = Poisson_solve_DAGE(psolver, grid, rho)
@@ -52,12 +58,22 @@ function test_main( NN::Array{Int64} )
 
     # Calculation of Hartree energy
     Unum = 0.5*sum( rho .* phi ) * dVol
-    Uana = ( ( 1.0/sigma1 + 1.0/sigma2 ) / 2.0 - sqrt(2.0)/sqrt(sigma1^2 + sigma2^2) ) / sqrt(pi)
+    Uana = 0.5*sum( rho .* phi_analytic ) * dVol
+
     @printf("Numeric  = %18.10f\n", Unum)
     @printf("Uana     = %18.10f\n", Uana)
     @printf("abs diff = %18.10e\n", abs(Unum-Uana))
 
+    phi = reshape(phi, (NN[1],NN[2],NN[3]))
+    phi_analytic = reshape(phi_analytic, (NN[1],NN[2],NN[3]))
+
+    iy = NN[2]
+    iz = NN[3]
+    for ix in 1:NN[1]
+        @printf("%18.10f %18.10f %18.10f\n", grid.x[ix], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+    end
+
 end
 
-test_main([45,45,45])
+test_main([50,50,50])
 
