@@ -174,10 +174,7 @@ function Poisson_solve_DAGE( psolver::PoissonSolverDAGE, grid, Rhoe::Vector{Floa
     T_g = zeros(Float64,Nx,Ny,Nz)
     T_g2 = zeros(Float64,Nx,Ny,Nz)
     
-    #T_b = zeros(Float64,Nx,Ny,Nz)
     T_b = zeros(Float64,Nx,Nz,Ny)
-
-    #T_b2 = zeros(Float64,Nx,Ny,Nz)
     T_b2 = zeros(Float64,Nx,Nz,Ny)
 
     potential = zeros(Float64,Nx,Ny,Nz)
@@ -207,16 +204,16 @@ function Poisson_solve_DAGE( psolver::PoissonSolverDAGE, grid, Rhoe::Vector{Floa
         end
 
         for k in 1:Nz, j in 1:Ny, i in 1:Nx
-            #potential[i,j,k] = potential[i,j,k] + w_t[i_t]*T_b2[i,j,k]*2.0/sqrt(pi)
             potential[i,j,k] = potential[i,j,k] + w_t[i_t]*T_b2[i,k,j]*2.0/sqrt(pi)
         end
 
     end
 
+    # Correction (should be small)
     for ip in 1:Npoints
         potential[ip] = ( pi/(t_f*t_f) ) * density[ip] + potential[ip]
     end
-    
+
     return reshape(potential,Npoints)*sqrt(dVol)
 
 end
