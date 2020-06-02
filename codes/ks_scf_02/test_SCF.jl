@@ -21,6 +21,8 @@ function main()
     #Ham = create_Ham_Ne(41)
     #Ham = create_Ham_LiH(41)
 
+    @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
+
     Nbasis = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     dVol = Ham.grid.dVol
@@ -28,7 +30,7 @@ function main()
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    KS_solve_SCF!(Ham, psi)
+    KS_solve_SCF!(Ham, psi, diag_func=diag_LOBPCG!)
 
 end
 
