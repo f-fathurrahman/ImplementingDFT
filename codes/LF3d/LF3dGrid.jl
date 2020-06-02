@@ -103,3 +103,18 @@ function LF3dGrid( NN::Array{Int64,1}, AA::Array{Float64,1}, BB::Array{Float64,1
                      (AA[2], BB[2]), NN[2],
                      (AA[3], BB[3]), NN[3]; kwargs... ) 
 end
+
+import Base: show
+function show( io::IO, grid::LF3dGrid )
+
+    @printf("-----------------\n")
+    @printf("LF3dGrid instance\n")
+    @printf("-----------------\n")
+
+    println("types = ", grid.types)
+    @printf(io, "Nx   = %8d, hx = %18.10f\n", grid.Nx, grid.hx)
+    @printf(io, "Ny   = %8d, hy = %18.10f\n", grid.Ny, grid.hy)
+    @printf(io, "Nz   = %8d, hz = %18.10f\n", grid.Nz, grid.hz)
+
+end
+show( grid::LF3dGrid ) = show(stdout, grid)

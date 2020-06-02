@@ -81,6 +81,6 @@ function show( io::IO, grid::FD2dGrid )
     @printf("-----------------\n")
 
     @printf(io, "Nx   = %8d, hx = %18.10f\n", grid.Nx, grid.hx)
-    @printf(io, "Ny   = %8d, hy = %18.10f\n", grid.Ny, grid.hy)    
+    @printf(io, "Ny   = %8d, hy = %18.10f\n", grid.Ny, grid.hy)
 end
 show( grid::FD2dGrid ) = show(stdout, grid)
