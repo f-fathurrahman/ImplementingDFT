@@ -16,10 +16,17 @@ include("KS_solve_Emin_PCG.jl")
 
 function main()
     
-    #Ham = create_Ham_H2O(41)
-    Ham = create_Ham_H(41)
+    Random.seed!(1234)
+
+    #Ham = create_Ham_H2O(51)
+    
+    #Ham = create_Ham_H(41)
+    Ham = create_Ham_H(65)
+
     #Ham = create_Ham_Ne(41)
     #Ham = create_Ham_LiH(41)
+
+    println("Ham.grid.dVol = ", Ham.grid.dVol)
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 

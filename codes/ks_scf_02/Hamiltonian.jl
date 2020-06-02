@@ -10,7 +10,7 @@ mutable struct Hamiltonian
     atoms::Atoms
     rhoe::Vector{Float64}
     precKin
-    precLaplacian
+    psolver::PoissonSolverDAGE
     energies::Energies
 end
 
@@ -57,10 +57,8 @@ function Hamiltonian(
     verbose && @printf("Building preconditioners ...")
     if prec_type == :amg
         precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
-        precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
     else
         precKin = ILU0Preconditioner(-0.5*Laplacian)
-        precLaplacian = ILU0Preconditioner(Laplacian)
     end
     verbose && @printf("... done\n")
 
@@ -98,8 +96,10 @@ function Hamiltonian(
 
     energies = Energies()
 
+    psolver = PoissonSolverDAGE(grid)
+
     return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, pspots, pspotNL, electrons, atoms,
-                        rhoe, precKin, precLaplacian, energies )
+                        rhoe, precKin, psolver, energies )
 end
 
 
@@ -171,7 +171,7 @@ end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
     Ham.rhoe = Rhoe
-    Ham.V_Hartree = Poisson_solve_PCG( Ham.Laplacian, Ham.precLaplacian, Rhoe, 1000 )
+    Ham.V_Hartree = Poisson_solve_DAGE( Ham.psolver, Ham.grid, Rhoe )
     Ham.V_XC = excVWN( Rhoe ) + Rhoe .* excpVWN( Rhoe )
     return
 end

@@ -5,9 +5,8 @@ function create_Ham_LiH( N::Int64 )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [41, 41, 41]
-    #grid = FD3dGrid( NN, AA, BB )
-    #grid = LF3dGrid( NN, AA, BB )
-    grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    grid = FD3dGrid( NN, AA, BB )
+    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     return Hamiltonian( atoms, pspfiles, grid )    
 end
 
@@ -19,10 +18,11 @@ function create_Ham_H2O( N::Int64 )
     BB =  8.0*ones(3)
     NN = [N,N,N]
     grid = FD3dGrid( NN, AA, BB )
+    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     Ham = Hamiltonian( atoms, pspfiles, grid )
 end
 
-function create_Ham_H( N::Int64 )
+function create_Ham_H( N::Int64; grid_type=:FD )
     atoms = Atoms( xyz_string=
         """
         1
@@ -33,7 +33,12 @@ function create_Ham_H( N::Int64 )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    grid = FD3dGrid( NN, AA, BB )
+    if grid_type == :sinc
+        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    else
+        grid = FD3dGrid( NN, AA, BB )
+    end
+
     return Hamiltonian( atoms, pspfiles, grid )
 end
 

@@ -46,6 +46,9 @@ export speye, meshgrid
 include("../poisson_3d/Poisson_solve_PCG.jl")
 export Poisson_solve_PCG
 
+include("../poisson_3d/Poisson_solve_DAGE.jl")
+export Poisson_solve_DAGE
+
 include("../common/Ylm_real.jl")
 
 include("../common/Atoms.jl")
