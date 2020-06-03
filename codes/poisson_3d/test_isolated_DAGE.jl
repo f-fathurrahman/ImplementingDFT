@@ -39,13 +39,15 @@ function test_main( NN::Array{Int64} )
     
     # Initialization of charge density
     dr = zeros(Float64,3)
+    nrmfct = (2*pi*σ^2)^1.5
+    #nrmfct = 1.0
     for ip in 1:Npoints
         dr[1] = grid.r[1,ip] - x0
         dr[2] = grid.r[2,ip] - y0
         dr[3] = grid.r[3,ip] - z0
         r = sqrt(dr[1]^2 + dr[2]^2 + dr[3]^2)
-        rho[ip] = exp( -r^2 / (2.0*σ^2) )
-        phi_analytic[ip] = (2*pi*σ^2)^1.5 * erf(r/(sqrt(2)*σ))/r
+        rho[ip] = exp( -r^2 / (2.0*σ^2) ) / nrmfct
+        phi_analytic[ip] = (2*pi*σ^2)^1.5 * erf(r/(sqrt(2)*σ))/r / nrmfct
     end
 
     println("sum phi_analytic = ", sum(phi_analytic))
@@ -80,9 +82,9 @@ function test_main( NN::Array{Int64} )
 
     @printf("integ_phi   = %18.10f\n", integ_phi)
     @printf("integ_phi_a = %18.10f\n", integ_phi_a)
-    @printf("abs diff    = %18.10e\n", abs(integ_phi-integ_phi_a))
+    @printf("MAE         = %18.10e\n", abs(integ_phi-integ_phi_a)/Npoints)
 
 end
 
-test_main([80,80,80])
+test_main([50,50,50])
 
