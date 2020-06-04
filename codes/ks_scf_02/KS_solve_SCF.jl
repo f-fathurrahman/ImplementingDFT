@@ -18,7 +18,7 @@ function KS_solve_SCF!(
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
-    betamix = 0.25
+    betamix = 0.5
     dRhoe = 0.0
     NiterMax = 100
 
@@ -48,8 +48,9 @@ function KS_solve_SCF!(
         psi = psi/sqrt(dVol) # renormalize
 
         calc_rhoe!( Ham, psi, Rhoe_new )
+        #println("integ Rhoe before mix = ", sum(Rhoe)*dVol)
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-
+        #println("integ Rhoe after mix  = ", sum(Rhoe)*dVol)
         update!( Ham, Rhoe )
 
         calc_energies!( Ham, psi )

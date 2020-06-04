@@ -17,7 +17,7 @@ include("KS_solve_SCF.jl")
 function main()
     
     #Ham = create_Ham_H2O(41)
-    Ham = create_Ham_H(64)
+    Ham = create_Ham_H(41)
     #Ham = create_Ham_Ne(41)
     #Ham = create_Ham_LiH(41)
 

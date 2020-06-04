@@ -21,12 +21,11 @@ function main()
     #Ham = create_Ham_H2O(51)
     
     #Ham = create_Ham_H(41)
-    Ham = create_Ham_H(65)
-
+    Ham = create_Ham_H(51, grid_type=:sinc)
     #Ham = create_Ham_Ne(41)
     #Ham = create_Ham_LiH(41)
 
-    println("Ham.grid.dVol = ", Ham.grid.dVol)
+    println(Ham.grid)
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 

@@ -170,7 +170,7 @@ function op_H(Ham, psi)
 end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
-    Ham.rhoe = Rhoe
+    Ham.rhoe[:] = Rhoe[:]
     Ham.V_Hartree = Poisson_solve_DAGE( Ham.psolver, Ham.grid, Rhoe )
     Ham.V_XC = excVWN( Rhoe ) + Rhoe .* excpVWN( Rhoe )
     return
