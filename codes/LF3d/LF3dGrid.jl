@@ -111,10 +111,26 @@ function show( io::IO, grid::LF3dGrid )
     @printf("LF3dGrid instance\n")
     @printf("-----------------\n")
 
-    println("types = ", grid.types)
-    @printf(io, "Nx   = %8d, hx = %18.10f\n", grid.Nx, grid.hx)
-    @printf(io, "Ny   = %8d, hy = %18.10f\n", grid.Ny, grid.hy)
-    @printf(io, "Nz   = %8d, hz = %18.10f\n", grid.Nz, grid.hz)
+    Nx = grid.Nx; hx = grid.hx
+    Ny = grid.Ny; hy = grid.hy
+    Nz = grid.Nz; hz = grid.hz
 
+    println()
+    println("types = ", grid.types)
+    println()
+    @printf(io, "Box size          = %10.5f %10.5f %10.5f\n", grid.Lx, grid.Ly, grid.Lz)
+    @printf(io, "Grid spacing      = %10.5f %10.5f %10.5f\n", hx, hy, hz)
+    @printf(io, "Sampling Nx Ny Nz = %8d %8d %8d\n", Nx, Ny, Nz)
+    @printf(io, "Number of points  = %10d\n", grid.Npoints)
+    @printf(io, "dVol              = %10.5f\n", grid.dVol)
+    println()
+    @printf("Some grid points in x, y, and z directions:\n")
+    println()
+    @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", 1, grid.x[1], 1, grid.y[1], 1, grid.z[1])
+    @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", 2, grid.x[2], 2, grid.y[2], 2, grid.z[2])
+    @printf("       ..   .......        ..   .......        ..   .......\n")
+    @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", 1, grid.x[Nx-1], 1, grid.y[Ny-1], 1, grid.z[Nz-1])
+    @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", 2, grid.x[Nx], 2, grid.y[Ny], 2, grid.z[Nz])
+    exit()
 end
 show( grid::LF3dGrid ) = show(stdout, grid)
