@@ -36,15 +36,16 @@ function test_main( NN::Array{Int64} )
     phi = zeros(Float64, Npoints)
 
     phi_analytic = zeros(Float64, Npoints)
-    # Initialization of charge density1
+    # Initialization of charge density
+    nrmfct = (2*pi*σ^2)^1.5
     dr = zeros(Float64,3)
     for ip in 1:Npoints
         dr[1] = grid.r[1,ip] - x0
         dr[2] = grid.r[2,ip] - y0
         dr[3] = grid.r[3,ip] - z0
         r = sqrt(dr[1]^2 + dr[2]^2 + dr[3]^2)
-        rho[ip] = exp( -r^2 / (2.0*σ^2) )
-        phi_analytic[ip] = (2*pi*σ^2)^1.5 * erf(r/(sqrt(2)*σ))/r
+        rho[ip] = exp( -r^2 / (2.0*σ^2) )/nrmfct
+        phi_analytic[ip] = (2*pi*σ^2)^1.5 * erf(r/(sqrt(2)*σ))/r/nrmfct
     end
 
     println("sum phi_analytic = ", sum(phi_analytic))
