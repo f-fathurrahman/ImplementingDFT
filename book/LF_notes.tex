@@ -1,0 +1,137 @@
+\chapter{Lagrange basis functions}
+
+\section{Periodic Lagrange function}
+
+For a given interval $[0,L]$, with $L>0$, the grid points $x_{i}$
+appropriate for periodic Lagrange function are given by:
+
+\begin{equation}
+x_{i}=\frac{L}{2}\frac{2i-1}{N}
+\end{equation}
+with $i=1,\ldots,N$. Number of points $N$ should be an odd number.
+
+The periodic cardinal functions $L_{i}^{\mathrm{per}}(x)$, defined
+at grid point $i$ are given by:
+\begin{equation}
+L_{i}^{\mathrm{per}}(x)=\frac{1}{\sqrt{NL}}\sum_{n=1}^{N}\cos\left(\frac{\pi}{L}(2n-N-1)(x-x_{i})\right).
+\end{equation}
+The expansion of periodic function in terms of Lagrange functions:
+\begin{equation}
+f(x)=\sum_{i=1}^{N}c_{i}L_{i}^{\mathrm{per}}(x)
+\end{equation}
+with expansion coefficients $c_{i}=\sqrt{L/N}f(x_{i})$. When doing
+variational calculation, the cofficients $c_{i}$ are the variational
+parameters. The actual function values $f(x_{i}$) at grid points
+$x_{i}$ is obtained by $f(x_{i})=\sqrt{N/L}c_{i}$. The prefactor
+is sometimes abbreviated by $h=L/N$ and is also referred to as scaling
+factor.
+
+Consider periodic potential in one dimension:
+\begin{equation}
+V(x+L)=V(x).
+\end{equation}
+Floquet-Bloch theorem states that the wave function solution for periodic
+potentials can be written in the form:
+\begin{equation}
+\psi_{k}(x)=e^{\imath kx}\phi_{k}(x)
+\end{equation}
+where function $\phi_{k}(x)$ and its first derivative $\phi_{k}'(x)$
+have the same periodicity as $V(x)$ and $k$ is a constant called
+the crystal momentum. Substituting this expression to Schrodinger
+equation we obtain:
+\begin{equation}
+\left[-\frac{\hbar^{2}}{2m}\left(\frac{\mathrm{d}^{2}}{\mathrm{d}x^{2}}+2\imath k\frac{\mathrm{d}}{\mathrm{d}x}-k^{2}\right)+V(x)\right]\phi_{k}(x)=E\phi_{k}(k).
+\end{equation}
+
+
+An alternative way of enforcing periodicity of the wave function is
+to require that:
+\begin{equation}
+\psi_{k}(x+L)=e^{\imath kL}\psi_{k}(x).
+\end{equation}
+This condition follows from:
+\begin{eqnarray*}
+\psi_{k}(x+L) & = & e^{\imath k(x+L)}\phi_{k}(x+L)\\
+ & = & e^{\imath k(x+L)}\phi_{k}(x)\\
+ & = & e^{\imath kL}e^{\imath kx}\phi_{k}(x)\\
+ & = & e^{\imath kL}\psi_{k}(x)
+\end{eqnarray*}
+
+
+Using periodic cardinal the Schrodinger equation for periodic potential
+can be written as:
+\begin{equation}
+\sum_{j=1}^{N}\left[-\frac{\hbar^{2}}{2m}\left(D_{jl}^{(2)}+2\imath kD_{jl}^{(1)}-k^{2}\delta_{jl}\right)+V(j)\delta_{jl}\right]\phi(j)=E\phi(l)
+\end{equation}
+with $l=1,\ldots,N$. $D_{jl}^{(1)}$ are matrix elements of the first
+derivatives:
+\begin{equation}
+D_{jl}^{(1)}=\begin{cases}
+0 & j=l\\
+-\dfrac{2\pi}{L}(-1)^{j-l}\left(2\sin\dfrac{\pi(j-l)}{N}\right)^{-1} & j\neq l
+\end{cases}
+\end{equation}
+and $D_{jl}^{(2)}$ are matrix elements of the second derivatives,
+$N'=(N-1)/2$:
+\begin{equation}
+D_{jl}^{(2)}=\begin{cases}
+-\left(\dfrac{2\pi}{L}\right)^{2}\dfrac{N'(N'+1)}{3} & j=l\\
+-\left(\dfrac{2\pi}{L}\right)^{2}(-1)^{j-l}\dfrac{\cos\left(\pi(j-l)/N\right)}{2\sin^{2}\left[\pi(j-l)/N\right]} & j\neq l
+\end{cases}
+\end{equation}
+Note that, $D_{jl}^{(1)}$ is not symmetric, but $D_{jl}^{(1)}=-D_{lj}^{(1)}$.
+Meanwhile, the second derivative matrix $D_{jl}^{(2)}$ is symetric,
+i.e. $D_{jl}^{(2)}=D_{lj}^{(2)}$. With the above expressions, first
+and second derivative of periodic cardinals can be expressed as
+\begin{eqnarray}
+\frac{\mathrm{d}}{\mathrm{d}x}L_{i}^{\mathrm{per}}(x) & = & \sum_{j=1}^{N}D_{ji}^{(1)}L_{j}^{\mathrm{per}}(x)\\
+\frac{\mathrm{d}^{2}}{\mathrm{d}x^{2}}L_{i}^{\mathrm{per}}(x) & = & \sum_{j=1}^{N}D_{ji}^{(2)}L_{j}^{\mathrm{per}}(x)
+\end{eqnarray}
+
+
+The previous approach also can be extended to periodic potential in 3D:
+\[
+V(\mathbf{r})=V(x,y,z)=V\left(x+L_{x},y+L_{y},z+L_{z}\right)
+\]
+
+Using periodic LF, Schrodinger equation can be casted into the following form:
+\begin{equation}
+\left[-\dfrac{\hbar^{2}}{2m}\left(\nabla^{2}+2\imath\mathbf{k}\cdot\nabla-\mathbf{k}^{2}\right)+V(\mathbf{r})\right]\phi_{\mathbf{k}}(\mathbf{r})=E\ \phi_{\mathbf{k}}(\mathbf{r})
+\end{equation}
+
+
+\section{Cluster Lagrange function}
+
+For a given interval $[A,B]$, with $B>A$, the grid points $x_{i}$
+appropriate for cluster Lagrange function are given by:
+\[
+x_{i}=A+\frac{B-A}{N+1}i
+\]
+where $i=1,\ldots,N$. Number of points $N$ can be either odd or
+even number.
+
+The cluster Lagrange functions $L_{i}^{\mathrm{clu}}(x)$, defined
+at grid point $i$ are given by:
+\begin{equation}
+L_{i}^{\mathrm{clu}}(x)=\frac{2}{\sqrt{(N+1)(B-A)}}\sum_{n=1}^{N}\sin\left(k_{n}(x_{i}-A)\right)\sin\left(k_{n}(x-A)\right).
+\end{equation}
+where $k_{n}=\pi n/(B-A)$. The expansion of a function $f(x)$ in
+terms of cluster Lagrange functions:
+\begin{equation}
+f(x)=\sum_{i=1}^{N}c_{i}L_{i}^{\mathrm{clu}}(x)
+\end{equation}
+with expansion coefficients $c_{i}=\sqrt{(B-A)/(N+1)}f(x_{i})$. When
+doing variational calculation, the cofficients $c_{i}$ are the variational
+parameters. The actual function values $f(x_{i}$) at grid points
+$x_{i}$ is obtained by $f(x_{i})=\sqrt{(N+1)/(B-A)}c_{i}$.
+
+Matrix elements $D_{jl}^{(2)}$ of the second derivatives for cluster
+Lagrange functions are
+\begin{equation}
+D_{jl}^{(2)}=\begin{cases}
+-\dfrac{1}{2}\left(\dfrac{\pi}{B-A}\right)^{2}\dfrac{2(N+1)^{2}+1}{3}-\dfrac{1}{\sin^{2}\left[\pi j/(N+1)\right]} & j=l\\
+-\dfrac{1}{2}\left(\dfrac{\pi}{B-A}\right)^{2}(-1)^{j-l}\left[\dfrac{1}{\sin^{2}\left[\dfrac{\pi(j-l)}{2(N+1)}\right]}-\dfrac{1}{\sin^{2}\left[\dfrac{\pi(j+l)}{2(N+1)}\right]}\right] & j\neq l
+\end{cases}
+\end{equation}
+
+For free or cluster boundary condition, we don't need $D_{jl}^{(1)}$.
