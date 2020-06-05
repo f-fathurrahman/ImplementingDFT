@@ -40,7 +40,7 @@ Build a Hamiltonian with given FD grid and local potential.
 function Hamiltonian(
     atoms::Atoms, pspfiles::Array{String,1}, grid;
     Nstates_extra=0,
-    verbose=false,
+    verbose=true,
     stencil_order=9,
     prec_type=:ILU0
 )
@@ -85,7 +85,6 @@ function Hamiltonian(
         end
     end
     verbose && println("sum V_Ps_loc = ", sum(V_Ps_loc))
-
     pspotNL = PsPotNL( atoms, pspots, grid )
 
     V_Hartree = zeros(Float64, Npoints)
