@@ -93,7 +93,7 @@ function LF3dGrid(
     pbc3 = (types[3] == :P)
     
     return LF3dGrid( Npoints, types, 
-        Lx, Lx, Lz, Nx, Ny, Nz, hx, hy, hz, dVol,
+        Lx, Ly, Lz, Nx, Ny, Nz, hx, hy, hz, dVol,
         x, y, z, r, idx_ip2xyz, idx_xyz2ip, (pbc1,pbc2,pbc3) )
     
 end
@@ -129,8 +129,8 @@ function show( io::IO, grid::LF3dGrid )
     @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", 1, grid.x[1], 1, grid.y[1], 1, grid.z[1])
     @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", 2, grid.x[2], 2, grid.y[2], 2, grid.z[2])
     @printf("       ..   .......        ..   .......        ..   .......\n")
-    @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", 1, grid.x[Nx-1], 1, grid.y[Ny-1], 1, grid.z[Nz-1])
-    @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", 2, grid.x[Nx], 2, grid.y[Ny], 2, grid.z[Nz])
-    exit()
+    @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", Nx-1, grid.x[Nx-1], Ny-1, grid.y[Ny-1], Nz-1, grid.z[Nz-1])
+    @printf("%8d %10.5f %8d %10.5f %8d %10.5f\n", Nx, grid.x[Nx], Ny, grid.y[Ny], Nz, grid.z[Nz])
+    println()
 end
 show( grid::LF3dGrid ) = show(stdout, grid)
