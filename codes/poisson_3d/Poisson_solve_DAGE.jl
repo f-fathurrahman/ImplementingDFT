@@ -147,9 +147,6 @@ function PoissonSolverDAGE(
   F_ys = zeros(Float64,Ny,Ny,N_t)
   F_zs = zeros(Float64,Nz,Nz,N_t)
 
-  x_t = zeros(Float64,N_t)
-  w_t = zeros(Float64,N_t)
-
   x_t, w_t = _init_t_sampling( num_points1, num_points2, t_i, t_l, t_f )
 
   F_xs = _construct_F( grid.x, grid.Nx, grid.hx, N_t, x_t )
@@ -188,8 +185,8 @@ function Poisson_solve_DAGE( psolver::PoissonSolverDAGE, grid, Rhoe::Vector{Floa
 
     for i_t in 1:N_t
         for gg in 1:Nz
-            @views T_g[:,:,gg] = F_xs[:,:,i_t] * density[:,:,gg]
-            @views T_g2[:,:,gg] = T_g[:,:,gg] * F_ys[:,:,i_t]
+            @views T_g[:,:,gg] = F_xs[:,:,i_t] * density[:,:,gg] # (Nx,Ny)
+            @views T_g2[:,:,gg] = T_g[:,:,gg] * F_ys[:,:,i_t] # (Nx,Ny)
         end
 
         # reorder
@@ -200,7 +197,7 @@ function Poisson_solve_DAGE( psolver::PoissonSolverDAGE, grid, Rhoe::Vector{Floa
         end
 
         for bb in 1:Ny
-            @views T_b2[:,:,bb] = T_b[:,:,bb] * F_zs[:,:,i_t]
+            @views T_b2[:,:,bb] = T_b[:,:,bb] * F_zs[:,:,i_t]   # (Nx,Nz)
         end
 
         for k in 1:Nz, j in 1:Ny, i in 1:Nx
