@@ -24,9 +24,10 @@ function test_main( NN::Array{Int64} )
     Lz = BB[3] - AA[3]
 
     # Center of the box
-    x0 = AA[1] + Lx/2.0
-    y0 = AA[2] + Ly/2.0
-    z0 = AA[3] + Lz/2.0
+    Ncenters = 2
+    centers = zeros(3,Ncenters)
+    centers[:,1] = [ 0.0, 1.0, 1.0]
+    centers[:,2] = [ 0.0, 1.0, 1.0]
 
     # Parameters for two gaussian functions
     σ = 1.0
@@ -39,18 +40,19 @@ function test_main( NN::Array{Int64} )
     
     # Initialization of charge density
     dr = zeros(Float64,3)
-    nrmfct = (2*pi*σ^2)^1.5
-    #nrmfct = 1.0
+    #nrmfct = (2*pi*σ^2)^1.5
+    nrmfct = 1.0
     for ip in 1:Npoints
-        dr[1] = grid.r[1,ip] - x0
-        dr[2] = grid.r[2,ip] - y0
-        dr[3] = grid.r[3,ip] - z0
-        r = sqrt(dr[1]^2 + dr[2]^2 + dr[3]^2)
-        rho[ip] = exp( -r^2 / (2.0*σ^2) ) / nrmfct
-        phi_analytic[ip] = (2*pi*σ^2)^1.5 * erf(r/(sqrt(2)*σ))/r / nrmfct
+        for ia in 1:Ncenters
+            dr[1] = grid.r[1,ip] - centers[1,ia]
+            dr[2] = grid.r[2,ip] - centers[2,ia]
+            dr[3] = grid.r[3,ip] - centers[3,ia]
+            r = sqrt(dr[1]^2 + dr[2]^2 + dr[3]^2)
+            rho[ip] = rho[ip] + exp( -r^2 / (2.0*σ^2) ) / nrmfct
+            phi_analytic[ip] = phi_analytic[ip] + (2*pi*σ^2)^1.5 * erf(r/(sqrt(2)*σ))/r / nrmfct
+        end
+        println(rho[ip])
     end
-
-    println("sum phi_analytic = ", sum(phi_analytic))
 
     dVol = grid.dVol
 
@@ -68,13 +70,22 @@ function test_main( NN::Array{Int64} )
     integ_phi_a = sum( phi_analytic ) * dVol
 
     phi = reshape(phi, (NN[1],NN[2],NN[3]))
+    rho = reshape(rho, (NN[1],NN[2],NN[3]))
     phi_analytic = reshape(phi_analytic, (NN[1],NN[2],NN[3]))
 
-    ix = NN[1]
-    iz = NN[3]
-    for iy in 1:NN[2]
-        @printf("%18.10f %18.10f %18.10f\n", grid.y[iy], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+    ix = round(Int64,NN[1])
+    iy = round(Int64,NN[2])
+    iz = round(Int64,NN[3])
+    for ix in 1:NN[1]
+        #@printf("%18.10f %18.10f %18.10f\n", grid.x[ix], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+        @printf("%18.10f %18.10f %18.10f\n", grid.x[ix], rho[ix,iy,iz], phi_analytic[ix,iy,iz])
     end
+    #for iy in 1:NN[2]
+    #    @printf("%18.10f %18.10f %18.10f\n", grid.y[iy], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+    #end
+    #for iz in 1:NN[3]
+    #    @printf("%18.10f %18.10f %18.10f\n", grid.z[iz], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+    #end
 
     @printf("Numeric  = %18.10f\n", Unum)
     @printf("Uana     = %18.10f\n", Uana)
@@ -83,6 +94,8 @@ function test_main( NN::Array{Int64} )
     @printf("integ_phi   = %18.10f\n", integ_phi)
     @printf("integ_phi_a = %18.10f\n", integ_phi_a)
     @printf("MAE         = %18.10e\n", abs(integ_phi-integ_phi_a)/Npoints)
+
+     @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
 
 end
 
