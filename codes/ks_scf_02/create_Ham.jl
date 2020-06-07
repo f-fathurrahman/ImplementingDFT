@@ -44,7 +44,6 @@ function create_Ham_H( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
@@ -78,7 +77,7 @@ function create_Ham_CH4( N::Int64; grid_type=:sinc )
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
-function create_Ham_Ar( N::Int64 )
+function create_Ham_Ar( N::Int64; grid_type=:FD )
     atoms = Atoms( xyz_string=
         """
         1
@@ -89,12 +88,15 @@ function create_Ham_Ar( N::Int64 )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    grid = FD3dGrid( NN, AA, BB )
-
+    if grid_type == :sinc
+        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    else
+        grid = FD3dGrid( NN, AA, BB )
+    end
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
-function create_Ham_Ne( N::Int64 )
+function create_Ham_Ne( N::Int64; grid_type=:FD )
     atoms = Atoms( xyz_string=
         """
         1
@@ -105,19 +107,26 @@ function create_Ham_Ne( N::Int64 )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    grid = FD3dGrid( NN, AA, BB )
-
+    if grid_type == :sinc
+        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    else
+        grid = FD3dGrid( NN, AA, BB )
+    end
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
-function create_Ham_SiH4(N::Int64)
-    atoms = Atoms( xyz_file="SiH4.xyz" )
+function create_Ham_SiH4( N::Int64; grid_type=:FD )
+    atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"SiH4.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"Si-q4.gth"),
                  joinpath(DIR_PSP,"H-q1.gth") ]
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
     grid = FD3dGrid( NN, AA, BB )
-
+    if grid_type == :sinc
+        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    else
+        grid = FD3dGrid( NN, AA, BB )
+    end
     return Hamiltonian( atoms, pspfiles, grid )
 end

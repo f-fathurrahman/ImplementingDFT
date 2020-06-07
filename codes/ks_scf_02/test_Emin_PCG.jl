@@ -22,11 +22,16 @@ function main()
     
     #Ham = create_Ham_H(41)
     #Ham = create_Ham_H(40, grid_type=:FD)
+    
     #Ham = create_Ham_Ne(41)
+    
     #Ham = create_Ham_H2O(40, grid_type=:sinc)
+    
     #Ham = create_Ham_LiH(40, grid_type=:sinc)
 
-    Ham = create_Ham_CH4(31, grid_type=:sinc)
+    #Ham = create_Ham_CH4(31, grid_type=:sinc)
+    
+    Ham = create_Ham_SiH4(30, grid_type=:sinc)
 
     println(Ham.grid)
 
