@@ -1,5 +1,19 @@
 \chapter{Lagrange basis functions}
 
+\section{Lagrance-sinc function}
+
+\begin{equation}
+L_{i}(x) = \frac{1}{\sqrt{h}} \frac{\sin\left[\pi(x-x_{i})/h\right]}
+{\pi(x-x_{i})/h}
+\end{equation}
+
+\begin{equation}
+D^{(2)}_{jl} = \begin{cases}
+\dfrac{1}{h^2} \dfrac{\pi^2}{6} & \text{for } j=l \\[10pt]
+\dfrac{(-1)^{j-l}}{h^2} \dfrac{1}{(x_{j} - x_{l})^2} & \text{for } j \neq l
+\end{cases}
+\end{equation}
+
 \section{Periodic Lagrange function}
 
 For a given interval $[0,L]$, with $L>0$, the grid points $x_{i}$
