@@ -100,10 +100,10 @@ function main()
     Hsub = zeros(Float64,Nstates,Nstates)
     g = zeros(Float64,Nbasis,Nstates)
     d = zeros(Float64,Nbasis,Nstates)
-    g_old = copy(d)
+    g_prev = copy(d)
     d_old = copy(d)
     Kg = copy(d)
-    Kg_old = copy(d)
+    Kg_prev = copy(d)
     Xc = copy(d)
     gt = copy(d)
     
@@ -130,7 +130,7 @@ function main()
         end
 
         if iter != 1
-            β = real(sum(conj(g-g_old).*Kg))/real(sum(conj(g_old).*Kg_old))
+            β = real(sum(conj(g-g_prev).*Kg))/real(sum(conj(g_prev).*Kg_prev))
         end
 
         if β < 0.0
@@ -171,9 +171,9 @@ function main()
             break
         end
 
-        g_old = copy(g)
+        g_prev = copy(g)
         d_old = copy(d)
-        Kg_old = copy(Kg)
+        Kg_prev = copy(Kg)
         Ebands_old = Ebands
 
         flush(stdout)
