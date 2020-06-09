@@ -425,23 +425,28 @@ In numerical methods, there are several methods to search for several eigenpairs
 of a matrix. These methods falls into the category of \textit{partial or iterative
 diagonalization methods}. Several known methods are Lanczos method, Davidson method,
 preconditioned conjugate gradients, etc.
-The discussion about these methods are deferred to Appendix XXX.
+More detailed discussion about these methods are deferred to Appendix XXX.
 We have prepared several implementation of iterative diagonalization methods
-for your convenience:
+which can be used for black boxes for your convenience:
+%
 \begin{itemize}
 \item \txtinline{diag_Emin_PCG}
 \item \txtinline{diag_davidson}
 \item \txtinline{diag_LOBPCG}
 \end{itemize}
-
-These functions have similar function signatures. An example of \jlinline{diag_LOBPCG}
-is given below.
+%
+These functions have similar function signatures. They typically
+need Hamiltonian, initial guess of wave function and preconditioner.
+An example of \jlinline{diag_LOBPCG} is given below.
+%
 \begin{juliacode}
 function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
                        tol=1e-5, NiterMax=100, verbose=false,
                        verbose_last=false, Nstates_conv=0 )
 \end{juliacode}
-The function accepts three mandatory arguments:
+%
+The three mandatory arguments are as follow:
+%
 \begin{itemize}
 \item \jlinline{Ham}: the Hamiltonian matrix
 \item \jlinline{X::Array{Float64,2}}: initial guess of eigenfunctions
@@ -451,15 +456,22 @@ The function accepts three mandatory arguments:
 Almost all iterative methods need a good preconditioner to function properly.
 We will use several ready-to-use preconditioners that have been implemented
 in several packages in Julia such as incomplete LU and multigrid preconditioners.
+In the next section we will describe a diagonalization method based
+on nonlinear minimization as we apply it to a simple case of 2d harmonic
+potential.
+
 
 \section{2d harmonic potential}
 
 We will test our implementation for solving Schroedinger equation for two
 dimensional harmonic potentials:
+%
 \begin{equation}
 V(x,y) = \frac{1}{2} \omega^2 (x^2 + y^2)
 \end{equation}
+%
 This potential can be implemented in the following Julia code.
+%
 \begin{juliacode}
 function pot_harmonic( grid::FD2dGrid; ω=1.0 )
   Npoints = grid.Npoints
@@ -473,79 +485,89 @@ function pot_harmonic( grid::FD2dGrid; ω=1.0 )
 end
 \end{juliacode}
 
-Energy eigenvalues:
-\begin{textcode}
-n_x + n_y + 1  &  Values of n_x and n_y
-1              &  (0,0)
-2              &  (1,0) (0,1)
-3              &  (2,0) (1,1) (1,1)
-4              &  (3,0) (0,3) (2,1) (1,2)
-\end{textcode}
-
-Energy:
+This potential has the following analytic solutions for eigenvalues:
 \begin{equation}
 E_{n_{x} + n_{y}} = \hbar \omega \left( n_{x} + n_{y} + 1 \right)
 \end{equation}
+For each energy levels, we may have more than one possible combinations
+of $n_x$ and $n_y$, for examples:
 
-The complete program can be found in the file \txtinline{sch_2d/main_harmonic.jl}.
-Here we show the main function of the program.
-%
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+$E = n_x + n_y + 1$  &  Values of $n_x$ and $n_y$ \\
+\hline
+1                  &  (0,0) \\
+2                  &  (1,0) (0,1) \\
+3                  &  (2,0) (1,1) (1,1) \\
+4                  &  (3,0) (0,3) (2,1) (1,2) \\
+\hline
+\end{tabular}
+\end{table}
+
+Our first task is to build the Hamiltonian. The step is very similar
+to the one that we have done for 1d case:
 \begin{juliacode}
-function main()
-  Nx = 50
-  Ny = 50
-  grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
-  ∇2 = build_nabla2_matrix( grid )
-  Vpot = pot_harmonic( grid )
-  Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
+Nx = 50
+Ny = 50
+grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+∇2 = build_nabla2_matrix( grid, stencil_order=9 )
+Vpot = pot_harmonic( grid )
+Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
+\end{juliacode}
+Note that we have used \jlinline{spdiagm} instead of
+\jlinline{diagm} when constructing the potential matrix.
 
-  # Preconditioner based on inverse kinetic
-  prec = ilu(-0.5*∇2)
+\begin{juliacode}
+dVol = grid.dVol
+Nstates = 3
+Npoints = Nx*Ny
+X = rand(Float64, Npoints, Nstates)
+ortho_sqrt!(X, dVol)
+\end{juliacode}
 
-  Nstates = 10
-  Npoints = Nx*Ny
-  X = rand(Float64, Npoints, Nstates)
-  ortho_sqrt!(X)
-    
-  evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
-  X = X/sqrt(grid.dA) # renormalize the eigenfunctions
+\begin{equation}
+\frac{\partial H}{\partial \psi^{*}} = H\psi -
+\sum_{i} \psi \braket{\psi | H | \psi}
+\end{equation}
 
-  @printf("\n\nEigenvalues\n")
-  for i in 1:Nstates
-    @printf("%5d %18.10f\n", i, evals[i])
-  end
+\begin{juliacode}
+function calc_grad_evals!( Ham, ψ, g, Hsub )
+  Nstates = size(ψ,2)
+  Hψ = Ham*ψ
+  Hsub[:] = ψ' * Hψ
+  g[:,:] = Hψ - ψ*Hsub
+  return
 end
 \end{juliacode}
 
-Eigenvalues ($N_{x} = N_{y} = 50$) (using 3pt):
-\begin{textcode}
-    Eigenvalues
-    1       0.9973901176
-    2       1.9921565440
-    3       1.9921566198
-    4       2.9816542867
-    5       2.9816544298
-    6       2.9869229641
-    7       3.9658411776
-    8       3.9658416551
-    9       3.9764210096
-   10       3.9764216828
-\end{textcode}
 
-Eigenvalues ($N_{x} = N_{y} = 50$) (using 9pt):
-\begin{textcode}
-    Eigenvalues
-    1       0.9999999862
-    2       1.9999998768
-    3       1.9999999392
-    4       2.9999992436
-    5       2.9999993054
-    6       2.9999997845
-    7       3.9999973668
-    8       3.9999976649
-    9       3.9999992565
-   10       3.9999998030
-\end{textcode}
+
+\begin{juliacode}
+for iter = 1:NiterMax
+  calc_grad_evals!( Ham, X, g, Hsub )
+  d[:] = -g[:]
+  # Update wavefunction
+  X[:] = X + α_t*d
+  ortho_sqrt!(X)
+  Hr = Hermitian( X' * ( Ham*X ) )
+  evals = eigvals(Hr)
+  Ebands = sum(evals)
+  devals = abs.( evals - evals_old )
+  evals_old = copy(evals)
+  nconv = length( findall( devals .< tol ) )
+  diffE = abs(Ebands-Ebands_old)
+  @printf("SD step %8d = %18.10f   %10.7e  nconv = %5d\n", iter, Ebands, diffE, nconv)
+  if nconv >= Nstates_conv
+      IS_CONVERGED = true
+      @printf("Emin_SD convergence: nconv = %5d in %5d iterations\n", nconv, iter)
+      break
+  end
+  Ebands_old = Ebands
+end
+\end{juliacode}
+
 
 The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 
@@ -565,4 +587,3 @@ The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 \label{fig:harm_2d_eigenfunctions}
 \end{figure}
 
-TODO: degenerate states.
