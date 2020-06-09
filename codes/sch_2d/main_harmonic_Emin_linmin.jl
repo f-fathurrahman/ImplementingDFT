@@ -67,8 +67,9 @@ function main()
 
     #prec = ilu(-0.5*∇2)
     #prec = ilu(Ham) # this should result in faster convergence
-    prec = aspreconditioner(ruge_stuben(Ham))
-    #prec = ILU0Preconditioner(Ham)
+    #prec = aspreconditioner(ruge_stuben(Ham))
+    prec = ILU0Preconditioner(Ham)
+    #prec = ILU0Preconditioner(-0.5*∇2)
     #prec = NoPreconditioner()
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)

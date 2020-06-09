@@ -86,7 +86,7 @@ function main()
     Nstates_conv = Nstates
     @assert Nstates_conv <= Nstates_conv
     NiterMax = 5000
-    α_t = 3e-3
+    α = 3e-3
     tol = 1e-6
 
     #
@@ -114,7 +114,7 @@ function main()
         d[:] = -g[:]
 
         # Update wavefunction
-        X[:] = X + α_t*d
+        X[:] = X + α*d
         ortho_sqrt!(X)
 
         Hr = Hermitian( X' * ( Ham*X ) )
