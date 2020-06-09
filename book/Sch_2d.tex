@@ -461,7 +461,7 @@ on nonlinear minimization as we apply it to a simple case of 2d harmonic
 potential.
 
 
-\section{2d harmonic potential}
+\section{Minimization approach: 2d harmonic potential}
 
 We will test our implementation for solving Schroedinger equation for two
 dimensional harmonic potentials:
@@ -512,12 +512,22 @@ to the one that we have done for 1d case:
 Nx = 50
 Ny = 50
 grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
-∇2 = build_nabla2_matrix( grid, stencil_order=9 )
+∇2 = build_nabla2_matrix( grid )
 Vpot = pot_harmonic( grid )
 Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 \end{juliacode}
 Note that we have used \jlinline{spdiagm} instead of
 \jlinline{diagm} when constructing the potential matrix.
+
+\subsection{Orthonormalization}
+
+Lowdin orthonormalization:
+\begin{juliacode}
+function ortho_sqrt( psi )
+  Udagger = inv(sqrt(psi'*psi))
+  return psi*Udagger
+end
+\end{juliacode}
 
 \begin{juliacode}
 dVol = grid.dVol
@@ -527,11 +537,26 @@ X = rand(Float64, Npoints, Nstates)
 ortho_sqrt!(X, dVol)
 \end{juliacode}
 
+TODO: Gram-Schmidt
+
+\subsection{Band energy functional and its gradient}
+
+One method that can be used is diagonalize the Hamiltonian is based on the minimization
+of band energy:
 \begin{equation}
-\frac{\partial H}{\partial \psi^{*}} = H\psi -
-\sum_{i} \psi \braket{\psi | H | \psi}
+\min E\left[{\psi_{i}}\right] = \braket{\psi | H | \psi} - \sum_{ij}\lambda_{ij}\left(
+\braket{ \psi_{i} | \psi_{j} } - \delta_{ij}
+\right)
 \end{equation}
 
+The gradient of this expression is:
+\begin{equation}
+\frac{\partial H}{\partial \psi^{*}_{i}} = H\psi_{i} -
+\sum_{j} \psi_{j} \braket{\psi_{j} | H | \psi_{i}}
+\end{equation}
+%
+In Julia this can be implemented using the following function:
+%
 \begin{juliacode}
 function calc_grad_evals!( Ham, ψ, g, Hsub )
   Nstates = size(ψ,2)
@@ -542,8 +567,21 @@ function calc_grad_evals!( Ham, ψ, g, Hsub )
 end
 \end{juliacode}
 
+\subsection{Steepest descent method}
 
+The simplest method that we can apply to minimize the band energy functional is
+the steepest descent method. This method can be described in the following steps:
+\begin{enumerate}
+\item Initialize random wave function: $\mathbf{X}$
+\item Calculate $E$ for the given $\mathbf{X}$.
+\item Calculate the gradient $\mathbf{g} = \nabla E$.
+\item Set search direction $\mathbf{d} = -\mathbf{g}$.
+\item Update wave function according to: $\mathbf{X} \leftarrow X + \alpha d$, where $\alpha$ is
+a fixed step length. Orthonormalize $\mathbf{X}$.
+\item Calculate $E$ for this updated $\mathbf{X}$ and compare it with the previous value.
+\end{enumerate}
 
+The following Julia code implements the steepest descent algorithm for minimizing band energy.
 \begin{juliacode}
 for iter = 1:NiterMax
   calc_grad_evals!( Ham, X, g, Hsub )
@@ -568,22 +606,216 @@ for iter = 1:NiterMax
 end
 \end{juliacode}
 
+Note we have calculate the current estimate the eigenvalues and band energy in the following
+lines:
+\begin{juliacode}
+Hr = Hermitian( X' * ( Ham*X ) )
+evals = eigvals(Hr)
+Ebands = sum(evals)
+\end{juliacode}
+
+In the file \txtinline{main_harmonic_Emin_SD.kl} we implement steepest descent algorithm
+to find three lowest eigenstates of 2d harmonic potential.
+Using the following parameters:
+\begin{juliacode}
+NiterMax = 5000
+α = 3e-3
+tol = 1e-6
+\end{juliacode}
+we obtain the results:
+\begin{textcode}
+evals[  1] =       0.9999999732 devals =   5.2402526762e-14
+evals[  2] =       2.0000187702 devals =   1.1408453116e-07
+evals[  3] =       2.0001656321 devals =   9.9907378681e-07  
+\end{textcode}
+which are close to the analytical solution. You might want to vary the number of eigenstates
+that you want to search by setting higher values for the variable \jlinline{Nstates} to
+higher than 3.
+
+Despite its simplicity, the steepest descent method has several drawbacks.
+The most prominent one is that it is very slow to converge. For this particular case
+we have:
+\begin{textcode}
+SD step     2258 =       5.0001854888   1.1198655e-06  nconv =     2
+SD step     2259 =       5.0001843756   1.1131584e-06  nconv =     3
+Emin_SD convergence: nconv =     3 in  2259 iterations
+\end{textcode}
+The convergence is also dependent to the step length parameter \jlinline{α}.
+
+\subsection{Line minimization}
+
+Line minimization:
+\begin{juliacode}
+Xc = ortho_sqrt( X + α_t*d )
+calc_grad_evals!( Ham, Xc, gt, Hsub )
+denum = real(sum(conj(g-gt).*d))
+if denum != 0.0
+    α = abs( α_t*real(sum(conj(g).*d))/denum )
+else
+    α = 0.0
+end
+\end{juliacode}
+
+Implemented in the program \txtinline{main_harmonic_Emin_linmin.jl}.
+Result using line minimization:
+\begin{textcode}
+linmin step      589 =       5.0000566204   1.4525395e-06  nconv =     2
+linmin step      590 =       5.0000552040   1.4164238e-06  nconv =     3
+Emin_linmin convergence: nconv =     3 in   590 iterations
+  
+Eigenvalues:
+  
+evals[  1] =       1.0000001750 devals =   3.4402208904e-07
+evals[  2] =       2.0000051631 devals =   1.0311948540e-07
+evals[  3] =       2.0000498659 devals =   9.6928218651e-07  
+\end{textcode}
+
+
+\subsection{Preconditioning}
+
+Action of preconditioning:
+
+\begin{juliacode}
+Kg[:] = g[:] # copy
+for i in 1:Nstates
+    @views ldiv!(prec, Kg[:,i])
+end
+\end{juliacode}
+
+ILU preconditioner based on kinetic operator:
+\begin{juliacode}
+prec = ilu(-0.5*∇2)
+\end{juliacode}
+
+Result using ILU preconditioner based on kinetic operator:
+\begin{textcode}
+linmin step       55 =       5.0000009960   1.2258080e-06  nconv =     2
+linmin step       56 =       5.0000003689   6.2711750e-07  nconv =     3
+Emin_linmin convergence: nconv =     3 in    56 iterations
+
+Eigenvalues:
+
+evals[  1] =       0.9999999739 devals =   6.0261565960e-07
+evals[  2] =       1.9999999937 devals =   5.8729066055e-09
+evals[  3] =       2.0000004014 devals =   1.8628935727e-08  
+\end{textcode}
+
+ILU preconditioner based on Hamiltonian operator:
+\begin{juliacode}
+prec = ilu(Ham)
+\end{juliacode}
+
+\begin{textcode}
+linmin step       15 =       5.0000004295   3.2233493e-06  nconv =     2
+linmin step       16 =       4.9999998058   6.2374058e-07  nconv =     3
+Emin_linmin convergence: nconv =     3 in    16 iterations
+  
+Eigenvalues:
+  
+evals[  1] =       0.9999999787 devals =   1.2492943446e-07
+evals[  2] =       1.9999998478 devals =   1.2682084205e-07
+evals[  3] =       1.9999999792 devals =   3.7199030434e-07
+\end{textcode}
+
+
+Multigrid preconditioner
+\begin{juliacode}
+prec = aspreconditioner(ruge_stuben(Ham))
+\end{juliacode}
+
+\begin{textcode}
+linmin step       15 =       5.0000010097   4.8543236e-06  nconv =     2
+linmin step       16 =       4.9999999515   1.0581623e-06  nconv =     3
+Emin_linmin convergence: nconv =     3 in    16 iterations
+
+Eigenvalues:
+
+evals[  1] =       0.9999999796 devals =   1.0151917307e-07
+evals[  2] =       1.9999998532 devals =   1.9803365658e-07
+evals[  3] =       2.0000001187 devals =   7.5860946458e-07
+\end{textcode}
+
+
+ILU0 preconditioner, in SPARSKIT.
+\begin{juliacode}
+prec = ILU0Preconditioner(Ham)
+\end{juliacode}
+
+\begin{textcode}
+linmin step       64 =       5.0000041335   1.4349680e-06  nconv =     2
+linmin step       65 =       5.0000030469   1.0865516e-06  nconv =     3
+Emin_linmin convergence: nconv =     3 in    65 iterations
+
+Eigenvalues:
+
+evals[  1] =       1.0000001632 devals =   1.3899380646e-07
+evals[  2] =       2.0000000485 devals =   6.1344835878e-08
+evals[  3] =       2.0000028351 devals =   8.8621293415e-07
+\end{textcode}
+
+
+For testing purpose
+\begin{juliacode}
+prec = NoPreconditioner()
+\end{juliacode}
+
+Comparison of preconditioner size
+\begin{textcode}
+sizeof Ham  =       0.6372146606 MiB
+sizeof prec =       6.9084167480 MiB  ILU kinetic
+sizeof prec =       3.0494079590 MiB  ILU Hamiltonian
+sizeof prec =       2.3046264648 MiB  AMG Ruge-Stuben
+sizeof prec =       0.6372070313 MiB  ILU0
+\end{textcode}
+
+
+\subsection{Conjugate gradient}
+
+Conjugate-gradient
+
+\begin{textcode}
+d = -Kg + β * d_prev
+\end{textcode}
+
+Polak-Ribiere formula
+\begin{juliacode}
+if iter != 1
+  β = real(sum(conj(g-g_prev).*Kg))/real(sum(conj(g_prev).*Kg_prev))
+end
+if β < 0.0 β = 0.0 end
+\end{juliacode}
+
+CG using ILU0 (Ham)
+\begin{textcode}
+CG step       29 =       5.0000026056   2.8129344e-06  nconv =     2
+CG step       30 =       5.0000011500   1.4555620e-06  nconv =     3
+Emin_CG convergence: nconv =     3 in    30 iterations
+  
+Eigenvalues:
+  
+evals[  1] =       1.0000001156 devals =   1.4606434040e-07
+evals[  2] =       2.0000002046 devals =   6.6796002196e-07
+evals[  3] =       2.0000008298 devals =   6.4153765811e-07  
+\end{textcode}
+
+\subsection{Eigenfunctions}
+
+\begin{juliacode}
+ortho_sqrt!(X)
+Hr = Hermitian( X' * (Ham*X) )
+evals, evecs = eigen(Hr)
+X[:,:] = X*evecs
+\end{juliacode}
 
 The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 
 \begin{figure}[H]
 {\centering
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_1.pdf}\\
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_2.pdf}%
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_3.pdf}\\
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_4.pdf}%
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_5.pdf}%
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_6.pdf}\\
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_7.pdf}%
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_8.pdf}%
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_9.pdf}%
-\includegraphics[scale=0.3]{../codes/sch_2d/IMG_harmonic_psi_10.pdf}
+\includegraphics[width=0.4\textwidth]{../codes/sch_2d/IMG_harmonic_psi_1.pdf}\\
+\includegraphics[width=0.4\textwidth]{../codes/sch_2d/IMG_harmonic_psi_2.pdf}%
+\includegraphics[width=0.4\textwidth]{../codes/sch_2d/IMG_harmonic_psi_3.pdf}
 \par}
+\caption{Visualization of eigenstates of 2d harmonic potential}
 \label{fig:harm_2d_eigenfunctions}
 \end{figure}
 

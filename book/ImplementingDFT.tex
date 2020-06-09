@@ -47,6 +47,17 @@
 \newfloat{mintedfloat}{h}{lop}
 \floatname{mintedfloat}{Listing}
 
+% Using background color for minted environment
+\usepackage{xcolor}
+\definecolor{mintedbg}{rgb}{0.8,0.80,0.80}
+\usepackage{mdframed}
+\BeforeBeginEnvironment{minted}{
+    \begin{mdframed}[backgroundcolor=mintedbg,%
+        topline=false,bottomline=false,%
+        leftline=false,rightline=false]
+}
+\AfterEndEnvironment{minted}{\end{mdframed}}
+
 \usepackage{hyperref}
 
 \usepackage{multicol}

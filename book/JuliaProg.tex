@@ -56,7 +56,6 @@ exploration or debugging the program.
 The Julia code can be typed after the \txtinline{julia>} prompt. In this way,
 we can write Julia code interactively.
 
-
 Example Julia session
 \begin{textcode}
 julia> 1.2 + 3.4
@@ -79,18 +78,23 @@ julia> α * β
 4264704
 \end{textcode}
 
-To exit type
+The symbol \jlinline{α} can be entered in the Julia console by typing \txtinline{\alpha} and
+then followed by typing Tab key.
+Another example is the \jlinline{∇} symbol can be entered by typing \txtinline{\nabla} followed
+by typing Tab key.
+Julia supports many Unicode symbols that can be used
+as names or operators.
+We can even use superscript symbol as in \jlinline{∇²}.
+A list of supported Unicode symbols in Julia can be found at
+{\footnotesize\url{https://docs.julialang.org/en/v1/manual/unicode-input/}}.
+
+To exit the console we can type
 \begin{textcode}
 julia> exit()
 \end{textcode}
 
 
 \subsection{Julia script file}
-
-In a text file with \txtinline{.jl} extension.
-
-You can experiment with Julia REPL by typing \txtinline{julia}
-at terminal:
 
 We also can put the code in a text file with \txtinline{.jl} extension and
 execute it with the command:
@@ -99,22 +103,88 @@ execute it with the command:
 julia filename.jl
 \end{bashcode}
 
-The following code
+For example, type the following code in a file named \txtinline{say_hello.jl}
 \begin{juliacode}
 function say_hello(name)
     println("Hello: ", name)
 end
 say_hello("efefer")
 \end{juliacode}
+The run it by using the following command in the usual terminal session
+(not in a Julia console)
+\begin{textcode}
+julia say_hello.jl
+\end{textcode}
+and the following output will be displayed in the terminal:
+\begin{textcode}
+Hello: efefer
+\end{textcode}
 
 
-\section{Basic programming construct}
+
+
+\section{Basic programming constructs}
 
 Julia has similarities with several popular programming languages
-such as Julia, MATLAB, and R, to name a few.
+such as Python, MATLAB, and R, to name a few.
+
+\subsection{Displaying something}
+
+Using \jlinline{println} and \jlinline{@printf}
+
+\begin{juliacode}
+print("Hey")
+println("Hello")
+\end{juliacode}
+
+\begin{juliacode}
+using Printf
+@printf("Hey")
+@printf("Hello\n")
+\end{juliacode}
+  
+\subsection{Variables}
+
+A variable, in Julia, is a name associated (or bound) to a value.
+It's useful when you want to store a value (that you obtained after some math,
+for example) for later use. For example:
+
+\begin{juliacode}
+# Assign the value 10 to the variable x
+x = 10
+  
+# Doing math with x's value
+x + 1
+  
+# Reassign x's value
+x = 1 + 1
+  
+# You can assign values of other types, like strings of text
+julia> x = "Hello World!"
+\end{juliacode}
+
+Julia provides an extremely flexible system for naming variables.
+Variable names are case-sensitive, and have no semantic meaning
+(that is, the language will not treat variables differently based on their names).
+
+Variable names must begin with a letter (A-Z or a-z), underscore, or a subset of Unicode code points greater than 00A0; in particular, Unicode character categories Lu/Ll/Lt/Lm/Lo/Nl (letters), Sc/So (currency and other symbols), and a few other letter-like characters (e.g. a subset of the Sm math symbols) are allowed. Subsequent characters may also include ! and digits (0-9 and other characters in categories Nd/No), as well as other Unicode code points: diacritics and other modifying marks (categories Mn/Mc/Me/Sk), some punctuation connectors (category Pc), primes, and a few other characters.
+
+The only explicitly disallowed names for variables are the names of built-in statements:
+
+While Julia imposes few restrictions on valid names, it has become useful to adopt the following conventions:
+
+Names of variables are in lower case.
+
+Word separation can be indicated by underscores (\txtinline{'_'}), but use of underscores is discouraged unless the name would be hard to read otherwise.
+
+Names of Types and Modules begin with a capital letter and word separation is shown with upper camel case instead of underscores.
+
+Names of functions and macros are in lower case, without underscores.
+
+Functions that write to their arguments have names that end in !. These are sometimes called "mutating" or "in-place" functions because they are intended to produce changes in their arguments after the function is called, not just return a value.
 
 
-\section{Mathematical operators}
+\subsection{Mathematical operators}
 
 \begin{juliacode}
 if a >= 1
@@ -124,6 +194,7 @@ end
 
 Example code 3
 
+Plotting:
 \begin{juliacode}
 using PGFPlotsX
 using LaTeXStrings
