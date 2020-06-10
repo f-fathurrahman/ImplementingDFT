@@ -34,6 +34,8 @@ function main()
     Nelectrons = 2*Nstates
     Ham = Hamiltonian( grid, V_ext, Nelectrons=Nelectrons )
 
+    @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
+
     Nbasis = prod(NN)
 
     dVol = grid.dVol
@@ -92,6 +94,13 @@ function main()
 
     println(Ham.energies)
 
+    #e = 2.0*sum(eigenval(1:N_occ)) + ec + ex
+    #e = e - sum(rho(:, :)*(vx(:, :) + vc(:, :) + vh(:, :)/2.0))*delta**2
+
+    println()
+    println("calc_energies v2")
+    Etot = 2*sum(evals) - 0.5*sum( Rhoe .* Ham.V_Hartree )*dVol
+    println("Etot = ", Etot)
 end
 
 @time main()

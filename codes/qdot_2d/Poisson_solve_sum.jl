@@ -22,14 +22,14 @@ function Poisson_solve_sum( grid::Union{FD2dGrid,LF2dGrid}, rho )
             rj[2] = r[2,jp]
 
             if ip == jp
-                V[ip] = V[ip] + 2*sqrt(pi)*rho[ip]/dVol
+                V[ip] = V[ip] + 2*sqrt(pi)*rho[ip]/sqrt(dVol)
             else
                 dr = ( ri[1] - rj[1] )^2 + ( ri[2] - rj[2] )^2
                 V[ip] = V[ip] + rho[jp]/sqrt(dr)
             end
         end
 
-        V[ip] = V[ip]*dVol^2
+        V[ip] = V[ip]*dVol
     
     end
 
