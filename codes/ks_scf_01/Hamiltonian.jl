@@ -51,7 +51,11 @@ function Hamiltonian( grid, V_loc_func::Array{Float64,1};
     stencil_order=9
 )
 
-    Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
+    if typeof(grid) == FD3dGrid
+        Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
+    else
+        Laplacian = build_nabla2_matrix( grid )
+    end
     V_Ps_loc = V_loc_func
 
     Npoints = grid.Npoints
