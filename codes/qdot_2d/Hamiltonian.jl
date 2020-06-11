@@ -7,44 +7,8 @@ mutable struct Hamiltonian
     electrons::Electrons
     rhoe::Vector{Float64}
     precKin
-    precLaplacian
     energies::Energies
 end
-
-"""
-Build a Hamiltonian with given FD grid and local potential.
-"""
-function Hamiltonian( grid, ps_loc_func::Function;
-    Nelectrons=2, Nstates_extra=0,
-    stencil_order=9
-)
-    
-    # Need better mechanism for this
-    if typeof(grid) == FD2dGrid
-        Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
-    else
-        Laplacian = build_nabla2_matrix( grid )
-    end
-    V_Ps_loc = ps_loc_func( grid )
-
-    Npoints = grid.Npoints
-    V_Hartree = zeros(Float64, Npoints)
-
-    V_XC = zeros(Float64, Npoints)
-    Rhoe = zeros(Float64, Npoints)
-
-    @printf("Building preconditioners ...")
-    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
-    precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
-    @printf("... done\n")
-
-    electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
-
-    energies = Energies()
-    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
-                        Rhoe, precKin, precLaplacian, energies )
-end
-
 
 function Hamiltonian( grid, V_loc::Array{Float64,1};
     Nelectrons=2, Nstates_extra=0,
@@ -67,15 +31,14 @@ function Hamiltonian( grid, V_loc::Array{Float64,1};
     Rhoe = zeros(Float64, Npoints)
 
     @printf("Building preconditioners ...")
-    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
-    precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
+    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian + spdiagm(0 => V_Ps_loc)) )
     @printf("... done\n")
 
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
     energies = Energies()
     return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
-                        Rhoe, precKin, precLaplacian, energies )
+                        Rhoe, precKin, energies )
 end
 
 
@@ -89,6 +52,10 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
         Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
     end
     return Hpsi
+end
+
+function op_H(Ham, psi)
+    return Ham*psi
 end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )

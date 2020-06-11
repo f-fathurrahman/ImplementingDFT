@@ -89,7 +89,7 @@ function main()
             Nconverges = 0
         end
 
-        if Nconverges >= 2
+        if Nconverges >= 1
             @printf("\nSCF is converged in iter: %d\n", iterSCF)
             @printf("\nEigenvalues:\n")
             for i in 1:Nstates
