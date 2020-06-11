@@ -27,6 +27,7 @@ function main()
     NN = [81, 81]
 
     grid = FD2dGrid( NN, AA, BB )
+    #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
 
     V_ext = pot_harmonic( grid, ω=0.22 )
     
@@ -58,7 +59,9 @@ function main()
     dEtot = 0.0
     betamix = 0.5
     dRhoe = 0.0
-    NiterMax = 100
+    NiterMax = 200
+    etot_conv_thr = 1e-6
+    Nconverges = 1
 
     for iterSCF in 1:NiterMax
 
@@ -80,8 +83,14 @@ function main()
 
         @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
 
-        if dEtot < 1e-6
-            @printf("Convergence is achieved in %d iterations\n", iterSCF)
+        if dEtot < etot_conv_thr
+            Nconverges = Nconverges + 1
+        else
+            Nconverges = 0
+        end
+
+        if Nconverges >= 2
+            @printf("\nSCF is converged in iter: %d\n", iterSCF)
             @printf("\nEigenvalues:\n")
             for i in 1:Nstates
                 @printf("%3d %18.10f\n", i, evals[i])
