@@ -108,7 +108,7 @@ function main()
 
     println()
     println("calc_energies v2")
-    Etot = 2*sum(evals) + sum( excVWN(Ham.rhoe) .* Ham.rhoe )*dVol
+    Etot = 2*sum(evals) + calc_E_xc_2d( Ham.rhoe, dVol=dVol )
     Etot = Etot - sum( Ham.rhoe .* ( 0.5*Ham.V_Hartree .+  Ham.V_XC ) ) * dVol
     println("Etot = ", Etot)
 end

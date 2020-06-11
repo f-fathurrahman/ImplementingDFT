@@ -61,6 +61,7 @@ end
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
     Ham.rhoe = Rhoe
     Ham.V_Hartree = Poisson_solve_sum( Ham.grid, Rhoe )
-    Ham.V_XC = excVWN( Rhoe ) + Rhoe .* excpVWN( Rhoe )
+    #Ham.V_XC = excVWN( Rhoe ) + Rhoe .* excpVWN( Rhoe )
+    Ham.V_XC = calc_V_xc_2d(Rhoe)
     return
 end
