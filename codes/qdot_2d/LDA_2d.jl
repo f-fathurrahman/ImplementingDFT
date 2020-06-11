@@ -46,7 +46,7 @@ function calc_E_xc_2d( rho::Array{Float64,1}; dVol=1.0 )
     return E_xc
 end
 
-function calc_V_xc_2d( rho::Array{Float64,1}; dVol=1.0 )
+function calc_V_xc_2d( rho::Array{Float64,1} )
     Npoints = size(rho,1)
 
     Vx = zeros(Float64, Npoints)
