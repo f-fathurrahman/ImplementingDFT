@@ -65,13 +65,16 @@ function init_V_Ps_loc_G( atoms, grid, gvec, pspots )
 
     Npoints = grid.Npoints
     CellVolume = grid.Lx * grid.Ly * grid.Lz  # FIXME: orthogonal LatVecs
+    Nx = grid.Nx
+    Ny = grid.Ny
+    Nz = grid.Nz
     atm2species = atoms.atm2species
     Nspecies = atoms.Nspecies
     G2 = gvec.G2
     Ng = length(G2)
 
     V_Ps_loc = zeros(Float64, Npoints)
-    Vg = zeros(ComplexF64, Npoints)
+    Vg = zeros(ComplexF64, Nx,Ny,Nz)
     
     strf = calc_strfact( atoms, gvec )
     println("sum strf = ", sum(strf))
@@ -82,8 +85,8 @@ function init_V_Ps_loc_G( atoms, grid, gvec, pspots )
             Vg[ig] = strf[ig,isp] * eval_Vloc_G( psp, G2[ig] )
         end
         #
-        V_Ps_loc[:] = V_Ps_loc[:] + real( ifft(Vg) ) * Npoints / CellVolume
-        #V_Ps_loc[:] = V_Ps_loc[:] + real( ifft(Vg) ) / CellVolume
+        ifft!(Vg)
+        @views V_Ps_loc[:] = V_Ps_loc[:] + real( Vg[:] ) * Npoints / CellVolume
     end
 
     return V_Ps_loc

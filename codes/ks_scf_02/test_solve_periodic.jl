@@ -18,7 +18,7 @@ function create_Ham_H( N::Int64; grid_type=:FD, pbc=(false,false,false) )
         """
         1
 
-        H  8.0  8.0  8.0
+        H  0.0  0.0  0.0
         """, in_bohr=true, pbc=pbc, LatVecs=16.0*diagm(ones(3)) )
     pspfiles = [joinpath(DIR_PSP,"H-q1.gth")]
     AA = zeros(3)
@@ -36,7 +36,7 @@ end
 
 function main()
     
-    Ham = create_Ham_H(64, pbc=(true,true,true))
+    Ham = create_Ham_H(41, pbc=(true,true,true))
 
     println(Ham.atoms)
 
