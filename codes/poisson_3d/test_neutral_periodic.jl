@@ -6,7 +6,7 @@ using AlgebraicMultigrid
 using FFTW
 
 include("INC_poisson_3d.jl")
-include("GVectors.jl")
+include("../common/GVectors.jl")
 include("Poisson_solve_fft.jl")
 
 function test_main( NN::Array{Int64} )
