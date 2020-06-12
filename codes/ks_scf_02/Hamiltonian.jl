@@ -42,6 +42,7 @@ function init_V_Ps_loc( atoms::Atoms, grid, pspots::Array{PsPot_GTH,1} )
     V_Ps_loc = zeros(Float64,Npoints)
     
     atm2species = atoms.atm2species
+    Natoms = atoms.Natoms
     
     for ia in 1:Natoms
         isp = atm2species[ia]
@@ -125,9 +126,7 @@ function Hamiltonian(
     end
     verbose && @printf("... done\n")
 
-
     Nspecies = atoms.Nspecies
-    Natoms = atoms.Natoms
     Npoints = grid.Npoints
 
     # Pseudopotentials

@@ -66,13 +66,13 @@ include("../common/Atoms_io.jl")
 include("../common/Atoms_utils.jl")
 export Atoms
 
-include("calc_strfact.jl")
+include("../common/calc_strfact.jl")
 export calc_strfact
 
 include("Energies.jl")
 export Energies
 
-include("PsPot_GTH.jl")
+include("../common/PsPot_GTH.jl")
 export PsPot_GTH, PsPot_GTH_octopus, eval_Vloc_R, eval_proj_R
 
 include("PsPotNL.jl")
@@ -90,7 +90,7 @@ export calc_rhoe, calc_rhoe!
 include("../common/LDA_VWN.jl")
 export excVWN, excpVWN
 
-include("calc_E_NN_ewald.jl")
+include("../common/calc_E_NN_ewald.jl")
 include("calc_energies.jl")
 export calc_E_NN, calc_energies!
 
