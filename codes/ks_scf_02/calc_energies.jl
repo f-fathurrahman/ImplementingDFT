@@ -6,6 +6,10 @@ function calc_E_NN( atoms::Atoms, pspots::Vector{PsPot_GTH} )
 
     Zvals = get_Zvals(pspots) # a safer way
 
+    if atoms.pbc == (true,true,true)
+        return calc_E_NN( atoms.LatVecs, atoms, Zvals )
+    end
+
     E_NN = 0.0
     for ia in 1:Natoms
         for ja in ia+1:Natoms

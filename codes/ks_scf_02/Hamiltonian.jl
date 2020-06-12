@@ -10,8 +10,9 @@ mutable struct Hamiltonian
     atoms::Atoms
     rhoe::Vector{Float64}
     precKin
-    psolver::PoissonSolverDAGE
+    psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
     energies::Energies
+    gvec::Union{Nothing,GVectors}
 end
 
 # FIXME: Not yet used
@@ -33,6 +34,59 @@ struct GridInfo
     Nz::Int64
 end
 
+function init_V_Ps_loc( atoms::Atoms, grid, pspots::Array{PsPot_GTH,1} )
+
+    @assert atoms.pbc == (false,false,false)
+
+    Npoints = grid.Npoints
+    V_Ps_loc = zeros(Float64,Npoints)
+    
+    atm2species = atoms.atm2species
+    
+    for ia in 1:Natoms
+        isp = atm2species[ia]
+        for ip in 1:Npoints
+            dx = grid.r[1,ip] - atoms.positions[1,ia]
+            dy = grid.r[2,ip] - atoms.positions[2,ia]
+            dz = grid.r[3,ip] - atoms.positions[3,ia]
+            dr = sqrt(dx^2 + dy^2 + dz^2)
+            V_Ps_loc[ip] = V_Ps_loc[ip] + eval_Vloc_R( pspots[isp], dr )
+        end
+    end
+    return V_Ps_loc
+end
+
+
+
+function init_V_Ps_loc_G( atoms, grid, gvec, pspots )
+
+    @assert atoms.pbc == (true,true,true)
+
+    Npoints = grid.Npoints
+    CellVolume = grid.Lx * grid.Ly * grid.Lz  # FIXME: orthogonal LatVecs
+    atm2species = atoms.atm2species
+    Nspecies = atoms.Nspecies
+    G2 = gvec.G2
+    Ng = length(G2)
+
+    V_Ps_loc = zeros(Float64, Npoints)
+    Vg = zeros(ComplexF64, Npoints)
+    
+    strf = calc_strfact( atoms, gvec )
+
+    for isp = 1:Nspecies
+        psp = pspots[isp]
+        for ig = 1:Ng
+            Vg[ig] = strf[ig,isp] * eval_Vloc_G( psp, G2[ig] )
+        end
+        #
+        V_Ps_loc[:] = V_Ps_loc[:] + real( ifft(Vg) ) * Npoints / CellVolume
+        #V_Ps_loc[:] = V_Ps_loc[:] + real( ifft(Vg) ) / CellVolume
+    end
+
+    return V_Ps_loc
+end
+
 
 """
 Build a Hamiltonian with given FD grid and local potential.
@@ -50,9 +104,17 @@ function Hamiltonian(
     if typeof(grid) == FD3dGrid
         Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
     else
+        @assert atoms.pbc == (false,false,false)
         Laplacian = build_nabla2_matrix( grid )
     end
     verbose && @printf("... done\n")
+
+    # Initialize gvec for periodic case
+    if atoms.pbc == (true,true,true)
+        gvec = GVectors(grid)
+    else
+        gvec = nothing
+    end
 
     verbose && @printf("Building preconditioners ...")
     if prec_type == :amg
@@ -67,23 +129,19 @@ function Hamiltonian(
     Natoms = atoms.Natoms
     Npoints = grid.Npoints
 
+    # Pseudopotentials
     pspots = Array{PsPot_GTH}(undef,Nspecies)
     for isp = 1:Nspecies
         pspots[isp] = PsPot_GTH( pspfiles[isp] )
     end
 
-    V_Ps_loc = zeros(Float64,Npoints)
-    atm2species = atoms.atm2species
-    for ia in 1:Natoms
-        isp = atm2species[ia]
-        for ip in 1:Npoints
-            dx = grid.r[1,ip] - atoms.positions[1,ia]
-            dy = grid.r[2,ip] - atoms.positions[2,ia]
-            dz = grid.r[3,ip] - atoms.positions[3,ia]
-            dr = sqrt(dx^2 + dy^2 + dz^2)
-            V_Ps_loc[ip] = V_Ps_loc[ip] + eval_Vloc_R( pspots[isp], dr )
-        end
+    # Local pseudopotential
+    if atoms.pbc == (true,true,true)
+        V_Ps_loc = init_V_Ps_loc_G(atoms, grid, gvec, pspots)
+    else
+        V_Ps_loc = init_V_Ps_loc(atoms, grid, pspots)
     end
+
     verbose && println("sum V_Ps_loc = ", sum(V_Ps_loc))
     pspotNL = PsPotNL( atoms, pspots, grid )
 
@@ -95,10 +153,14 @@ function Hamiltonian(
 
     energies = Energies()
 
-    psolver = PoissonSolverDAGE(grid)
+    if atoms.pbc == (false,false,false)
+        psolver = PoissonSolverDAGE(grid)
+    else
+        psolver = PoissonSolverFFT(grid)
+    end
 
     return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, pspots, pspotNL, electrons, atoms,
-                        rhoe, precKin, psolver, energies )
+                        rhoe, precKin, psolver, energies, gvec )
 end
 
 
@@ -170,7 +232,7 @@ end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
     Ham.rhoe[:] = Rhoe[:]
-    Ham.V_Hartree = Poisson_solve_DAGE( Ham.psolver, Ham.grid, Rhoe )
+    Ham.V_Hartree = Poisson_solve( Ham.psolver, Ham.grid, Rhoe )
     Ham.V_XC = excVWN( Rhoe ) + Rhoe .* excpVWN( Rhoe )
     return
 end

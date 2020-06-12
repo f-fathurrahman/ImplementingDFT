@@ -3,8 +3,10 @@ module MyModule
 using Printf
 using LinearAlgebra
 using SparseArrays
+using FFTW
+
 using IterativeSolvers
-using IncompleteLU
+using IncompleteLU # remove this?
 using AlgebraicMultigrid
 
 const Ry2eV = 13.605693009  # Ry to eV
@@ -30,6 +32,9 @@ include("../LF3d/build_nabla2_matrix.jl")
 export build_D2_matrix_LF1d_c,
        build_D2_matrix_LF1d_sinc
 
+include("../common/GVectors.jl")
+export GVectors
+
 include("../common/ILU0Preconditioner.jl")
 
 include("../common/diag_Emin_PCG.jl")
@@ -47,7 +52,12 @@ include("../poisson_3d/Poisson_solve_PCG.jl")
 export Poisson_solve_PCG
 
 include("../poisson_3d/Poisson_solve_DAGE.jl")
-export Poisson_solve_DAGE
+export PoissonSolverDAGE, Poisson_solve_DAGE
+
+include("../poisson_3d/Poisson_solve_fft.jl")
+export PoissonSolverFFT, Poisson_solve_fft
+
+export Poisson_solve
 
 include("../common/Ylm_real.jl")
 
@@ -55,6 +65,9 @@ include("../common/Atoms.jl")
 include("../common/Atoms_io.jl")
 include("../common/Atoms_utils.jl")
 export Atoms
+
+include("calc_strfact.jl")
+export calc_strfact
 
 include("Energies.jl")
 export Energies
@@ -77,6 +90,7 @@ export calc_rhoe, calc_rhoe!
 include("../common/LDA_VWN.jl")
 export excVWN, excpVWN
 
+include("calc_E_NN_ewald.jl")
 include("calc_energies.jl")
 export calc_E_NN, calc_energies!
 
