@@ -214,3 +214,5 @@ function Poisson_solve_DAGE( psolver::PoissonSolverDAGE, grid, Rhoe::Vector{Floa
     return reshape(potential,Npoints)*sqrt(dVol)
 
 end
+
+Poisson_solve( psolver::PoissonSolverDAGE, grid, Rhoe ) = Poisson_solve_DAGE(psolver, grid, Rhoe)
