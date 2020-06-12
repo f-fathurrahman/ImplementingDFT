@@ -39,24 +39,30 @@ Alternatively, one can pass the content of xyz file as string in `xyz_string`.
 `xyz_string_frac` is the same as `xyz_string`, however the actual coordinates will be
 transformed by multiplying it with `LatVecs`. This is useful for crystals.
 """
-function Atoms( ;xyz_file="", xyz_string="", xyz_string_frac="", ext_xyz_file="",
-    in_bohr=false, LatVecs=10*[1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0] )
+function Atoms( ;
+    xyz_file="",
+    xyz_string="",
+    xyz_string_frac="",
+    ext_xyz_file="",
+    in_bohr=false,
+    LatVecs=10*[1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0],
+    pbc=(false,false,false) )
 
     if xyz_file != ""
-        atoms = init_atoms_xyz(xyz_file, in_bohr=in_bohr)
+        atoms = init_atoms_xyz(xyz_file, in_bohr=in_bohr, pbc=pbc)
         atoms.LatVecs = LatVecs
         return atoms
     elseif xyz_string != ""
-        atoms = init_atoms_xyz_string(xyz_string, in_bohr=in_bohr)
+        atoms = init_atoms_xyz_string(xyz_string, in_bohr=in_bohr, pbc=pbc)
         atoms.LatVecs = LatVecs
         return atoms
     elseif xyz_string_frac != ""
-        atoms = init_atoms_xyz_string(xyz_string_frac, in_bohr=in_bohr)
+        atoms = init_atoms_xyz_string(xyz_string_frac, in_bohr=in_bohr, pbc=pbc)
         atoms.positions = LatVecs*atoms.positions
         atoms.LatVecs = LatVecs
         return atoms
     elseif ext_xyz_file != ""
-        atoms = init_atoms_xyz_ext(ext_xyz_file, in_bohr=in_bohr)
+        atoms = init_atoms_xyz_ext(ext_xyz_file, in_bohr=in_bohr, pbc=pbc)
         return atoms
     else
         # No arguments are assumed to be provided
@@ -69,14 +75,16 @@ function Atoms( ;xyz_file="", xyz_string="", xyz_string_frac="", ext_xyz_file=""
         SpeciesSymbols = ["X"]  # unique symbols
         Zvals = zeros(Nspecies)
         return Atoms( Natoms, Nspecies, positions, atm2species, atsymbs,
-            SpeciesSymbols, LatVecs, Zvals, (false,false,false) )
+            SpeciesSymbols, LatVecs, Zvals, pbc )
     end
 
 end
 
 
 # extended XYZ format used in ASE
-function init_atoms_xyz_ext( filexyz; in_bohr=false, verbose=false )
+function init_atoms_xyz_ext( filexyz;
+    in_bohr=false, verbose=false, pbc=(false,false,false) 
+)
     f = open(filexyz, "r")
     l = readline(f)
     Natoms = parse(Int64, l)
@@ -124,7 +132,7 @@ function init_atoms_xyz_ext( filexyz; in_bohr=false, verbose=false )
 
     Zvals = zeros(Nspecies)
     return Atoms(Natoms, Nspecies, positions, atm2species, atsymbs,
-        SpeciesSymbols, LatVecs, Zvals, (false,false,false) )
+        SpeciesSymbols, LatVecs, Zvals, pbc )
 
 end
 
@@ -132,7 +140,7 @@ end
 """
 Creates an instance of `Atoms` from a simple xyz file.
 """
-function init_atoms_xyz(xyz_file; in_bohr=false, verbose=false)
+function init_atoms_xyz( xyz_file; in_bohr=false, verbose=false, pbc=(false,false,false) )
     f = open(xyz_file, "r")
     l = readline(f)
     Natoms = parse(Int64, l)
@@ -170,7 +178,7 @@ function init_atoms_xyz(xyz_file; in_bohr=false, verbose=false)
     LatVecs = 10.0*[1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0]
     Zvals = zeros(Nspecies)
     return Atoms(Natoms, Nspecies, positions, atm2species, atsymbs,
-        SpeciesSymbols, LatVecs, Zvals, (false,false,false) )
+        SpeciesSymbols, LatVecs, Zvals, pbc )
 
 end
 
@@ -178,7 +186,9 @@ end
 Just like `init_atoms_xyz` but instead of file, the contents (of type String)
 are directly feed to the function.
 """
-function init_atoms_xyz_string(str::String; in_bohr=false, verbose=false)
+function init_atoms_xyz_string(str::String;
+    in_bohr=false, verbose=false, pbc=(false,false,false)
+)
     lines = split(str,"\n")
     l = lines[1]
     Natoms = parse(Int64, l)
@@ -215,7 +225,7 @@ function init_atoms_xyz_string(str::String; in_bohr=false, verbose=false)
     LatVecs = zeros(3,3)
     Zvals = zeros(Nspecies)
     return Atoms(Natoms, Nspecies, positions, atm2species, atsymbs,
-        SpeciesSymbols, LatVecs, Zvals, (false,false,false) )
+        SpeciesSymbols, LatVecs, Zvals, pbc )
     
 end
 
