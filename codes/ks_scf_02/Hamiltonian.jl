@@ -73,6 +73,7 @@ function init_V_Ps_loc_G( atoms, grid, gvec, pspots )
     Vg = zeros(ComplexF64, Npoints)
     
     strf = calc_strfact( atoms, gvec )
+    println("sum strf = ", sum(strf))
 
     for isp = 1:Nspecies
         psp = pspots[isp]
