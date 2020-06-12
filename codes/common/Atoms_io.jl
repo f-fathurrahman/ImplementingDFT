@@ -38,6 +38,8 @@ function show( io::IO, a::Atoms; header=true )
         @printf(io, "%5s %18.10f %18.10f %18.10f\n", a.atsymbs[ia],
                 frac_pos[1,ia], frac_pos[2,ia], frac_pos[3,ia])
     end
-
+    println()
+    println("atoms.pbc = ", a.pbc)
+    println()
 end
 show( a::Atoms; header=true ) = show( stdout, a, header=header )
