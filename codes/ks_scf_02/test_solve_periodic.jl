@@ -13,30 +13,100 @@ const DIR_STRUCTURES = "../structures"
 include("KS_solve_SCF.jl")
 include("KS_solve_Emin_PCG.jl")
 
-function create_Ham_H( N::Int64; grid_type=:FD, pbc=(false,false,false) )
+function create_Ham_H_periodic( N::Int64; grid_type=:FD )
     atoms = Atoms( xyz_string=
         """
         1
 
         H  0.0  0.0  0.0
-        """, in_bohr=true, pbc=pbc, LatVecs=16.0*diagm(ones(3)) )
+        """,
+        in_bohr=true,
+        pbc=(true,true,true),
+        LatVecs=16.0*diagm(ones(3)) )
     pspfiles = [joinpath(DIR_PSP,"H-q1.gth")]
-    AA = zeros(3)
-    BB = 16.0*ones(3)
+    #AA = zeros(3)
+    #BB = 16.0*ones(3)
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
-        @assert pbc == (false,false,false)
-        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    if grid_type == :LF
+        grid = LF3dGrid( NN, AA, BB, types=(:P,:P,:P) )
     else
-        grid = FD3dGrid( NN, AA, BB, pbc=pbc )
+        grid = FD3dGrid( NN, AA, BB, pbc=(true,true,true) )
     end
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
 
+function create_Ham_Ne_periodic( N::Int64; grid_type=:FD )
+    atoms = Atoms( xyz_string=
+        """
+        1
+
+        Ne  0.0  0.0  0.0
+        """,
+        pbc=(true,true,true),
+        LatVecs=16.0*diagm(ones(3))
+    )
+    pspfiles = [joinpath(DIR_PSP,"Ne-q8.gth")]
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    #AA = zeros(3)
+    #BB = 16.0*ones(3)
+    NN = [N,N,N]
+    if grid_type == :LF
+        grid = LF3dGrid( NN, AA, BB, types=(:P,:P,:P) )
+    else
+        grid = FD3dGrid( NN, AA, BB, pbc=(true,true,true) )
+    end
+    return Hamiltonian( atoms, pspfiles, grid )
+end
+
+# This will not work correctly as the coordinate of LiH is outside the box
+function create_Ham_LiH_periodic_v1( N::Int64; grid_type=:FD )
+    atoms = Atoms(
+        xyz_file=joinpath(DIR_STRUCTURES,"LiH.xyz"),
+        pbc=(true,true,true),
+        LatVecs=16.0*diagm(ones(3))
+    )
+    pspfiles = [ joinpath(DIR_PSP,"H-q1.gth"),
+                 joinpath(DIR_PSP,"Li-q1.gth") ]
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    NN = [N,N,N]
+    if grid_type == :LF
+        grid = LF3dGrid( NN, AA, BB, types=(:P,:P,:P) )
+    else
+        grid = FD3dGrid( NN, AA, BB, pbc=(true,true,true) )
+    end
+    return Hamiltonian( atoms, pspfiles, grid )    
+end
+
+function create_Ham_LiH_periodic_v2( N::Int64; grid_type=:FD )
+    atoms = Atoms(
+        xyz_file=joinpath(DIR_STRUCTURES,"LiH_cell.xyz"),
+        pbc=(true,true,true),
+        LatVecs=16.0*diagm(ones(3))
+    )
+    pspfiles = [ joinpath(DIR_PSP,"H-q1.gth"),
+                 joinpath(DIR_PSP,"Li-q1.gth") ]
+    AA = zeros(3)
+    BB = 16.0*ones(3)
+    NN = [N,N,N]
+    if grid_type == :LF
+        grid = LF3dGrid( NN, AA, BB, types=(:P,:P,:P) )
+    else
+        grid = FD3dGrid( NN, AA, BB, pbc=(true,true,true) )
+    end
+    return Hamiltonian( atoms, pspfiles, grid )    
+end
+
 function main()
     
-    Ham = create_Ham_H(41, pbc=(true,true,true))
+    #Ham = create_Ham_H_periodic( 41 )
+    #Ham = create_Ham_Ne_periodic( 41 )
+    Ham = create_Ham_LiH_periodic_v1( 41 )
+    #Ham = create_Ham_LiH_periodic_v2( 41 )
 
     println(Ham.atoms)
 

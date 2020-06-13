@@ -69,6 +69,9 @@ export Atoms
 include("../common/calc_strfact.jl")
 export calc_strfact
 
+include("../common/calc_dr_periodic.jl")
+export calc_dr_periodic
+
 include("Energies.jl")
 export Energies
 

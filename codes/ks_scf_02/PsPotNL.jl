@@ -10,6 +10,66 @@ function PsPotNL()
     return PsPotNL( 0, zeros(Int64,1,1,1,1), betaNL )
 end
 
+function setup_betaNL!( atoms, grid, pspots, betaNL )
+    
+    Natoms = atoms.Natoms
+    Npoints = grid.Npoints
+    atm2species = atoms.atm2species
+
+    ibeta = 0
+    dr = zeros(3)
+    for ia = 1:Natoms
+        isp = atm2species[ia]
+        psp = pspots[isp]
+        for l = 0:psp.lmax
+        for iprj = 1:psp.Nproj_l[l+1]
+        for m = -l:l
+            ibeta = ibeta + 1
+            for ip in 1:Npoints
+                dr[1] = grid.r[1,ip] - atoms.positions[1,ia]
+                dr[2] = grid.r[2,ip] - atoms.positions[2,ia]
+                dr[3] = grid.r[3,ip] - atoms.positions[3,ia]
+                drm = sqrt( dr[1]^2 + dr[2]^2 + dr[3]^2 )
+                betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
+            end
+        end
+        end
+        end
+    end
+
+    return
+end
+
+
+function setup_betaNL_periodic!( atoms, grid, pspots, betaNL )
+    
+    Natoms = atoms.Natoms
+    Npoints = grid.Npoints
+    atm2species = atoms.atm2species
+    LL = [grid.Lx, grid.Ly, grid.Lz]
+    ibeta = 0
+    dr = zeros(3)
+    for ia = 1:Natoms
+        isp = atm2species[ia]
+        psp = pspots[isp]
+        for l = 0:psp.lmax
+        for iprj = 1:psp.Nproj_l[l+1]
+        for m = -l:l
+            ibeta = ibeta + 1
+            for ip in 1:Npoints
+                @views calc_dr_periodic!( LL, grid.r[:,ip], atoms.positions[:,ia], dr )
+                drm = sqrt( dr[1]^2 + dr[2]^2 + dr[3]^2 )
+                betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
+            end
+        end
+        end
+        end
+    end
+
+    return
+end
+
+
 function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=false )
 
     Natoms = atoms.Natoms
@@ -54,25 +114,10 @@ function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=fal
     Npoints = grid.Npoints
     betaNL = zeros(Float64, Npoints, NbetaNL)
 
-    ibeta = 0
-    dr = zeros(3)
-    for ia = 1:Natoms
-        isp = atm2species[ia]
-        psp = pspots[isp]
-        for l = 0:psp.lmax
-        for iprj = 1:psp.Nproj_l[l+1]
-        for m = -l:l
-            ibeta = ibeta + 1
-            for ip in 1:Npoints
-                dr[1] = grid.r[1,ip] - atoms.positions[1,ia]
-                dr[2] = grid.r[2,ip] - atoms.positions[2,ia]
-                dr[3] = grid.r[3,ip] - atoms.positions[3,ia]
-                drm = sqrt( dr[1]^2 + dr[2]^2 + dr[3]^2 )
-                betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
-            end
-        end
-        end
-        end
+    if grid.pbc == (true,true,true)
+        setup_betaNL_periodic!( atoms, grid, pspots, betaNL )
+    else
+        setup_betaNL!( atoms, grid, pspots, betaNL )
     end
 
     return PsPotNL( NbetaNL, prj2beta, betaNL )
