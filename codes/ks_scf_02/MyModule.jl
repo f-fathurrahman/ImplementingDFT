@@ -67,7 +67,7 @@ include("../common/Atoms_utils.jl")
 export Atoms
 
 include("../common/calc_strfact.jl")
-export calc_strfact
+export calc_strfact, calc_strfact_shifted
 
 include("../common/calc_dr_periodic.jl")
 export calc_dr_periodic

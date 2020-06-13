@@ -75,9 +75,15 @@ function init_V_Ps_loc_G( atoms, grid, gvec, pspots )
 
     V_Ps_loc = zeros(Float64, Npoints)
     Vg = zeros(ComplexF64, Nx,Ny,Nz)
-    
-    strf = calc_strfact( atoms, gvec )
-    println("sum strf = ", sum(strf))
+
+    if typeof(grid) == LF3dGrid
+        # periodic LF
+        shifts = [0.5*grid.hx, 0.5*grid.hy, 0.5*grid.hz]
+        strf = calc_strfact_shifted( atoms, gvec, shifts )
+    else
+        # periodic FD    
+        strf = calc_strfact( atoms, gvec )
+    end
 
     for isp = 1:Nspecies
         psp = pspots[isp]
@@ -109,7 +115,6 @@ function Hamiltonian(
     if typeof(grid) == FD3dGrid
         Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
     else
-        @assert atoms.pbc == (false,false,false)
         Laplacian = build_nabla2_matrix( grid )
     end
     verbose && @printf("... done\n")

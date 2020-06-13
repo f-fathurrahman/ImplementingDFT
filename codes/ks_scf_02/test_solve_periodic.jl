@@ -23,6 +23,7 @@ function create_Ham_H_periodic( N::Int64; grid_type=:FD )
         in_bohr=true,
         pbc=(true,true,true),
         LatVecs=16.0*diagm(ones(3)) )
+    println(atoms)
     pspfiles = [joinpath(DIR_PSP,"H-q1.gth")]
     AA = zeros(3)
     BB = 16.0*ones(3)
@@ -32,6 +33,7 @@ function create_Ham_H_periodic( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB, pbc=(true,true,true) )
     end
+    println(grid)
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
@@ -119,17 +121,13 @@ end
 
 function main()
     
-    #Ham = create_Ham_H_periodic( 41 )
+    #Ham = create_Ham_H_periodic( 31, grid_type=:FD )
     #Ham = create_Ham_Ne_periodic( 41 )
     #Ham = create_Ham_LiH_periodic_v1( 41 )
     #Ham = create_Ham_LiH_periodic_v2( 51 )
-    Ham = create_Ham_CH4_periodic( 41 )
-
-    println(Ham.atoms)
+    Ham = create_Ham_CH4_periodic( 51, grid_type=:FD )
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
-
-    println(Ham.grid)
 
     Nbasis = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
