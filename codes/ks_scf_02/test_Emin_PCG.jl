@@ -29,11 +29,11 @@ function main()
     
     #Ham = create_Ham_LiH(40, grid_type=:sinc)
 
-    #Ham = create_Ham_CH4(31, grid_type=:sinc)
+    Ham = create_Ham_CH4(50, grid_type=:sinc)
     
     #Ham = create_Ham_SiH4(30, grid_type=:sinc)
 
-    Ham = create_Ham_HCl(30, grid_type=:sinc)
+    #Ham = create_Ham_HCl(30, grid_type=:sinc)
 
     println(Ham.grid)
 
