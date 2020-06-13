@@ -92,6 +92,18 @@ function FD3dGrid( NN::Array{Int64,1}, AA::Array{Float64,1}, BB::Array{Float64,1
                      (AA[3], BB[3]), NN[3]; kwargs... ) 
 end
 
+function FD3dGrid( LL::Vector{Float64}, Nx::Int64, Ny::Int64, Nz::Int64; kwargs... )
+    return FD3dGrid( (0.0, LL[1]), Nx,
+                     (0.0, LL[2]), Ny,
+                     (0.0, LL[3]), Nz; kwargs... )
+end
+
+function FD3dGrid( LL::Vector{Float64}, NN; kwargs... )
+    return FD3dGrid( (0.0, LL[1]), NN[1],
+                     (0.0, LL[2]), NN[2],
+                     (0.0, LL[3]), NN[3]; kwargs... )
+end
+
 import Base: show
 function show( io::IO, grid::FD3dGrid )
 
