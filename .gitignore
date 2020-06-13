@@ -1,3 +1,4 @@
+OUT_*
 _minted
 OLD_*
 TEMP_*
@@ -5,6 +6,7 @@ LOG_*
 IMG_*
 ORIG_*
 
+*.dat
 *.swp
 *.swo
 *~

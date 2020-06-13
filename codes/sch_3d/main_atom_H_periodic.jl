@@ -28,7 +28,6 @@ function init_V_Ps_loc_G( atpos, grid, gvec )
     Vg = zeros(ComplexF64, Npoints)
     
     strf = calc_strfact( atpos, 1, [1], gvec.G )
-    println("sum strf = ", sum(strf))
 
     psp = PsPot_GTH("../pseudopotentials/pade_gth/H-q1.gth")
     isp = 1
@@ -44,17 +43,17 @@ function init_V_Ps_loc_G( atpos, grid, gvec )
     return V_Ps_loc
 end
 
-function main()
+function main(N)
 
     Random.seed!(1234)
 
-    Nx = 50
-    Ny = 50
-    Nz = 50
+    Nx = N
+    Ny = N
+    Nz = N
     L = 16.0
     grid = FD3dGrid( (0.0,L), Nx, (0.0,L), Ny, (0.0,L), Nz, pbc=(true,true,true) )
 
-    println(grid)
+    #println(grid)
 
     ∇2 = build_nabla2_matrix( grid )
 
@@ -64,32 +63,35 @@ function main()
     gvec = GVectors(grid)
     Vpot = init_V_Ps_loc_G( atpos, grid, gvec )
 
-    filnam = "OUT_Vpot_atom_H.xsf"
-    LatVecs = [L 0.0 0.0; 0.0 L 0.0; 0.0 0.0 L]
-    Ns = (Nx, Ny, Nz)
-    write_xsf(filnam, LatVecs, atpos)
-    write_xsf_data3d_crystal(filnam, Ns, LatVecs, Vpot)
+    #filnam = "OUT_Vpot_atom_H.xsf"
+    #LatVecs = [L 0.0 0.0; 0.0 L 0.0; 0.0 0.0 L]
+    #Ns = (Nx, Ny, Nz)
+    #write_xsf(filnam, LatVecs, atpos)
+    #write_xsf_data3d_crystal(filnam, Ns, LatVecs, Vpot)
 
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
-    println("Building preconditioner")
+    #println("Building preconditioner")
     prec = aspreconditioner(ruge_stuben(Ham))
-    println("Done building preconditioner")
+    #println("Done building preconditioner")
 
     Nstates = 1  # only choose the lowest lying state
     Npoints = Nx*Ny*Nz
     X = rand(Float64, Npoints, Nstates)
     ortho_sqrt!(X)
 
-    evals = diag_LOBPCG!( Ham, X, prec, verbose=true )
+    evals = diag_LOBPCG!( Ham, X, prec, verbose=false )
 
-    @printf("\n\nEigenvalues\n")
+    @printf("\n\nEigenvalues (N=%d) h = %18.10f\n", N, grid.hx)
     for i in 1:Nstates
         @printf("%5d %18.10f\n", i, evals[i])
     end
 end
 
-main()
+for N in [31,35,41,45,51]
+    main(N)
+end
+
 
 
 
