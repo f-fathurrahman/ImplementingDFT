@@ -43,5 +43,5 @@ function calc_strfact_shifted(
 end
 
 function calc_strfact_shifted( atoms::Atoms, gvec::GVectors, Δr )
-    return calc_strfact( atoms.positions, atoms.Nspecies, atoms.atm2species, gvec.G, Δr )
+    return calc_strfact_shifted( atoms.positions, atoms.Nspecies, atoms.atm2species, gvec.G, Δr )
 end
