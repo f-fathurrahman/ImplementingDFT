@@ -1,5 +1,6 @@
 include("../LF1d/init_LF1d_c_grid.jl")
 include("../LF1d/init_LF1d_sinc_grid.jl")
+include("../LF1d/init_LF1d_p_grid.jl")
 
 struct LF3dGrid
     Npoints::Int64
@@ -43,6 +44,8 @@ function LF3dGrid(
         x, hx = init_LF1d_c_grid(x_domain, Nx)
     elseif types[1] == :sinc
         x, hx = init_LF1d_sinc_grid(x_domain, Nx)
+    elseif types[1] == :P
+        x, hx = init_LF1d_p_grid(x_domain, Nx)
     else
         error("Unsupported types[1] = ", types[1])
     end
@@ -51,6 +54,8 @@ function LF3dGrid(
         y, hy = init_LF1d_c_grid(y_domain, Ny)
     elseif types[2] == :sinc
         y, hy = init_LF1d_sinc_grid(y_domain, Ny)
+    elseif types[2] == :P
+        y, hy = init_LF1d_p_grid(y_domain, Ny)
     else
         error("Unsupported types[2] = ", types[2])
     end
@@ -59,6 +64,8 @@ function LF3dGrid(
         z, hz = init_LF1d_c_grid(z_domain, Nz)
     elseif types[3] == :sinc
         z, hz = init_LF1d_sinc_grid(z_domain, Nz)
+    elseif types[3] == :P
+        z, hz = init_LF1d_p_grid(z_domain, Nz)
     else
         error("Unsupported types[3] = ", types[3])
     end
