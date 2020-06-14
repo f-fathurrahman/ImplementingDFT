@@ -18,7 +18,7 @@ function create_Ham_H_periodic( N::Int64; grid_type=:FD )
         """
         1
 
-        H  0.0  0.0  0.0
+        H  8.0  8.0  8.0
         """,
         in_bohr=true,
         pbc=(true,true,true),
@@ -121,11 +121,11 @@ end
 
 function main()
     
-    #Ham = create_Ham_H_periodic( 31, grid_type=:FD )
+    Ham = create_Ham_H_periodic( 31, grid_type=:LF )
     #Ham = create_Ham_Ne_periodic( 41 )
     #Ham = create_Ham_LiH_periodic_v1( 41 )
     #Ham = create_Ham_LiH_periodic_v2( 51 )
-    Ham = create_Ham_CH4_periodic( 51, grid_type=:FD )
+    #Ham = create_Ham_CH4_periodic( 51, grid_type=:FD )
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 
