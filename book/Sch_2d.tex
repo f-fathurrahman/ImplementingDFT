@@ -521,7 +521,11 @@ Note that we have used \jlinline{spdiagm} instead of
 
 \subsection{Orthonormalization}
 
-Lowdin orthonormalization:
+We usually need to provide a guess solution or vectors to our eigensolver.
+The guess vectors should be orthonarmalized properly before they can be supplied to
+the eigensolver. There are several algorithms that can be used to orthonormalize
+the vectors. One of them that will be used here is the Lowdin orthonormalization
+which can be implemented in Julia as:
 \begin{juliacode}
 function ortho_sqrt( psi )
   Udagger = inv(sqrt(psi'*psi))
@@ -529,6 +533,8 @@ function ortho_sqrt( psi )
 end
 \end{juliacode}
 
+As an example usage, here we start from random vectors and orthonormalize them
+with \jlinline{ortho_sqrt}:
 \begin{juliacode}
 dVol = grid.dVol
 Nstates = 3
@@ -537,7 +543,10 @@ X = rand(Float64, Npoints, Nstates)
 ortho_sqrt!(X, dVol)
 \end{juliacode}
 
-TODO: Gram-Schmidt
+TODO: Gram-Schmidt ortho
+
+TODO: check that the vectors are properly orthonormalized.
+
 
 \subsection{Band energy functional and its gradient}
 
@@ -819,3 +828,6 @@ The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 \label{fig:harm_2d_eigenfunctions}
 \end{figure}
 
+\section{Exercises}
+
+2d Gaussian potential
