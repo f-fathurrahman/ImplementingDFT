@@ -48,10 +48,7 @@ function test_main( NN::Array{Int64} )
     ∇2 = build_nabla2_matrix( grid )
 
     println("Building preconditioner")
-    #prec = ilu(∇2)
-    #prec = ilu(∇2, τ = 0.001)
     prec = aspreconditioner(ruge_stuben(∇2))
-    #prec = aspreconditioner(smoothed_aggregation(∇2))
 
     @printf("Size of ∇2   = %f MiB\n", Base.summarysize(∇2)/(1024*1024))
     @printf("Size of prec = %f MiB\n", Base.summarysize(prec)/(1024*1024))
@@ -71,5 +68,5 @@ function test_main( NN::Array{Int64} )
     @printf("abs diff = %18.10e\n", abs(Unum-Uana))
 end
 
-test_main([45,45,45])
+test_main([64,64,64])
 

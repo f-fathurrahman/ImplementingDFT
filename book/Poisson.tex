@@ -1,4 +1,6 @@
-\chapter{Numerical solution of Poisson equation}
+\chapter{Poisson equation}
+
+\section{Conjugate gradient method}
 
 In this section we will discuss a second type of equation
 that is important in solving Kohn-Sham equation,
@@ -32,10 +34,7 @@ and a webpage \cite{wiki-Conjugate-gradient} for more
 information. The algorithm is described in \txtinline{Poisson_solve_PCG.jl}
 
 \begin{juliacode}
-function Poisson_solve_PCG( Lmat::SparseMatrixCSC{Float64,Int64},
-                            prec,
-                            f::Array{Float64,1}, NiterMax::Int64;
-                            TOL=5.e-10 )
+function Poisson_solve_PCG( Lmat, prec, f; NiterMax=1000 TOL=5.e-10 )
   Npoints = size(f,1)
   phi = zeros( Float64, Npoints )
   r = zeros( Float64, Npoints )
@@ -126,3 +125,77 @@ function test_main( NN::Array{Int64} )
 end
 test_main([64,64,64])
 \end{juliacode}
+
+Result:
+\begin{textcode}
+Numeric  =       0.0551434259
+Uana     =       0.0551425277
+abs diff =   8.9818466372e-07
+\end{textcode}
+
+FIXME: Needs correction, boundary condition is not treated properly.
+
+\section{Reciprocal space method}
+
+Using FFT, natural choice for periodic boundary condition
+
+
+
+\section{Direct integration}
+
+Ref:
+D. Sundholm.
+Universal method for computation of electrostatic potentials
+J. Chem. Phys. 122 194107 (2005)
+
+S.A. Losilla, D. Sundholm, and J. Juselius.
+Direct approach to gravitation and electrostatics method for periodic systems
+J. Chem. Phys. 132 024102 (2010)
+
+\begin{equation}
+V(\mathbf{r}_{1}) = \int_{-\infty}^{+\infty}
+\rho(\mathbf{r}_{2}) \frac{1}{r_{12}} \, \mathrm{d}\mathbf{r}_{2}
+\end{equation}
+
+Rewriting Coulomb operator as integral expression using:
+\begin{equation}
+\frac{1}{r} = \frac{2}{\sqrt{2}} \int_{0}^{\infty} e^{-r^2 t^2}\,\mathrm{d}t
+\end{equation}
+
+\begin{equation}
+V(\mathbf{r}_{1}) = \frac{2}{\sqrt{\pi}}
+\int_{0}^{\infty}
+\int_{-\infty}^{+\infty}
+e^{-t^2(\mathbf{r}_1 - \mathbf{r}_2)^2} \rho(\mathbf{r}_2)
+\, \mathrm{d}\mathbf{r}_{2}\mathrm{d}t
+\end{equation}
+
+Numerical tensorial basis:
+\begin{equation}
+\rho(\mathbf{r}_2) = \sum_{\alpha\beta\gamma} d_{\alpha\beta\gamma}
+\chi_{\alpha}(x_2) \chi_{\beta}(y_2) \chi_{\gamma}(z_2)
+\end{equation}
+
+\begin{multline}
+V_{0}(x_{1},y_{1},z_{1}) = \frac{2}{\sqrt{pi}}\sum_{\alpha_t} \omega_{\alpha_t}
+\sum_{\alpha\beta\gamma} d_{\alpha\beta\gamma}
+\int_{-\infty}^{\infty} e^{-t^2_{\alpha_t}(z_{1} - z_{2}) } \chi_{\gamma}(z_2)\mathrm{d}z_2
+\times \int_{-\infty}^{\infty} e^{-t^2_{\alpha_t}(y_{1} - y_{2}) } \chi_{\beta}(y_2)\mathrm{d}y_2 \\
+\times \int_{-\infty}^{\infty} e^{-t^2_{\alpha_t}(x_{1} - x_{2}) } \chi_{\alpha}(x_2)\mathrm{d}x_2
+\end{multline}
+
+$t_{\alpha_t}$: integration points, $w_{\alpha_t}$: integration weights, 
+
+
+\begin{equation}
+F_{\gamma_x \alpha_t}^{x,\alpha_x} = \int_{-\infty}^{\infty}
+e^{-t^2_{\alpha_t} (x_{\alpha_x} - x_2)^2} \chi_{\gamma_x}(x_2)\,\mathrm{d}x_2
+\end{equation}
+
+\begin{equation}
+V_{\alpha_x \alpha_y \alpha_z} = \frac{2}{\sqrt{\pi}} \sum_{\alpha_t} w_{\alpha_t}
+\sum_{\gamma_z} F_{\gamma_z \alpha_z}^{z,\alpha_t}
+\sum_{\gamma_y} F_{\gamma_y \alpha_y}^{y,\alpha_t}
+\sum_{\gamma_x} F_{\gamma_x \alpha_x}^{x,\alpha_t}
+d_{\gamma_x \gamma_y \gamma_z}
+\end{equation}
