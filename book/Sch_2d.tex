@@ -206,14 +206,10 @@ The following function illustrates the above approach to construct matrix
 representation of the Laplacian operator.
 \begin{juliacode}
 function build_nabla2_matrix( grid::FD2dGrid )
-  Nx = grid.Nx
-  hx = grid.hx
-  Ny = grid.Ny
-  hy = grid.hy
-    
-  D2x = func_1d(Nx, hx)
-  D2y = func_1d(Ny, hy)
-
+  Nx = grid.Nx; hx = grid.hx
+  Ny = grid.Ny; hy = grid.hy
+  D2x = build_D2_matrix_9pt(Nx, hx)
+  D2y = build_D2_matrix_9pt(Ny, hy)
   ∇2 = kron(D2x, speye(Ny)) + kron(speye(Nx), D2y)
   return ∇2
 end

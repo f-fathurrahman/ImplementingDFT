@@ -23,9 +23,9 @@ end
 \end{juliacode}
 
 \begin{juliacode}
-function Hamiltonian( grid::FD3dGrid, ps_loc_func::Function; func_1d=build_D2_matrix_5pt )
+function Hamiltonian( grid, ps_loc_func::Function )
     
-  Laplacian = build_nabla2_matrix( grid, func_1d=func_1d )
+  Laplacian = build_nabla2_matrix( grid )
     
   V_Ps_loc = ps_loc_func( grid )
   Npoints = grid.Npoints
@@ -121,7 +121,7 @@ end
 
 Self-consistent field:
 \begin{juliacode}
-function pot_harmonic( grid::FD3dGrid; ω=1.0, center=[0.0, 0.0, 0.0] )
+function pot_harmonic( grid; ω=1.0, center=[0.0, 0.0, 0.0] )
   Npoints = grid.Npoints
   Vpot = zeros(Npoints)
   for i in 1:Npoints
@@ -140,7 +140,7 @@ function main()
 
   grid = FD3dGrid( NN, AA, BB )
   my_pot_harmonic( grid ) = pot_harmonic( grid, ω=2 )
-  Ham = Hamiltonian( grid, my_pot_harmonic, func_1d=build_D2_matrix_9pt )
+  Ham = Hamiltonian( grid, my_pot_harmonic )
 
   Nbasis = prod(NN)
   dVol = grid.dVol
