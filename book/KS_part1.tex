@@ -1,6 +1,89 @@
 \chapter{Kohn-Sham equation part I}
 
-Using local potential only
+In this chapter we will put together tools that we have built in the previous chapters.
+Our task is to solve the Kohn-Sham equation:
+\begin{equation}
+\left[ -\frac{1}{2}\nabla^2 + V_{\mathrm{KS}}(\mathbf{r}) \right]
+\psi_{i}(\mathbf{r}) = \epsilon_{i} \psi_{i}(\mathbf{r})
+\end{equation}
+where $V_{\mathrm{KS}}(\mathbf{r})$ is effective single
+particle potential or
+the Kohn-Sham potential:
+\begin{equation}
+V_{\mathrm{KS}}(\mathbf{r}) =
+V_{\mathrm{ext}}(\mathbf{r}) + V_{\mathrm{Ha}}(\mathbf{r}) + V_{\mathrm{xc}}(\mathbf{r})
+\label{eq:KS_pot_local}
+\end{equation}
+
+The external potential $V_{\mathrm{ext}}$ is the potential external to the
+electrons. It is usually originated from the interaction between atomic nuclei
+and electrons. It also includes any external local potentials such as
+confining harmonic potential or Gaussian potential.
+
+Hartree potential is the classical electrostatic interaction energy. It is defined as
+\begin{equation}
+V_{\mathrm{Ha}}(\mathbf{r}) = \int \frac{\rho(\mathbf{r}')}{\left| \mathbf{r} - \mathbf{r}' \right|}
+\,\mathrm{d}\mathbf{r}'
+\end{equation}
+Given the electron density:
+\begin{equation}
+\rho(\mathbf{r}) = \sum_{i} f_{i} \psi_{i}^{*}(\mathbf{r}) \psi_{i}(\mathbf{r})
+\label{eq:elec_dens_01}
+\end{equation}
+we can use any methods in Chapter \ref{chap:poisson_3d} to calculate
+$V_{\mathrm{Ha}}(\mathbf{r})$.
+
+The exchange correlation potential $V_{\mathrm{xc}}(\mathbf{r})$
+is defined as functional derivative of
+exchange correlation energy functional $E_{\mathrm{xc}}[\rho(\mathbf{r})]$
+\begin{equation}
+V_{\mathrm{xc}}(\mathbf{r}) = \frac{\delta E_{\mathrm{xc}}}{\delta \rho(\mathbf{r})}
+\end{equation}
+We do not have exact closed expression for these quantities, however several
+approximations are available.
+
+Solutions to the Kohn-Sham equation are the Kohn-Sham orbitals
+$\psi_{i}(\mathrm{r})$ and eigenvalues $\epsilon_{i}$.
+Total Kohn-Sham energy can be written as:
+\begin{equation}
+E^{\mathrm{KS}}_{\mathrm{tot}} = E_{\mathrm{kin}} + E_{\mathrm{ext}}
++ E_{\mathrm{Ha}} + E_{\mathrm{xc}}
+\end{equation}
+%
+The kinetic energy of noninteracting electrons:
+\begin{equation}
+E_{\mathrm{kin}} = -\frac{1}{2}\sum_{i} \int \psi_{i}^{*}(\mathbf{r}) \nabla^2 \psi_{i}(\mathbf{r})
+\,\mathrm{d}\mathbf{r}
+\end{equation}
+%
+External potential energy:
+\begin{equation}
+E_{\mathrm{ext}} = \int \rho(\mathbf{r}) V_{\mathrm{ext}}(\mathbf{r})
+\,\mathrm{d}\mathbf{r}
+\end{equation}
+%
+Hartree energy:
+\begin{equation}
+E_{\mathrm{ext}} = \int \rho(\mathbf{r}) V_{\mathrm{Ha}}(\mathbf{r})
+\,\mathrm{d}\mathbf{r}
+\end{equation}
+%
+XC energy (LDA):
+\begin{equation}
+E_{\mathrm{ext}} = \int \varepsilon_{\mathrm{xc}}[\rho(\mathbf{r})] \rho(\mathbf{r})
+\,\mathrm{d}\mathbf{r}
+\end{equation}
+where $\varepsilon_{\mathrm{xc}}$ is the XC energy per particle per volume.
+
+Alternative expression of total energy as sum of orbital energies:
+\begin{equation}
+E^{\mathrm{KS}}_{\mathrm{tot}} = \sum_{i}^{N} \epsilon_{i} - E_{\mathrm{Ha}} + E_{\mathrm{xc}}
+- \int \frac{\delta E_{\mathrm{xc}}}{\delta \rho(\mathbf{r})} \rho(\mathbf{r})
+\,\mathrm{d}\mathbf{r}
+\end{equation}
+
+
+
 
 \section{Hartree calculation}
 
