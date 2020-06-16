@@ -9,7 +9,7 @@ function pot_H_atom( atoms::Atoms, grid )
         dx = grid.r[1,ip] - atpos[1,ia]
         dy = grid.r[2,ip] - atpos[2,ia]
         dz = grid.r[3,ip] - atpos[3,ia]
-        Vpot[ip] = -1.0/sqrt(dx^2 + dy^2 + dz^2)
+        Vpot[ip] = Vpot[ip] - 1.0/sqrt(dx^2 + dy^2 + dz^2)
     end
     return Vpot
 end
@@ -33,10 +33,10 @@ function pot_Hps_HGH( atoms::Atoms, grid )
         dz2 = ( grid.r[3,ip] - atpos[3,ia] )^2
         r = sqrt(dx2 + dy2 + dz2)
         if r < eps()
-            Vpot[ip] = -2*Zval/(sqrt(2*pi)*rloc) + C1
+            Vpot[ip] = Vpot[ip] - 2*Zval/(sqrt(2*pi)*rloc) + C1
         else
             rrloc = r/rloc
-            Vpot[ip] = -Zval/r * erf( r/(sqrt(2.0)*rloc) ) +
+            Vpot[ip] = Vpot[ip] - Zval/r * erf( r/(sqrt(2.0)*rloc) ) +
                      (C1 + C2*rrloc^2)*exp(-0.5*(rrloc)^2)
         end
     end
