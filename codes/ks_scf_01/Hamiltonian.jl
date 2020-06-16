@@ -6,15 +6,17 @@ mutable struct Hamiltonian
     V_XC::Vector{Float64}
     electrons::Electrons
     rhoe::Vector{Float64}
+    atoms::Atoms
     precKin
-    precLaplacian
+    psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
     energies::Energies
+    gvec::Union{Nothing,GVectors}
 end
 
 """
 Build a Hamiltonian with given FD grid and local potential.
 """
-function Hamiltonian( grid, ps_loc_func::Function;
+function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
     Nelectrons=2, Nstates_extra=0,
     stencil_order=9
 )
@@ -25,38 +27,13 @@ function Hamiltonian( grid, ps_loc_func::Function;
     else
         Laplacian = build_nabla2_matrix( grid )
     end
-    V_Ps_loc = ps_loc_func( grid )
 
-    Npoints = grid.Npoints
-    V_Hartree = zeros(Float64, Npoints)
-
-    V_XC = zeros(Float64, Npoints)
-    Rhoe = zeros(Float64, Npoints)
-
-    @printf("Building preconditioners ...")
-    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
-    precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
-    @printf("... done\n")
-
-    electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
-
-    energies = Energies()
-    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
-                        Rhoe, precKin, precLaplacian, energies )
-end
-
-
-function Hamiltonian( grid, V_loc_func::Array{Float64,1};
-    Nelectrons=2, Nstates_extra=0,
-    stencil_order=9
-)
-
-    if typeof(grid) == FD3dGrid
-        Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
+    # Initialize gvec for periodic case
+    if grid.pbc == (true,true,true)
+        gvec = GVectors(grid)
     else
-        Laplacian = build_nabla2_matrix( grid )
+        gvec = nothing
     end
-    V_Ps_loc = V_loc_func
 
     Npoints = grid.Npoints
     V_Hartree = zeros(Float64, Npoints)
@@ -66,16 +43,21 @@ function Hamiltonian( grid, V_loc_func::Array{Float64,1};
 
     @printf("Building preconditioners ...")
     precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
-    precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
     @printf("... done\n")
 
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
-    energies = Energies()
-    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
-                        Rhoe, precKin, precLaplacian, energies )
-end
+    if grid.pbc == (false,false,false)
+        psolver = PoissonSolverDAGE(grid)
+    else
+        psolver = PoissonSolverFFT(grid)
+    end
 
+    energies = Energies()
+    
+    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, electrons,
+                        Rhoe, atoms, precKin, psolver, energies, gvec )
+end
 
 import Base: *
 function *( Ham::Hamiltonian, psi::Matrix{Float64} )
@@ -91,7 +73,7 @@ end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
     Ham.rhoe = Rhoe
-    Ham.V_Hartree = Poisson_solve_PCG( Ham.Laplacian, Ham.precLaplacian, Rhoe, 1000 )
+    Ham.V_Hartree = Poisson_solve( Ham.psolver, Ham.grid, Rhoe )
     Ham.V_XC = excVWN( Rhoe ) + Rhoe .* excpVWN( Rhoe )
     return
 end

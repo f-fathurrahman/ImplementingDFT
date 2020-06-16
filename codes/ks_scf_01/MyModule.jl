@@ -3,8 +3,6 @@ module MyModule
 using Printf
 using LinearAlgebra
 using SparseArrays
-using IterativeSolvers
-using IncompleteLU
 using AlgebraicMultigrid
 
 include("../FD3d/FD3dGrid.jl")
@@ -36,8 +34,20 @@ export ortho_sqrt, ortho_sqrt!
 include("../common/supporting_functions.jl")
 export speye, meshgrid
 
+include("../common/constants.jl")
+export Ry2eV, ANG2BOHR
+
+include("../common/Atoms.jl")
+export Atoms
+
+include("../common/GVectors.jl")
+export GVectors
+
 include("../poisson_3d/Poisson_solve_PCG.jl")
-export Poisson_solve_PCG
+include("../poisson_3d/Poisson_solve_fft.jl")
+include("../poisson_3d/Poisson_solve_DAGE.jl")
+export Poisson_solve_PCG, Poisson_solve_fft, Poisson_solve_DAGE
+export Poisson_solve
 
 include("Electrons.jl")
 export Electrons

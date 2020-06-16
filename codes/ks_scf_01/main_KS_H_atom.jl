@@ -7,56 +7,34 @@ using SpecialFunctions
 
 using MyModule
 
-function pot_Hps_HGH( grid, center )
-    Npoints = grid.Npoints
-    Vpot = zeros( Float64, Npoints )
-
-    # Parameters
-    Zval = 1
-    rloc = 0.2
-    C1 = -4.0663326
-    C2 = 0.6678322
-
-    # TODO Add journal reference
-    for ip = 1:Npoints
-        r = norm( grid.r[:,ip] - center[:] )
-        if r < eps()
-            Vpot[ip] = -2*Zval/(sqrt(2*pi)*rloc) + C1
-        else
-            rrloc = r/rloc
-            Vpot[ip] = -Zval/r * erf( r/(sqrt(2.0)*rloc) ) +
-                     (C1 + C2*rrloc^2)*exp(-0.5*(rrloc)^2)
-        end
-    end
-    return Vpot
-end
+include("../common/potential_H_atom.jl")
 
 function main()
     Random.seed!(1234)
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
-    NN = [65, 65, 65]
+    NN = [50, 50, 50]
 
     grid = FD3dGrid( NN, AA, BB )
+    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    println(grid)
 
-    println("hx = ", grid.hx)
-    println("hy = ", grid.hy)
-    println("hz = ", grid.hz)
-    println("dVol = ", grid.dVol)
-    println(grid.hx*grid.hy*grid.hz);
+    atoms = Atoms(xyz_string="""
+    1
 
-    my_pot_local( grid ) = pot_Hps_HGH(grid, 1e-9*ones(3))
+    H   0.0   0.0   0.0
+    """)
+
+    V_Ps_loc = pot_Hps_HGH( atoms, grid )
 
     Nstates = 1
     Nelectrons = 1
-    Ham = Hamiltonian( grid, my_pot_local, Nelectrons=1, stencil_order=9 )
+    Ham = Hamiltonian( atoms, grid, V_Ps_loc, Nelectrons=1 )
 
-    Nbasis = prod(NN)
-
+    Npoints = grid.Npoints
     dVol = grid.dVol
-
-    psi = rand(Float64,Nbasis,Nstates)
+    psi = rand(Float64,Npoints,Nstates)
     ortho_sqrt!(psi)
     psi = psi/sqrt(dVol)
 
@@ -64,10 +42,9 @@ function main()
         @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
     end
 
-    Rhoe_new = zeros(Float64,Nbasis)
-    Rhoe = zeros(Float64,Nbasis)
+    Rhoe_new = zeros(Float64,Npoints)
+    Rhoe = zeros(Float64,Npoints)
 
-    #Rhoe = calc_rhoe( Ham, psi )
     calc_rhoe!( Ham, psi, Rhoe )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
 
