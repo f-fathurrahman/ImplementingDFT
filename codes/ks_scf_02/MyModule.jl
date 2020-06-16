@@ -5,12 +5,9 @@ using LinearAlgebra
 using SparseArrays
 using FFTW
 
-using IterativeSolvers
-using IncompleteLU # remove this?
 using AlgebraicMultigrid
 
-const Ry2eV = 13.605693009  # Ry to eV
-const ANG2BOHR = 1.8897261254578281  # angstrom to bohr
+include("../common/constants.jl")
 
 export Ry2eV, ANG2BOHR
 
@@ -62,8 +59,6 @@ export Poisson_solve
 include("../common/Ylm_real.jl")
 
 include("../common/Atoms.jl")
-include("../common/Atoms_io.jl")
-include("../common/Atoms_utils.jl")
 export Atoms
 
 include("../common/calc_strfact.jl")
