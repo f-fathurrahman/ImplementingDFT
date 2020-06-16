@@ -47,6 +47,26 @@ function create_Ham_H( N::Int64; grid_type=:FD )
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
+function create_Ham_H2( N::Int64; grid_type=:FD )
+    atoms = Atoms( xyz_string=
+        """
+        2
+
+        H   0.75  0.0  0.0
+        H  -0.75  0.0  0.0
+        """ )
+    pspfiles = [joinpath(DIR_PSP,"H-q1.gth")]
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    NN = [N,N,N]
+    if grid_type == :sinc
+        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    else
+        grid = FD3dGrid( NN, AA, BB )
+    end
+    return Hamiltonian( atoms, pspfiles, grid )
+end
+
 function create_Ham_NH3( N::Int64; grid_type=:FD )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"NH3.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"N-q5.gth"),
