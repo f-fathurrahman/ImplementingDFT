@@ -77,7 +77,7 @@ function main()
         calc_energies!( Ham, psi )
         Etot = sum( Ham.energies )
 
-        dRhoe = norm(Rhoe - Rhoe_new)
+        dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints
         dEtot = abs(Etot - Etot_old)
 
         @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
