@@ -5,12 +5,12 @@ function KS_solve_SCF!(
     diag_func=diag_LOBPCG!
 )
 
-    Nbasis = Ham.grid.Npoints
+    Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     dVol = Ham.grid.dVol
 
-    Rhoe_new = zeros(Float64,Nbasis)
-    Rhoe = zeros(Float64,Nbasis)
+    Rhoe_new = zeros(Float64,Npoints)
+    Rhoe = zeros(Float64,Npoints)
     
     calc_rhoe!( Ham, psi, Rhoe )
     update!( Ham, Rhoe )
@@ -56,7 +56,7 @@ function KS_solve_SCF!(
         calc_energies!( Ham, psi )
         Etot = sum( Ham.energies )
 
-        dRhoe = norm(Rhoe - Rhoe_new)
+        dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints # MAE
         dEtot = abs(Etot - Etot_old)
 
         @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
