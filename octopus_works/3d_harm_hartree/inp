@@ -13,7 +13,6 @@ BoxShape = parallelepiped
 
 spacing = 0.25
 
-PoissonSolver = cg
 FilterPotentials = filter_none
 
 % Species 
