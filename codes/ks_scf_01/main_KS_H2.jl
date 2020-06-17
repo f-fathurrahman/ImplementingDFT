@@ -34,8 +34,8 @@ function main()
     BB =  8.0*ones(3)
     NN = [50,50,50]
 
-    #grid = FD3dGrid( NN, AA, BB )
-    grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    grid = FD3dGrid( NN, AA, BB )
+    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     println(grid)
 
     atoms = Atoms(xyz_string="""

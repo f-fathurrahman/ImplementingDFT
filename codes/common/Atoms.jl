@@ -12,6 +12,8 @@ mutable struct Atoms
     LatVecs::Array{Float64,2}
     Zvals::Array{Float64,1}   # unique
     pbc::Tuple{Bool,Bool,Bool}
+    charge::Float64
+    multiplicity::Int64
 end
 
 
@@ -46,23 +48,30 @@ function Atoms( ;
     ext_xyz_file="",
     in_bohr=false,
     LatVecs=10*[1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0],
-    pbc=(false,false,false) )
+    pbc=(false,false,false),
+    charge=0.0,
+    multiplicity=1
+)
 
     if xyz_file != ""
-        atoms = init_atoms_xyz(xyz_file, in_bohr=in_bohr, pbc=pbc)
+        atoms = init_atoms_xyz(xyz_file,
+            in_bohr=in_bohr, pbc=pbc, charge=charge, multiplicity=multiplicity)
         atoms.LatVecs = LatVecs
         return atoms
     elseif xyz_string != ""
-        atoms = init_atoms_xyz_string(xyz_string, in_bohr=in_bohr, pbc=pbc)
+        atoms = init_atoms_xyz_string(xyz_string,
+            in_bohr=in_bohr, pbc=pbc, charge=charge, multiplicity=multiplicity)
         atoms.LatVecs = LatVecs
         return atoms
     elseif xyz_string_frac != ""
-        atoms = init_atoms_xyz_string(xyz_string_frac, in_bohr=in_bohr, pbc=pbc)
+        atoms = init_atoms_xyz_string(xyz_string_frac,
+            in_bohr=in_bohr, pbc=pbc, charge=charge, multiplicity=multiplicity)
         atoms.positions = LatVecs*atoms.positions
         atoms.LatVecs = LatVecs
         return atoms
     elseif ext_xyz_file != ""
-        atoms = init_atoms_xyz_ext(ext_xyz_file, in_bohr=in_bohr, pbc=pbc)
+        atoms = init_atoms_xyz_ext(ext_xyz_file,
+            in_bohr=in_bohr, pbc=pbc, charge=charge, multiplicity=multiplicity)
         return atoms
     else
         # No arguments are assumed to be provided
@@ -75,7 +84,7 @@ function Atoms( ;
         SpeciesSymbols = ["X"]  # unique symbols
         Zvals = zeros(Nspecies)
         return Atoms( Natoms, Nspecies, positions, atm2species, atsymbs,
-            SpeciesSymbols, LatVecs, Zvals, pbc )
+            SpeciesSymbols, LatVecs, Zvals, pbc, charge, multiplicity )
     end
 
 end
@@ -83,7 +92,8 @@ end
 
 # extended XYZ format used in ASE
 function init_atoms_xyz_ext( filexyz;
-    in_bohr=false, verbose=false, pbc=(false,false,false) 
+    in_bohr=false, verbose=false, pbc=(false,false,false),
+    charge=0.0, multiplicity=1
 )
     f = open(filexyz, "r")
     l = readline(f)
@@ -132,7 +142,7 @@ function init_atoms_xyz_ext( filexyz;
 
     Zvals = zeros(Nspecies)
     return Atoms(Natoms, Nspecies, positions, atm2species, atsymbs,
-        SpeciesSymbols, LatVecs, Zvals, pbc )
+        SpeciesSymbols, LatVecs, Zvals, pbc, charge, multiplicity )
 
 end
 
@@ -140,7 +150,10 @@ end
 """
 Creates an instance of `Atoms` from a simple xyz file.
 """
-function init_atoms_xyz( xyz_file; in_bohr=false, verbose=false, pbc=(false,false,false) )
+function init_atoms_xyz(
+    xyz_file; in_bohr=false, verbose=false, pbc=(false,false,false),
+    charge=0.0, multiplicity=1
+)
     f = open(xyz_file, "r")
     l = readline(f)
     Natoms = parse(Int64, l)
@@ -178,7 +191,7 @@ function init_atoms_xyz( xyz_file; in_bohr=false, verbose=false, pbc=(false,fals
     LatVecs = 10.0*[1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0]
     Zvals = zeros(Nspecies)
     return Atoms(Natoms, Nspecies, positions, atm2species, atsymbs,
-        SpeciesSymbols, LatVecs, Zvals, pbc )
+        SpeciesSymbols, LatVecs, Zvals, pbc, charge, multiplicity )
 
 end
 
@@ -187,7 +200,8 @@ Just like `init_atoms_xyz` but instead of file, the contents (of type String)
 are directly feed to the function.
 """
 function init_atoms_xyz_string(str::String;
-    in_bohr=false, verbose=false, pbc=(false,false,false)
+    in_bohr=false, verbose=false, pbc=(false,false,false),
+    charge=0.0, multiplicity=1
 )
     lines = split(str,"\n")
     l = lines[1]
@@ -225,7 +239,7 @@ function init_atoms_xyz_string(str::String;
     LatVecs = zeros(3,3)
     Zvals = zeros(Nspecies)
     return Atoms(Natoms, Nspecies, positions, atm2species, atsymbs,
-        SpeciesSymbols, LatVecs, Zvals, pbc )
+        SpeciesSymbols, LatVecs, Zvals, pbc, charge, multiplicity )
     
 end
 
