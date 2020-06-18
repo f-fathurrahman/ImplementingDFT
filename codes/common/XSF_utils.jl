@@ -35,9 +35,9 @@ function write_xsf( filnam::String, LL::Array{Float64,2}, atpos::Array{Float64,2
     close(f)
 end
 
-function write_xsf( filenam::String, atoms::Atoms )
+function write_xsf( filenam::String, atoms::Atoms; molecule=false )
     write_xsf( filenam, atoms.LatVecs/ANG2BOHR, atoms.positions/ANG2BOHR;
-               atsymbs=atoms.atsymbs )
+               atsymbs=atoms.atsymbs, molecule=molecule )
 end
 
 # no atpos are given, default to the center of the cell
@@ -62,7 +62,7 @@ function write_xsf_data3d_crystal(
 end
 
 function write_xsf_data3d_crystal(
-        filnam::String, Ns::Tuple{Int64,Int64,Int64}, LL::Array{Float64,2},
+        filnam::String, Ns, LL::Array{Float64,2},
         data3d::Array{Float64,1};
         origin=zeros(3)
     )

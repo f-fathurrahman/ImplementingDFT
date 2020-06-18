@@ -1,3 +1,4 @@
+*.data
 OUT_*
 _minted
 OLD_*
