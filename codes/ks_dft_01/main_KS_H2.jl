@@ -43,7 +43,7 @@ function main()
 
     H    0.75   0.0   0.0
     H   -0.75   0.0   0.0
-    """)
+    """, in_bohr=true)
 
     V_Ps_loc = pot_Hps_HGH( atoms, grid )
 

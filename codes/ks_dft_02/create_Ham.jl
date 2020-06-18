@@ -54,7 +54,7 @@ function create_Ham_H2( N::Int64; grid_type=:FD )
 
         H   0.75  0.0  0.0
         H  -0.75  0.0  0.0
-        """ )
+        """, in_bohr=true )
     pspfiles = [joinpath(DIR_PSP,"H-q1.gth")]
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
