@@ -1,11 +1,14 @@
+push!(LOAD_PATH, pwd())
+
 using Printf
 using LinearAlgebra
 using SparseArrays
 using AlgebraicMultigrid
 using Random
 
-include("INC_hartree_scf.jl")
+using MyModule
 
+using SpecialFunctions: erf
 include("../common/potential_H_atom.jl")
 
 function main()
@@ -24,10 +27,10 @@ function main()
 
         H   0.75  0.0  0.0
         H  -0.75  0.0  0.0
-        """ )
+        """, in_bohr=true)
 
-    #V_Ps_loc = pot_Hps_HGH(atoms, grid)
-    V_Ps_loc = pot_H_atom(atoms, grid)
+    V_Ps_loc = pot_Hps_HGH(atoms, grid)
+    #V_Ps_loc = pot_H_atom(atoms, grid)
 
     Nstates = 1
     Nelectrons = 2
@@ -61,14 +64,10 @@ function main()
     for iterSCF in 1:NiterMax
 
         evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-        #evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=true )
         psi = psi/sqrt(dVol)
 
         Rhoe_new = calc_rhoe( Ham, psi )
-        #@printf("Integrated Rhoe_new = %18.10f\n", sum(Rhoe_new)*dVol)
-
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-        #@printf("Integrated Rhoe     = %18.10f\n", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 

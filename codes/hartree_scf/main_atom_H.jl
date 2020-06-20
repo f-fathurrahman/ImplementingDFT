@@ -1,11 +1,14 @@
+push!(LOAD_PATH, pwd())
+
 using Printf
 using LinearAlgebra
 using SparseArrays
 using AlgebraicMultigrid
 using Random
 
-include("INC_hartree_scf.jl")
+using MyModule
 
+using SpecialFunctions: erf
 include("../common/potential_H_atom.jl")
 
 function main()

@@ -1,10 +1,13 @@
+push!(LOAD_PATH, pwd())
+
 using Printf
 using LinearAlgebra
 using SparseArrays
 using AlgebraicMultigrid
 using Random
 
-include("INC_hartree_scf.jl")
+#include("INC_hartree_scf.jl")
+using MyModule
 
 function pot_harmonic( grid; ω=1.0, center=[0.0, 0.0, 0.0] )
     Npoints = grid.Npoints
