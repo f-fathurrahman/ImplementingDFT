@@ -4,7 +4,8 @@ Dimensions = 3
 PeriodicDimensions = 0
 
 TheoryLevel = dft
-XCFunctional = lda_x + lda_c_vwn_1
+XCFunctional = none
+#XCFunctional = lda_x + lda_c_vwn_1
 
 BoxShape = parallelepiped
 %Lsize
@@ -17,7 +18,6 @@ MixField = density
 MixingScheme = Linear
 Mixing = 0.5
 
-PoissonSolver = cg
 FilterPotentials = filter_none
 
 % Species
