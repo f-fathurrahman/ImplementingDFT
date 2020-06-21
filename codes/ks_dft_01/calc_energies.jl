@@ -23,3 +23,9 @@ function calc_energies!( Ham::Hamiltonian, psi::Array{Float64,2} )
 
     return
 end
+
+
+function calc_energies(Ham, psi)
+    calc_energies!(Ham, psi)
+    return Ham.energies
+end
