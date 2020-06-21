@@ -62,6 +62,6 @@ include("calc_rhoe.jl")
 export calc_rhoe, calc_rhoe!
 
 include("calc_energies.jl")
-export calc_energies, calc_energies!
+export calc_energies, calc_energies!, calc_E_NN
 
 end

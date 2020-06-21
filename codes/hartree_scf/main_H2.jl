@@ -17,7 +17,7 @@ function main()
 
     AA = [-8.0, -8.0, -8.0]
     BB = [ 8.0,  8.0,  8.0]
-    NN = [50, 50, 50]
+    NN = [41, 41, 41]
 
     grid = FD3dGrid( NN, AA, BB )
 
@@ -61,13 +61,17 @@ function main()
     dRhoe = 0.0
     NiterMax = 100
 
+    Ham.energies.NN = calc_E_NN( [1.0, 1.0], atoms.positions )
+
     for iterSCF in 1:NiterMax
 
         evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
         psi = psi/sqrt(dVol)
 
         Rhoe_new = calc_rhoe( Ham, psi )
+        @printf("Integrated Rhoe_new = %18.10f\n", sum(Rhoe_new)*dVol)
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        @printf("Integrated Rhoe     = %18.10f\n", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 
@@ -88,6 +92,9 @@ function main()
 
         Etot_old = Etot
     end
+
+    println(Ham.energies)
+
 end
 
 main()

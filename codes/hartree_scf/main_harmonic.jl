@@ -6,7 +6,6 @@ using SparseArrays
 using AlgebraicMultigrid
 using Random
 
-#include("INC_hartree_scf.jl")
 using MyModule
 
 function pot_harmonic( grid; ω=1.0, center=[0.0, 0.0, 0.0] )
@@ -55,8 +54,11 @@ function main()
 
     update!( Ham, Rhoe )
 
+    Etot = sum( calc_energies( Ham, psi ) )
+    @printf("Initial Etot = %18.10f\n", Etot)
+
     evals = zeros(Float64,Nstates)
-    Etot_old = 0.0
+    Etot_old = Etot
     dEtot = 0.0
     betamix = 0.5
     dRhoe = 0.0
@@ -93,6 +95,9 @@ function main()
 
         Etot_old = Etot
     end
+
+    println(Ham.energies)
+
 end
 
 main()

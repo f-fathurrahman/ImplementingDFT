@@ -17,9 +17,10 @@ function main()
 
     AA = [-8.0, -8.0, -8.0]
     BB = [ 8.0,  8.0,  8.0]
-    NN = [50, 50, 50]
+    NN = [41,41,41]
 
     grid = FD3dGrid( NN, AA, BB )
+    println(grid)
 
     atoms = Atoms( xyz_string=
         """
@@ -90,6 +91,9 @@ function main()
 
         Etot_old = Etot
     end
+
+    println(Ham.energies)
+
 end
 
 main()
