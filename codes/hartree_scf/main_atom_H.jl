@@ -29,7 +29,7 @@ function main()
         H  0.0  0.0  0.0
         """ )
 
-    V_Ps_loc = pot_Hps_HGH(atoms, grid)
+    V_Ps_loc = pot_Hps_GTH(atoms, grid)
 
     Nstates = 1
     Nelectrons = 1

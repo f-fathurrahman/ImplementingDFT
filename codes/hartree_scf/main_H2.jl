@@ -29,7 +29,7 @@ function main()
         H  -0.75  0.0  0.0
         """, in_bohr=true)
 
-    V_Ps_loc = pot_Hps_HGH(atoms, grid)
+    V_Ps_loc = pot_Hps_GTH(atoms, grid)
     #V_Ps_loc = pot_H_atom(atoms, grid)
 
     Nstates = 1
@@ -57,7 +57,7 @@ function main()
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
-    betamix = 0.1
+    betamix = 0.5
     dRhoe = 0.0
     NiterMax = 100
 
@@ -69,9 +69,7 @@ function main()
         psi = psi/sqrt(dVol)
 
         Rhoe_new = calc_rhoe( Ham, psi )
-        @printf("Integrated Rhoe_new = %18.10f\n", sum(Rhoe_new)*dVol)
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-        @printf("Integrated Rhoe     = %18.10f\n", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 
