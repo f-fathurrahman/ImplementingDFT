@@ -4,6 +4,7 @@ using Printf
 using LinearAlgebra
 using SparseArrays
 using AlgebraicMultigrid
+using FFTW
 
 include("../FD3d/FD3dGrid.jl")
 export FD3dGrid
@@ -43,6 +44,9 @@ export Atoms
 include("../common/GVectors.jl")
 export GVectors
 
+include("../common/calc_strfact.jl")
+export calc_strfact, calc_strfact_shifted
+
 include("../poisson_3d/Poisson_solve_PCG.jl")
 include("../poisson_3d/Poisson_solve_fft.jl")
 include("../poisson_3d/Poisson_solve_DAGE.jl")
@@ -61,6 +65,7 @@ export Hamiltonian, update!
 include("calc_rhoe.jl")
 export calc_rhoe, calc_rhoe!
 
+include("../common/calc_E_NN_ewald.jl")
 include("calc_energies.jl")
 export calc_energies, calc_energies!, calc_E_NN
 
