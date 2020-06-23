@@ -14,3 +14,38 @@ make
 make install
 \end{bashcode}
 
+Example input:
+\begin{textcode}
+CalculationMode = gs
+Dimensions = 3
+PeriodicDimensions = 0
+
+TheoryLevel = dft
+XCFunctional = lda_x + lda_c_vwn_1
+
+BoxShape = parallelepiped
+spacing = 0.4
+%Lsize
+ 8 | 8 | 8
+%
+
+MixField = density
+MixingScheme = Linear
+Mixing = 0.5    
+
+FilterPotentials = filter_none    
+PseudopotentialSet = hgh_lda
+    
+% Coordinates
+  "H" | -0.75 | 0.0 | 0.0
+  "H" |  0.75 | 0.0 | 0.0
+%    
+\end{textcode}
+
+\begin{textcode}
+XCFunctional = none
+\end{textcode}
+
+\begin{textcode}
+TheoryLevel = independent_particles
+\end{textcode}

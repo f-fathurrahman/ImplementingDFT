@@ -15,32 +15,15 @@ V_{\mathrm{ext}}(\mathbf{r}) + V_{\mathrm{Ha}}(\mathbf{r}) + V_{\mathrm{xc}}(\ma
 \label{eq:KS_pot_local}
 \end{equation}
 
-The external potential $V_{\mathrm{ext}}$ is the potential external to the
-electrons. It is usually originated from the interaction between atomic nuclei
-and electrons. It also includes any external local potentials such as
-confining harmonic potential or Gaussian potential.
-
-Hartree potential is the classical electrostatic interaction energy. It is defined as
-\begin{equation}
-V_{\mathrm{Ha}}(\mathbf{r}) = \int \frac{\rho(\mathbf{r}')}{\left| \mathbf{r} - \mathbf{r}' \right|}
-\,\mathrm{d}\mathbf{r}'
-\end{equation}
-Given the electron density:
-\begin{equation}
-\rho(\mathbf{r}) = \sum_{i} f_{i} \psi_{i}^{*}(\mathbf{r}) \psi_{i}(\mathbf{r})
-\label{eq:elec_dens_01}
-\end{equation}
-we can use any methods in Chapter \ref{chap:poisson_3d} to calculate
-$V_{\mathrm{Ha}}(\mathbf{r})$.
-
-The exchange correlation potential $V_{\mathrm{xc}}(\mathbf{r})$
-is defined as functional derivative of
-exchange correlation energy functional $E_{\mathrm{xc}}[\rho(\mathbf{r})]$
-\begin{equation}
-V_{\mathrm{xc}}(\mathbf{r}) = \frac{\delta E_{\mathrm{xc}}}{\delta \rho(\mathbf{r})}
-\end{equation}
-We do not have exact closed expression for these quantities, however several
-approximations are available.
+The Kohn-Sham equation looks very much like Schroedinger equation, but with two additional
+potentials: the Hartree and XC potential.
+We will consider a 3d systems, so the techniques
+that we have learned in Chapter \ref{chap:sch_3d} will be used for solving the
+Kohn-Sham equation. Due to the presence of Hartree and XC potential, there will be additional
+steps that need to be performed in order to solve the Kohn-Sham equation.
+To calculate Hartree and XC potential, we need to calculate electron density which depend
+on the solution of the Kohn-Sham equation itself. Because of this chicken-and-egg
+characteristic, the Kohn-Sham equation must be solved self-consistently.
 
 Solutions to the Kohn-Sham equation are the Kohn-Sham orbitals
 $\psi_{i}(\mathrm{r})$ and eigenvalues $\epsilon_{i}$.
@@ -87,56 +70,137 @@ Nucleus-nucleus interaction energy:
 E_{\mathrm{tot}} = E^{\mathrm{KS}}_{\mathrm{tot}} + E_{\mathrm{NN}}
 \end{equation}
 
-
+We first consider that the case of $V_{\mathrm{xc}}=0$. This will make our first implementation
+of self-consistent field to be easier.
 
 \section{Hartree calculation}
 
-We will ignore the XC potential term in the Kohn-Sham equation.
+Hartree potential is the classical electrostatic interaction potential.
+It is defined as
+\begin{equation}
+V_{\mathrm{Ha}}(\mathbf{r}) = \int \frac{\rho(\mathbf{r}')}{\left| \mathbf{r} - \mathbf{r}' \right|}
+\,\mathrm{d}\mathbf{r}'
+\end{equation}
+Given the electron density:
+\begin{equation}
+\rho(\mathbf{r}) = \sum_{i} f_{i} \psi_{i}^{*}(\mathbf{r}) \psi_{i}(\mathbf{r})
+\label{eq:elec_dens_01}
+\end{equation}
+we can use any methods in Chapter \ref{chap:poisson_3d} to calculate
+$V_{\mathrm{Ha}}(\mathbf{r})$. The factor $f_{i}$ in the Equation \ref{eq:elec_dens_01}
+is the occupation number of the electron.
 
-We will introduce self-consistent field (SCF) method.
+\subsection{The Hamiltonian struct}
 
-New data structure: Hamiltonian
+Because our Hamiltonian contain additional potential, its action to a wave function is
+more complicated. We also need to implement several operations such as calculation
+of electron density for given wave functions and total energy.
+These calculations usually need access to several variables. To make access to various
+variables easy, we will wrap them in a "big" Julia struct. We will call this struct
+as \jlinline{Hamiltonian}.
 
+The definition of the \jlinline{Hamiltonian} struct can be seen in the following
+Julia code.
 \begin{juliacode}
 mutable struct Hamiltonian
-  grid::FD3dGrid
+  grid::Union{FD3dGrid,LF3dGrid}
   Laplacian::SparseMatrixCSC{Float64,Int64}
   V_Ps_loc::Vector{Float64}
   V_Hartree::Vector{Float64}
+  electrons::Electrons
   rhoe::Vector{Float64}
+  atoms::Atoms
   precKin
-  precLaplacian
+  psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
+  energies::Energies
+  gvec::Union{Nothing,GVectors}
 end
 \end{juliacode}
+
+A short explanation about the fields of \jlinline{Hamiltonian} follows.
+\begin{itemize}
+%
+  \item \jlinline{grid}: the field that describes the real space grid points or
+basis functions that is used to represent quantities such as wave functions,
+potentials, and densities. In our case, this field is an instance of
+\jlinline{FD3dGrid} or \jlinline{LF3dGrid}.
+%
+\item \jlinline{Laplacian}: the matrix representation of the Laplacian operator
+%
+\item \jlinline{V_Ps_loc}: the local pseudopotential. It also will represent the
+any external local potential that is felt by electrons.
+Note that we have chosen the name \jlinline{V_Ps_loc} because of the
+generalization that we will do in Chapter \ref{chap:ks_part_2}
+%
+\item \jlinline{V_Hartree}: the Hartree potential.
+%
+\item \jlinline{electrons}: an instance of type \jlinline{Electrons}. This field
+stores various variables that are used to describe electron states such as number
+of electrons, number of states, occupation numbers, etc.
+%
+\item \jlinline{rhoe}: the electron density
+%
+\item \jlinline{atoms}: an instance of \jlinline{Atoms}. This field can be used to represent
+molecules, for example.
+%
+\item \jlinline{precKin}: the preconditioner based on the kinetic matrix. This preconditioner
+can be for diagonalization of energy minimization.
+%
+\item \jlinline{psolver}: the Poisson equation solver which is used to calculate the Hartree
+potential.
+%
+\item \jlinline{energies}: an instance of \jlinline{Energies}. This field stores
+various total energy components.
+%
+\item \jlinline{gvec}: an instance of \jlinline{GVectors}. This field is only relevant for
+periodic structure.
+%
+\end{itemize}
+
+
+The following constructor can be used to initialize an instance of \jlinline{Hamiltonian}.
 
 \begin{juliacode}
-function Hamiltonian( grid, ps_loc_func::Function )
-    
+function Hamiltonian(
+  atoms::Atoms, grid, V_Ps_loc;
+  Nelectrons=2, Nstates_extra=0
+)
   Laplacian = build_nabla2_matrix( grid )
-    
-  V_Ps_loc = ps_loc_func( grid )
+  if grid.pbc == (true,true,true)
+      gvec = GVectors(grid)
+  else
+      gvec = nothing
+  end
   Npoints = grid.Npoints
-    
   V_Hartree = zeros(Float64, Npoints)
-
   Rhoe = zeros(Float64, Npoints)
-
   precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
-  precLaplacian = aspreconditioner( ruge_stuben(Laplacian) )
-    
-  return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, Rhoe, precKin, precLaplacian )
+  electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
+  if grid.pbc == (false,false,false)
+      psolver = PoissonSolverDAGE(grid)
+  else
+      psolver = PoissonSolverFFT(grid)
+  end
+  energies = Energies()
+  return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, electrons,
+                      Rhoe, atoms, precKin, psolver, energies, gvec )
 end
 \end{juliacode}
 
-
+An important operation that must be defined for \jlinline{Hamiltonian} is the
+multiplication between Hamiltonian and wave function.
+We can define this operator by overloading the \jlinline{*} operator.
+In the following code, first we apply the kinetic matrix by using the
+\jlinline{Laplacian} field of \jlinline{Hamiltonian}, using sparse matrix
+multiplication. This step is the followed by application of potential operator
+which now consists of \jlinline{V_Ps_loc} and \jlinline{V_Hartree}.
 \begin{juliacode}
 import Base: *
 function *( Ham::Hamiltonian, psi::Matrix{Float64} )
   Nbasis = size(psi,1)
   Nstates = size(psi,2)
   Hpsi = zeros(Float64,Nbasis,Nstates)
-  # include occupation number factor
-  Hpsi = -0.5*Ham.Laplacian * psi #* 2.0
+  Hpsi = -0.5 * Ham.Laplacian * psi
   for ist in 1:Nstates, ip in 1:Nbasis
     Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] ) * psi[ip,ist]
   end
@@ -144,192 +208,337 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
 end
 \end{juliacode}
 
+
+We also define a function for updating the potential for an input electron density.
+For our current purpose, this function do two things:
+copy the input electron density to \jlinline{Ham.rhoe} and calculate the
+Hartree potential by calling \jlinline{Poisson_solve} function.
+
 \begin{juliacode}
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
-  Ham.rhoe[:] = Rhoe[:]
-  Ham.V_Hartree = Poisson_solve_PCG(
-      Ham.Laplacian, Ham.precLaplacian, -4*pi*Rhoe, 1000,
-      verbose=false, TOL=1e-10
-  )
+  Ham.rhoe = Rhoe
+  Ham.V_Hartree = Poisson_solve( Ham.psolver, Ham.grid, Rhoe )
   return
 end
 \end{juliacode}
 
-Calculate electron density:
-\begin{juliacode}
-function calc_rhoe( psi::Array{Float64,2} )
-  Nbasis = size(psi,1)
-  Nstates = size(psi,2)
-  Rhoe = zeros(Float64,Nbasis)
-  for ist in 1:Nstates
-    for ip in 1:Nbasis
-      Rhoe[ip] = Rhoe[ip] + 2.0*psi[ip,ist]*psi[ip,ist]
-    end
-  end
-  return Rhoe
-end
-\end{juliacode}
 
-Calculate energy terms:
-\begin{juliacode}
-mutable struct Energies
-  Kinetic::Float64
-  Ps_loc::Float64
-  Hartree::Float64
-end
+\subsection{Electrons}
 
-import Base: sum
-function sum( ene::Energies )
-  return ene.Kinetic + ene.Ps_loc + ene.Hartree
-end
-
-function calc_E_kin( Ham, psi::Array{Float64,2} )
-  Nbasis = size(psi,1)
-  Nstates = size(psi,2)
-  E_kin = 0.0
-  nabla2psi = zeros(Float64,Nbasis)
-  dVol = Ham.grid.dVol
-  # Assumption: Focc = 2 for all states
-  for ist in 1:Nstates
-    @views nabla2psi = -0.5*Ham.Laplacian*psi[:,ist]
-    E_kin = E_kin + 2.0*dot( psi[:,ist], nabla2psi[:] )*dVol
-  end
-  return E_kin
-end
-
-function calc_energies( Ham::Hamiltonian, psi::Array{Float64,2} )
-  dVol = Ham.grid.dVol
-  E_kin = calc_E_kin( Ham, psi )
-  E_Ps_loc = sum( Ham.V_Ps_loc .* Ham.rhoe )*dVol
-  E_Hartree = 0.5*sum( Ham.V_Hartree .* Ham.rhoe )*dVol
-  return Energies(E_kin, E_Ps_loc, E_Hartree)
-end
-\end{juliacode}
-
-Self-consistent field:
-\begin{juliacode}
-function pot_harmonic( grid; ω=1.0, center=[0.0, 0.0, 0.0] )
-  Npoints = grid.Npoints
-  Vpot = zeros(Npoints)
-  for i in 1:Npoints
-    x = grid.r[1,i] - center[1]
-    y = grid.r[2,i] - center[2]
-    z = grid.r[3,i] - center[3]
-    Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 + z^2 )
-  end
-  return Vpot
-end
-
-function main()
-  AA = [-3.0, -3.0, -3.0]
-  BB = [3.0, 3.0, 3.0]
-  NN = [25, 25, 25]
-
-  grid = FD3dGrid( NN, AA, BB )
-  my_pot_harmonic( grid ) = pot_harmonic( grid, ω=2 )
-  Ham = Hamiltonian( grid, my_pot_harmonic )
-
-  Nbasis = prod(NN)
-  dVol = grid.dVol
-  Nstates = 4
-  psi = rand(Float64,Nbasis,Nstates)
-  ortho_sqrt!(psi)
-  psi = psi/sqrt(dVol)
-
-  Rhoe = calc_rhoe( psi )
-  @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
-  update!( Ham, Rhoe )
-
-  evals = zeros(Float64,Nstates)
-  Etot_old = 0.0
-  dEtot = 0.0
-  betamix = 0.5
-  dRhoe = 0.0
-  NiterMax = 100
-
-  for iterSCF in 1:NiterMax
-    evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=true )
-    psi = psi/sqrt(dVol)
-    Rhoe_new = calc_rhoe( psi )
-    @printf("Integrated Rhoe_new = %18.10f\n", sum(Rhoe_new)*dVol)
-    Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-    @printf("Integrated Rhoe     = %18.10f\n", sum(Rhoe)*dVol)
-    update!( Ham, Rhoe )
-    Etot = sum( calc_energies( Ham, psi ) )
-    dRhoe = norm(Rhoe - Rhoe_new)
-    dEtot = abs(Etot - Etot_old)
-    @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
-    if dEtot < 1e-6
-      @printf("Convergence is achieved in %d iterations\n", iterSCF)
-      for i in 1:Nstates
-        @printf("%3d %18.10f\n", i, evals[i])
-      end
-      break
-    end
-    Etot_old = Etot
-  end
-end
-\end{juliacode}
-
-\section{Kohn-Sham calculations}
-
-Using XC
-
-Introduction of module:
-
-Electrons type:
+The type \jlinline{Electrons} stores several variables related to single-electron states.
 \begin{juliacode}
 mutable struct Electrons
   Nelectrons::Int64
   Nstates::Int64
   Nstates_occ::Int64
   Focc::Array{Float64,1}
-  energies::Array{Float64,1}
+  ene::Array{Float64,1}
 end
 \end{juliacode}
+
+Electron density calculation \ref{eq:elec_dens_01}:
 
 \begin{juliacode}
-function Electrons( Nelectrons::Int64; Nstates_extra=0 )
-  is_odd = (Nelectrons%2 == 1)
-  Nstates_occ = round(Int64, Nelectrons/2)
-  if is_odd
-      Nstates_occ = Nstates_occ + 1
-  end
-  Nstates = Nstates_occ + Nstates_extra
-  Focc = zeros(Float64,Nstates)
-  energies = zeros(Float64,Nstates)
-  if !is_odd
-    for i in 1:Nstates_occ
-      Focc[i] = 2.0 
+function calc_rhoe( Ham, psi::Array{Float64,2} )
+  Nbasis = size(psi,1)
+  Nstates = size(psi,2)
+  Rhoe = zeros(Float64,Nbasis)
+  for ist in 1:Nstates
+    f = Ham.electrons.Focc[ist]
+    for ip in 1:Nbasis
+      Rhoe[ip] = Rhoe[ip] + f*psi[ip,ist]*psi[ip,ist]
     end
-  else
-    for i in 1:Nstates_occ-1
-      Focc[1] = 2.0
-    end
-    Focc[Nstates_occ] = 1.0
   end
-  return Electrons(Nelectrons, Nstates, Nstates_occ, Focc, energies)
+  return Rhoe
 end
 \end{juliacode}
 
-Example use of Electrons:
 
-New Hamiltonian:
+\subsection{Total energy terms}
+
+We introduce the \jlinline{Energies} type to store various energy terms.
 \begin{juliacode}
-mutable struct Hamiltonian
-  grid::FD3dGrid
-  Laplacian::SparseMatrixCSC{Float64,Int64}
-  V_Ps_loc::Vector{Float64}
-  V_Hartree::Vector{Float64}
-  V_XC::Vector{Float64}
-  electrons::Electrons
-  rhoe::Vector{Float64}
-  precKin
-  precLaplacian
-  energies::Energies
+mutable struct Energies
+  Kinetic::Float64
+  Ps_loc::Float64
+  Hartree::Float64
+  NN::Float64
 end
 \end{juliacode}
 
+Overload sum:
+\begin{juliacode}
+import Base: sum
+function sum( ene::Energies )
+  return ene.Kinetic + ene.Ps_loc + ene.Hartree + ene.NN
+end
+\end{juliacode}
+
+Calculation of the kinetic energy:
+\begin{equation}
+E_{\mathrm{kin}} =
+-\frac{1}{2} \int \psi_{i}(\mathbf{r}) \nabla^{2} \psi_{i}(\mathbf{r})\,\mathrm{d}\mathbf{r}
+\end{equation}
+can be done using the following function.
+\begin{juliacode}
+function calc_E_kin( Ham::Hamiltonian, psi::Array{Float64,2} )
+  Nbasis = size(psi,1)
+  Nstates = size(psi,2)
+  E_kin = 0.0
+  nabla2psi = zeros(Float64,Nbasis)
+  dVol = Ham.grid.dVol
+  for ist in 1:Nstates
+    @views nabla2psi = -0.5*Ham.Laplacian*psi[:,ist]
+    @views E_kin = E_kin + Ham.electrons.Focc[ist]*dot( psi[:,ist], nabla2psi[:] )*dVol
+  end
+  return E_kin
+end
+\end{juliacode}
+
+In the function \jlinline{calc_energies!}, we calculate total electronic energy terms.
+This function modifies \jlinline{Ham.energies}.
+\begin{juliacode}
+function calc_energies!( Ham::Hamiltonian, psi::Array{Float64,2} )
+  dVol = Ham.grid.dVol
+  Ham.energies.Kinetic = calc_E_kin( Ham, psi )
+  Ham.energies.Ps_loc = sum( Ham.V_Ps_loc .* Ham.rhoe )*dVol
+  Ham.energies.Hartree = 0.5*sum( Ham.V_Hartree .* Ham.rhoe )*dVol
+  return
+end
+\end{juliacode}
+It is sometimes convenient to return the energies directly. This is done by
+the function \jlinline{calc_energies} which just wraps \jlinline{calc_energies!}
+function.
+\begin{juliacode}
+function calc_energies(Ham, psi)
+  calc_energies!(Ham, psi)
+  return Ham.energies
+end
+\end{juliacode}
+
+
+\subsection{Harmonic potential}
+
+We are now ready to implement our self-consistent field solution to the Kohn-Sham equation.
+As in the previous chapters, we will chose a system with 3d harmonic potential as the
+external potential.
+
+First, we define the grid.
+\begin{juliacode}
+AA = [-3.0, -3.0, -3.0]
+BB = [3.0, 3.0, 3.0]
+NN = [25, 25, 25]
+grid = FD3dGrid( NN, AA, BB )
+\end{juliacode}
+
+The, we calculate the external potential. We will use \jlinline{V_Ps_loc} as the name of
+the external potential. We also choose $\omega=2$.
+\begin{juliacode}
+V_Ps_loc = pot_harmonic( grid, ω=2 )
+\end{juliacode}
+
+The next step is to initialize an instance of \jlinline{Hamiltonian}. We need to specify
+number of electrons and number of states for our electronic states. Here we choose to 8
+electrons and 4 states, each states is doubly occupied.
+\begin{juliacode}
+Nelectrons = 8
+Nstates = round(Int64,Nelectrons/2)
+Ham = Hamiltonian( Atoms(), grid, V_Ps_loc, Nelectrons=Nelectrons )
+\end{juliacode}
+
+We prepare random wave functions for guess solution to the Kohn-Sham equation.
+\begin{juliacode}
+Npoints = grid.Npoints
+dVol = grid.dVol
+psi = rand(Float64,Npoints,Nstates)
+ortho_sqrt!(psi)
+psi = psi/sqrt(dVol)
+\end{juliacode}
+and calculate the electron density associated with these wave functions.
+We also printed the integrated electron density, approximated with simple summation.
+Note that the integrated electron density should be close the the number of electrons.
+\begin{juliacode}
+Rhoe = calc_rhoe( Ham, psi )
+@printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
+\end{juliacode}
+
+From the guess electron density, we update the Hamiltonian, calculate the
+Hartree potential by calling the \jlinline{update!} function.
+\begin{juliacode}
+update!( Ham, Rhoe )
+\end{juliacode}
+
+We also calculate total energy for our initial guess wave functions and electron
+density.
+\begin{juliacode}
+Etot = sum( calc_energies( Ham, psi ) )
+@printf("Initial Etot = %18.10f\n", Etot)
+\end{juliacode}
+
+Before entering the SCF cycle, we need to prepare and define several variables
+which will be used in the SCF cycle.
+\begin{juliacode}
+evals = zeros(Float64,Nstates)
+Etot_old = Etot
+dEtot = 0.0
+dRhoe = 0.0
+betamix = 0.5
+NiterMax = 100
+\end{juliacode}
+An important variable that needs attention is \jlinline{betamix}. This variable
+plays the role of $\beta$ in the following equation.
+\begin{equation}
+\rho^{i+1}_{\mathrm{in}}(\mathbf{r}) = \beta\rho(\mathbf{r})^{i}_{\mathrm{out}} +
+(1 - \beta)\rho^{i}_{\mathrm{in}}(\mathbf{r})
+\label{eq:linear_mix_rhoe}
+\end{equation}
+where $0 < \beta <= 1$.
+In the Equation \eqref{eq:linear_mix_rhoe}, $\rho^{i+1}_{\mathrm{in}}(\mathbf{r})$
+is the input density for the next SCF iteration.
+
+The SCF cycle is implemented in the following Julia code.
+\begin{juliacode}
+for iterSCF in 1:NiterMax
+  evals = diag_LOBPCG!(Ham, psi, Ham.precKin)
+  psi = psi/sqrt(dVol)
+  Rhoe_new = calc_rhoe(Ham, psi)
+  Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+  update!( Ham, Rhoe )
+  Etot = sum( calc_energies( Ham, psi ) )
+  dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints
+  dEtot = abs(Etot - Etot_old)
+  @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
+  if dEtot < 1e-6
+    @printf("Convergence is achieved in %d iterations\n", iterSCF)
+    for i in 1:Nstates
+      @printf("%3d %18.10f\n", i, evals[i])
+    end
+    break
+  end
+  Etot_old = Etot
+end
+\end{juliacode}
+
+The result of the SCF:
+\begin{textcode}
+... snipped
+  33      62.2907110243   1.4097586885e-06   5.3155705598e-08
+  34      62.2907100832   9.4107285520e-07   4.5940110326e-08
+Convergence is achieved in 34 iterations
+ 1       9.8038626839
+ 2      11.1505190947
+ 3      11.1505191402
+ 4      11.1505192492
+----------------------------
+Total energy components
+----------------------------
+Kinetic =      12.9807771382
+Ps_loc  =      25.0898019726
+Hartree =      24.2201309724
+NN      =       0.0000000000
+----------------------------
+Total   =      62.2907100832
+\end{textcode}
+
+
+
+
+\subsection{H atom}
+
+A next example that we will try is hydrogen atom. Here is our setup.
+\begin{juliacode}
+AA = [-8.0, -8.0, -8.0]
+BB = [ 8.0,  8.0,  8.0]
+NN = [41, 41, 41]
+grid = FD3dGrid( NN, AA, BB )
+atoms = Atoms( xyz_string=
+  """
+  1
+
+  H  0.0  0.0  0.0
+  """ )
+V_Ps_loc = pot_Hps_HGH(atoms, grid)
+Nstates = 1
+Nelectrons = 1
+Ham = Hamiltonian(atoms, grid, V_Ps_loc, Nelectrons=1)
+\end{juliacode}
+
+Result:
+\begin{textcode}
+... snipped
+14      -0.2562610358   2.0600214368e-06   1.9590484379e-08
+15      -0.2562602740   7.6184773828e-07   9.7155909123e-09
+Convergence is achieved in 15 iterations
+1      -0.0428298539
+----------------------------
+Total energy components
+----------------------------
+Kinetic =       0.2928408518
+Ps_loc  =      -0.7625329979
+Hartree =       0.2134318721
+NN      =       0.0000000000
+----------------------------
+Total   =      -0.2562602740
+\end{textcode}
+
+TODO: try using denser grid. Study convergence of the total energy with respect
+grid spacing.
+
+
+\subsection{$\ce{H2}$ molecule}
+
+
+Using the same grid as we have used for hydrogen atom.
+
+\begin{juliacode}
+atoms = Atoms( xyz_string=
+  """
+  2
+  
+  H   0.75  0.0  0.0
+  H  -0.75  0.0  0.0
+  """, in_bohr=true)
+V_Ps_loc = pot_Hps_HGH(atoms, grid)
+Nstates = 1
+Nelectrons = 2
+Ham = Hamiltonian(atoms, grid, V_Ps_loc, Nelectrons=Nelectrons)
+\end{juliacode}
+
+We need to calculate ion-ion interaction energy. Do this before SCF cycle.
+
+\begin{juliacode}
+Ham.energies.NN = calc_E_NN( [1.0, 1.0], atoms.positions )
+\end{juliacode}
+
+Result:
+\begin{textcode}
+... snipped
+16      -0.5972202712   1.3097904592e-06   1.0969070600e-08
+17      -0.5972197417   5.2951699026e-07   5.4868596190e-09
+Convergence is achieved in 17 iterations
+1      -0.1083633271
+----------------------------
+Total energy components
+----------------------------
+Kinetic =       0.8229371585
+Ps_loc  =      -3.1339854624
+Hartree =       1.0471618956
+NN      =       0.6666666667
+----------------------------
+Total   =      -0.5972197417
+\end{textcode}
+
+TODO: try using denser grid. Study convergence of the total energy with respect
+grid spacing.
+
+
+
+
+\section{Kohn-Sham calculations}
+
+Using XC
+
+New Hamiltonian, include \jlinline{V_XC}.
 
 Update the potential:
 
@@ -359,3 +568,14 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
   return Hpsi
 end
 \end{juliacode}
+
+\section{Self-consistent loop}
+
+The exchange correlation potential $V_{\mathrm{xc}}(\mathbf{r})$
+is defined as functional derivative of
+exchange correlation energy functional $E_{\mathrm{xc}}[\rho(\mathbf{r})]$
+\begin{equation}
+V_{\mathrm{xc}}(\mathbf{r}) = \frac{\delta E_{\mathrm{xc}}}{\delta \rho(\mathbf{r})}
+\end{equation}
+We do not have exact closed expression for these quantities, however several
+approximations are available.
