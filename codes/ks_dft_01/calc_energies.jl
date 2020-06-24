@@ -19,7 +19,9 @@ function calc_energies!( Ham::Hamiltonian, psi::Array{Float64,2} )
     Ham.energies.Kinetic = calc_E_kin( Ham, psi )
     Ham.energies.Ps_loc = sum( Ham.V_Ps_loc .* Ham.rhoe )*dVol
     Ham.energies.Hartree = 0.5*sum( Ham.V_Hartree .* Ham.rhoe )*dVol
-    Ham.energies.XC = sum( excVWN(Ham.rhoe) .* Ham.rhoe )*dVol
+    epsxc = calc_epsxc_VWN( XCCalculator(), Ham.rhoe )
+    Ham.energies.XC = sum( epsxc .* Ham.rhoe )*dVol
+    #Ham.energies.XC = sum( excVWN(Ham.rhoe) .* Ham.rhoe )*dVol
 
     return
 end

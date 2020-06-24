@@ -45,7 +45,7 @@ function main()
     H   -0.75   0.0   0.0
     """, in_bohr=true)
 
-    V_Ps_loc = pot_Hps_HGH( atoms, grid )
+    V_Ps_loc = pot_Hps_GTH( atoms, grid )
 
     Nstates = 1
     Nelectrons = 2

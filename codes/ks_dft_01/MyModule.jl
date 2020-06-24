@@ -64,6 +64,13 @@ export calc_rhoe, calc_rhoe!
 include("../common/LDA_VWN.jl")
 export excVWN, excpVWN
 
+include("../common/XCCalculator.jl")
+export XCCalculator
+
+include("../common/XC_functionals_internal.jl")
+include("../common/LDA_VWN_internal.jl")
+export calc_epsxc_VWN, calc_Vxc_VWN
+
 include("calc_energies.jl")
 export calc_energies!
 
