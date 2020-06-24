@@ -1,4 +1,5 @@
 function XC_c_pw( Rhoe )
+    # J.P. Perdew and Y. Wang, PRB 45, 13244 (1992)
 
     third = 1.0/3.0
     pi34 = 0.6203504908994
