@@ -27,24 +27,18 @@ function main()
     NN = [25, 25, 25]
 
     grid = FD3dGrid( NN, AA, BB )
+    println(grid)
 
-    println("hx = ", grid.hx)
-    println("hy = ", grid.hy)
-    println("hz = ", grid.hz)
-    println("dVol = ", grid.dVol)
-    println(grid.hx*grid.hy*grid.hz)
+    V_Ps_loc = pot_harmonic( grid, ω=2 )
 
-    my_pot_harmonic( grid ) = pot_harmonic( grid, ω=2 )
+    Nelectrons = 8
+    Nstates = round(Int64,Nelectrons/2)
+    Ham = Hamiltonian( Atoms(), grid, V_Ps_loc, Nelectrons=Nelectrons )
 
-    Nstates = 4
-    Nelectrons = 2*Nstates
-    Ham = Hamiltonian( grid, my_pot_harmonic, Nelectrons=Nelectrons )
-
-    Nbasis = prod(NN)
-
+    Npoints = grid.Npoints
     dVol = grid.dVol
 
-    psi = rand(Float64,Nbasis,Nstates)
+    psi = rand(Float64,Npoints,Nstates)
     ortho_sqrt!(psi)
     psi = psi/sqrt(dVol)
 
@@ -66,11 +60,7 @@ function main()
 
     for iterSCF in 1:NiterMax
 
-        evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-
-        #psi = psi*sqrt(dVol) # for diag_davidson
-        #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
-
+        evals = diag_LOBPCG!( Ham, psi, Ham.precKin )
         psi = psi/sqrt(dVol) # renormalize
 
         Rhoe_new = calc_rhoe( Ham, psi )

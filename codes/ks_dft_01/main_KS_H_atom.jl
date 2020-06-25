@@ -14,7 +14,7 @@ function main()
 
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
-    NN = [50, 50, 50]
+    NN = [41, 41, 41]
 
     grid = FD3dGrid( NN, AA, BB )
     #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
