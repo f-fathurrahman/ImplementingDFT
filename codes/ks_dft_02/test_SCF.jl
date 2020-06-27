@@ -16,9 +16,9 @@ include("KS_solve_SCF.jl")
 
 function main()
     
-    #Ham = create_Ham_H2O(41)
+    Ham = create_Ham_H2O(50)
     #Ham = create_Ham_H(41)
-    Ham = create_Ham_H2(50)
+    #Ham = create_Ham_H2(50)
     #Ham = create_Ham_Ne(41)
     #Ham = create_Ham_LiH(41)
 
@@ -37,4 +37,4 @@ function main()
 
 end
 
-main()
+@time main()
