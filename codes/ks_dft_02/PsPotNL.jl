@@ -88,7 +88,7 @@ function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=fal
     #  1,  2, 3, 4, 5  -> 3 + m, lmax = 2 + 1
 
     prj2beta = Array{Int64}(undef,3,Natoms,4,7)
-    prj2beta[:,:,:,:] .= -1   # set to invalid index
+    prj2beta[:] .= -1   # set to invalid index
 
     NbetaNL = 0
     for ia = 1:Natoms
