@@ -124,13 +124,3 @@ function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=fal
 
 end
 
-
-function calc_betaNL_psi(
-    betaNL::Array{Float64,2},
-    psi::Array{Float64,2}
-)
-
-    betaNL_psi = psi' * betaNL
-    return betaNL_psi
-end
-

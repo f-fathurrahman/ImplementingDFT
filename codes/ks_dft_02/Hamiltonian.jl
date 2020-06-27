@@ -183,7 +183,7 @@ function op_V_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
     betaNL = Ham.pspotNL.betaNL
 
     dVol = Ham.grid.dVol
-    betaNL_psi = calc_betaNL_psi( Ham.pspotNL.betaNL, psi )*dVol
+    betaNL_psi = psi' * Ham.pspotNL.betaNL *dVol
     
     Npoints = Ham.grid.Npoints
     Vpsi = zeros(Float64,Npoints,Nstates)
