@@ -16,11 +16,12 @@ function sum( ene::Energies )
 end
 
 import Base: println
-function println( ene::Energies )
-
-    @printf("----------------------------\n")
-    @printf("Total energy components\n")
-    @printf("----------------------------\n")
+function println( ene::Energies; banner=true )
+    if banner
+        @printf("----------------------------\n")
+        @printf("Total energy components\n")
+        @printf("----------------------------\n")
+    end
     @printf("Kinetic = %18.10f\n", ene.Kinetic)
     @printf("Ps_loc  = %18.10f\n", ene.Ps_loc)
     @printf("Hartree = %18.10f\n", ene.Hartree)

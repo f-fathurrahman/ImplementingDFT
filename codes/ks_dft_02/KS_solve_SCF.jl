@@ -1,6 +1,6 @@
 function KS_solve_SCF!(
     Ham::Hamiltonian, psi::Array{Float64,2};
-    NiterMax=200, verbose=true,
+    NiterMax=200,
     i_cg_beta=2, etot_conv_thr=1e-6,
     diag_func=diag_LOBPCG!
 )

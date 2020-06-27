@@ -81,7 +81,7 @@ end
 
 function KS_solve_Emin_PCG!(
     Ham::Hamiltonian, psi::Array{Float64,2};
-    α_t=3e-5, NiterMax=200, verbose=true,
+    α_t=3e-5, NiterMax=200,
     i_cg_beta=2, etot_conv_thr=1e-6
 )
     Nbasis = size(psi,1)
@@ -119,24 +119,22 @@ function KS_solve_Emin_PCG!(
     
     cg_test = 0.0
 
-    if verbose
-        @printf("\n")
-        @printf("Minimizing Kohn-Sham energy using PCG\n")
-        @printf("-------------------------------------\n")
-        @printf("NiterMax  = %d\n", NiterMax)
-        @printf("α_t       = %e\n", α_t)
-        @printf("conv_thr  = %e\n", etot_conv_thr)
-        if i_cg_beta == 1
-            @printf("Using Fletcher-Reeves formula for CG_BETA\n")
-        elseif i_cg_beta == 2
-            @printf("Using Polak-Ribiere formula for CG_BETA\n")
-        elseif i_cg_beta == 3
-            @printf("Using Hestenes-Stiefeld formula for CG_BETA\n")
-        else
-            @printf("Using Dai-Yuan formula for CG_BETA\n")
-        end
-        @printf("\n")
+    @printf("\n")
+    @printf("Minimizing Kohn-Sham energy using PCG\n")
+    @printf("-------------------------------------\n")
+    @printf("NiterMax  = %d\n", NiterMax)
+    @printf("α_t       = %e\n", α_t)
+    @printf("conv_thr  = %e\n", etot_conv_thr)
+    if i_cg_beta == 1
+        @printf("Using Fletcher-Reeves formula for CG_BETA\n")
+    elseif i_cg_beta == 2
+        @printf("Using Polak-Ribiere formula for CG_BETA\n")
+    elseif i_cg_beta == 3
+        @printf("Using Hestenes-Stiefeld formula for CG_BETA\n")
+    else
+        @printf("Using Dai-Yuan formula for CG_BETA\n")
     end
+    @printf("\n")
 
 
     for iter in 1:NiterMax
@@ -212,25 +210,21 @@ function KS_solve_Emin_PCG!(
     evals, evecs = eigen(Symmetric(Hsub))
     psi = psi*evecs
 
-    if verbose
-        @printf("\n")
-        @printf("----------------------------\n")
-        @printf("Final Kohn-Sham eigenvalues:\n")
-        @printf("----------------------------\n")
-        @printf("\n")
-        for i in 1:Nstates
-            @printf("%3d %18.10f\n", i, evals[i])
-        end
+    @printf("\n")
+    @printf("----------------------------\n")
+    @printf("Final Kohn-Sham eigenvalues:\n")
+    @printf("----------------------------\n")
+    @printf("\n")
+    for i in 1:Nstates
+        @printf("%3d %18.10f\n", i, evals[i])
     end
 
-    if verbose
-        @printf("\n")
-        @printf("----------------------------\n")
-        @printf("Final Kohn-Sham energies:\n")
-        @printf("----------------------------\n")
-        @printf("\n")
-        println(Ham.energies)
-    end
+    @printf("\n")
+    @printf("----------------------------\n")
+    @printf("Final Kohn-Sham energies:\n")
+    @printf("----------------------------\n")
+    @printf("\n")
+    println(Ham.energies, banner=false)
 
     return
 

@@ -17,7 +17,7 @@ function sum( ene::Energies )
 end
 
 import Base: println
-function println( ene::Energies; banner=false )
+function println( ene::Energies; banner=true )
     if banner
         @printf("----------------------------\n")
         @printf("Total energy components\n")
