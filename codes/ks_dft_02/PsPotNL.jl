@@ -22,8 +22,8 @@ function setup_betaNL!( atoms, grid, pspots, betaNL )
         isp = atm2species[ia]
         psp = pspots[isp]
         for l = 0:psp.lmax
-        for iprj = 1:psp.Nproj_l[l+1]
         for m = -l:l
+        for iprj = 1:psp.Nproj_l[l+1]
             ibeta = ibeta + 1
             for ip in 1:Npoints
                 dr[1] = grid.r[1,ip] - atoms.positions[1,ia]
@@ -53,8 +53,8 @@ function setup_betaNL_periodic!( atoms, grid, pspots, betaNL )
         isp = atm2species[ia]
         psp = pspots[isp]
         for l = 0:psp.lmax
-        for iprj = 1:psp.Nproj_l[l+1]
         for m = -l:l
+        for iprj = 1:psp.Nproj_l[l+1]
             ibeta = ibeta + 1
             for ip in 1:Npoints
                 @views calc_dr_periodic!( LL, grid.r[:,ip], atoms.positions[:,ia], dr )
@@ -95,8 +95,8 @@ function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=fal
         isp = atm2species[ia]
         psp = pspots[isp]
         for l = 0:psp.lmax
-            for iprj = 1:psp.Nproj_l[l+1]
-                for m = -l:l
+            for m = -l:l
+                for iprj = 1:psp.Nproj_l[l+1]
                     NbetaNL = NbetaNL + 1
                     prj2beta[iprj,ia,l+1,m+psp.lmax+1] = NbetaNL
                 end

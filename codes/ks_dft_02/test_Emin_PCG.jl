@@ -24,8 +24,9 @@ function main()
     #Ham = create_Ham_H(40, grid_type=:FD)
     
     #Ham = create_Ham_Ne(41)
+    Ham = create_Ham_Ar(41)
     
-    Ham = create_Ham_H2O(40, grid_type=:FD)
+    #Ham = create_Ham_H2O(40, grid_type=:FD)
     
     #Ham = create_Ham_LiH(40, grid_type=:sinc)
 

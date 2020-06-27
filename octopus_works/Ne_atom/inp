@@ -17,7 +17,6 @@ MixField = density
 MixingScheme = Linear
 Mixing = 0.5
 
-PoissonSolver = cg
 FilterPotentials = filter_none
 
 UnitsXYZFiles = angstrom_units
