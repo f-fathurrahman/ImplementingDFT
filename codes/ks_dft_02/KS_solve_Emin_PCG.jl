@@ -5,7 +5,7 @@ function calc_grad!( Ham, ψ, g, Hsub )
     Hsub[:] = ψ' * Hψ * Ham.grid.dVol
     Hψ = Hψ - ψ*Hsub
     for ist in 1:Nstates
-        g[:,ist] = Focc[ist] * Hψ[:,ist]
+        @views g[:,ist] = Focc[ist] * Hψ[:,ist]
     end
     return
 end
@@ -17,7 +17,7 @@ function calc_grad!( Ham, ψ, g )
     Hsub = ψ' * Hψ * Ham.grid.dVol
     Hψ = Hψ - ψ*Hsub
     for ist in 1:Nstates
-        g[:,ist] = Focc[ist] * Hψ[:,ist]
+        @views g[:,ist] = Focc[ist] * Hψ[:,ist]
     end
     #println(dot(g,g))
     return
@@ -46,7 +46,7 @@ function calc_energies_only!( Ham, psi, Rhoe )
 end
 
 
-function linmin_grad!( Ham, psi, g, d; αt = 3e-5 )
+function linmin_grad!( Ham, psi, g, d, Rhoe; αt = 3e-5 )
 
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
@@ -60,7 +60,7 @@ function linmin_grad!( Ham, psi, g, d; αt = 3e-5 )
     ortho_sqrt!(psic)
     psic = psic/sqrt(dVol)
 
-    Rhoe = calc_rhoe( Ham, psic )
+    calc_rhoe!( Ham, psic, Rhoe )
     update!( Ham, Rhoe )
     calc_grad!( Ham, psic, gt )
 
@@ -82,7 +82,7 @@ end
 function KS_solve_Emin_PCG!(
     Ham::Hamiltonian, psi::Array{Float64,2};
     α_t=3e-5, NiterMax=200,
-    i_cg_beta=2, etot_conv_thr=1e-6
+    etot_conv_thr=1e-6
 )
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
@@ -96,7 +96,6 @@ function KS_solve_Emin_PCG!(
 
     Rhoe = zeros(Float64,Nbasis)
     Hsub = zeros(Nstates,Nstates)
-    Rhoe_old = zeros(Float64,Nbasis)
 
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
@@ -125,17 +124,6 @@ function KS_solve_Emin_PCG!(
     @printf("NiterMax  = %d\n", NiterMax)
     @printf("α_t       = %e\n", α_t)
     @printf("conv_thr  = %e\n", etot_conv_thr)
-    if i_cg_beta == 1
-        @printf("Using Fletcher-Reeves formula for CG_BETA\n")
-    elseif i_cg_beta == 2
-        @printf("Using Polak-Ribiere formula for CG_BETA\n")
-    elseif i_cg_beta == 3
-        @printf("Using Hestenes-Stiefeld formula for CG_BETA\n")
-    else
-        @printf("Using Dai-Yuan formula for CG_BETA\n")
-    end
-    @printf("\n")
-
 
     for iter in 1:NiterMax
 
@@ -158,24 +146,19 @@ function KS_solve_Emin_PCG!(
         force_grad_dir = false
         
         if gPrevUsed
-            gPrev[:,:] = g[:,:]
+            gPrev[:] = g[:]
         end
         gKnormPrev = gKnorm
 
         # Update search direction
-        d[:] = -Kg[:] + β*d[:]
+        @views d[:] = -Kg[:] + β*d[:]
 
         constrain_search_dir!( d, psi, dVol )
 
-        α = linmin_grad!( Ham, psi, g, d )
-
-        Rhoe_old = copy(Ham.rhoe)
+        α = linmin_grad!( Ham, psi, g, d, Rhoe )
 
         # Update psi
-        psi[:] = psi[:] + α*d[:]
-        #display(psi'*psi); println()
-        #exit()
-        #ortho_sqrt!(psi, dVol)
+        @views psi[:] = psi[:] + α*d[:]
         ortho_sqrt!(psi)
         psi = psi/sqrt(dVol)
 
@@ -207,7 +190,7 @@ function KS_solve_Emin_PCG!(
     end
 
     # Calculate eigenvalues
-    evals, evecs = eigen(Symmetric(Hsub))
+    evals, evecs = eigen(Hermitian(Hsub))
     psi = psi*evecs
 
     @printf("\n")
