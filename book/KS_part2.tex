@@ -13,6 +13,8 @@ proposed by Goedecker-Teter-Hutter (GTH) \cite{Goedecker1996} in 1996.
 We have used local-only component of this pseudopotential in the previous chapters.
 Now, we will start to consider the nonlocal component.
 
+\section{GTH pseudopotentials}
+
 The GTH pseudopotentials can be written in terms of
 local $V^{\mathrm{PS}}_{\mathrm{loc}}$ and
 angular momentum $l$ dependent
@@ -280,3 +282,87 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
   return Hpsi
 end
 \end{juliacode}
+
+\section{Ne atom}
+
+\begin{textcode}
+   36     -33.2419937530   3.3191088278e-07   8.0527228312e-10
+   37     -33.2419929933   7.5978377367e-07   6.1279774911e-10
+
+SCF is converged in iter: 37
+ 
+Eigenvalues:
+  1      -2.0514588028
+  2      -0.4257844044
+  3      -0.4257844038
+  4      -0.4257843741
+----------------------------
+Total energy components
+----------------------------
+Kinetic =      21.9606066031
+Ps_loc  =     -78.5227825557
+Ps_nloc =       0.4250276268
+Hartree =      28.2669988706
+XC      =      -5.3718435381
+NN      =       0.0000000000
+----------------------------
+Total   =     -33.2419929933 
+\end{textcode}
+
+Octopus result
+\begin{textcode}
+ *********************** SCF CYCLE ITER #   14 ************************
+ etot  = -3.32741274E+01 abs_ev   =  1.21E-05 rel_ev   =  1.81E-06
+ ediff =       -4.38E-11 abs_dens =  5.95E-05 rel_dens =  7.44E-06
+Matrix vector products:     23
+Converged eigenvectors:      3
+
+#  State  Eigenvalue [H]  Occupation    Error
+      1       -2.064775    2.000000   (9.6E-07)
+      2       -0.425357    2.000000   (9.8E-07)
+      3       -0.425357    2.000000   (9.8E-07)
+      4       -0.425357    2.000000   (1.0E-06)   
+\end{textcode}
+
+Similar result with Octopus.
+
+
+\section{$\ce{CH4}$ molecule}
+
+\begin{textcode}
+   44      -8.0428330362   4.9289199566e-07   3.3001772073e-09
+   45      -8.0428321264   9.0977377454e-07   2.8064033639e-09
+
+SCF is converged in iter: 45
+
+Eigenvalues:
+  1      -0.6243171116
+  2      -0.3496085566
+  3      -0.3484490903
+  4      -0.3424495986
+----------------------------
+Total energy components
+----------------------------
+Kinetic =       6.6836723909
+Ps_loc  =     -36.7944583474
+Ps_nloc =       0.4319519028
+Hartree =      15.1969310575
+XC      =      -3.0932073934
+NN      =       9.5322782633
+----------------------------
+Total   =      -8.0428321264 
+\end{textcode}
+
+\begin{textcode}
+ *********************** SCF CYCLE ITER #   13 ************************
+ etot  = -8.06433473E+00 abs_ev   =  2.54E-05 rel_ev   =  7.64E-06
+ ediff =       -9.29E-11 abs_dens =  7.73E-05 rel_dens =  9.66E-06
+Matrix vector products:     36
+Converged eigenvectors:      0
+
+#  State  Eigenvalue [H]  Occupation    Error
+      1       -0.624282    2.000000   (2.3E-06)
+      2       -0.350544    2.000000   (1.0E-06)
+      3       -0.348888    2.000000   (6.2E-07)
+      4       -0.341658    2.000000   (2.0E-06)   
+\end{textcode}
