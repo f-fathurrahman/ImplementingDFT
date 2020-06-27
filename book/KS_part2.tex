@@ -1,16 +1,24 @@
 \chapter{Kohn-Sham equation part II}
 \label{chap:ks_part_2}
 
-Using nonlocal potential (pseudopotential)
+In the previous chapters we have used pseudopotentials to model the interaction
+between electrons and nuclei. The pseudopotentials that we have used
+are limited to local form. In this case, the potential operator is diagonal
+in real space. It turns out that it is very difficult to construct local pseudopotentials
+that have good accuracy and transferability. Most of the pseudopotentials that
+are used in density functional calculations have nonlocal components.
 
-In this work, we use norm-conserving pseudopotentials proposed
-by Goedecker-Teter-Hutter (GTH) \cite{Goedecker1996}.
-These pseudopotentials can be written in terms of
+In this chapter, we will use a family of pseudopotentials that was
+proposed by Goedecker-Teter-Hutter (GTH) \cite{Goedecker1996} in 1996.
+We have used local-only component of this pseudopotential in the previous chapters.
+Now, we will start to consider the nonlocal component.
+
+The GTH pseudopotentials can be written in terms of
 local $V^{\mathrm{PS}}_{\mathrm{loc}}$ and
 angular momentum $l$ dependent
 nonlocal components $\Delta V^{\mathrm{PS}}_{l}$:
 \begin{equation}
-V_{\mathrm{ene-nuc}}(\mathbf{r}) =
+V_{\mathrm{ele-nuc}}(\mathbf{r}) =
 \sum_{I} \left[
 V^{\mathrm{PS}}_{\mathrm{loc}}(\mathbf{r}-\mathbf{R}_{I}) +
 \sum_{l=0}^{l_{\mathrm{max}}}
@@ -62,69 +70,33 @@ p^{l}_{\mu}(r) Y_{lm}(\hat{\mathbf{r}})
 and $h^{l}_{\mu\nu}$ are the pseudopotential parameters and
 $Y_{lm}$ are the spherical harmonics. Number of projectors per angular
 momentum $N_{l}$ may take value up to 3 projectors.
-%
-In $\mathbf{G}$-space, the nonlocal part of GTH pseudopotential can be described by
-the following equation.
+The projectors can be written as
 \begin{equation}
-V^{\mathrm{PS}}_{l}(\mathbf{G},\mathbf{G}') =
-(-1)^{l} \sum_{\mu}^{3} \sum_{\nu}^{3}\sum_{m=-l}^{l}
-\beta_{\mu l m}(\mathbf{G}) h^{l}_{\mu\nu}
-\beta^{*}_{\nu l m}(\mathbf{G}')
+p^{l}_{\mu}(r) = \frac{\sqrt{2}}
+{r^{l+(4i-1)/2}_{l}\sqrt{\Gamma(l + (4i-1)/2)}} r^{l+2(i-1)}
+\exp\left[-\dfrac{r^2}{2r^{2}_{l}}\right] \, ,
 \end{equation}
-with the projector functions
+where $\Gamma(x)$ is the gamma function. The projectors are normalized according
+to
 \begin{equation}
-\beta_{\mu lm}(\mathbf{G}) = p^{l}_{\mu}(G) Y_{lm}(\hat{\mathbf{G}})
-\label{eq:betaNL_G}
-\end{equation}
-The radial part of projector functions take the following form
-\begin{equation}
-p^{l}_{\mu}(G) = q^{l}_{\mu}\left(Gr_{l}\right)
-\frac{\pi^{5/4}G^{l}\sqrt{ r_{l}^{2l+3}}}{\sqrt{\Omega}}
-\exp\left[-\frac{1}{2}G^{2}r^{2}_{l}\right]
-\label{eq:proj_NL_G}
-\end{equation}
-%
-For $l=0$, we consider up to $N_{l}=3$ projectors:
-\begin{align}
-q^{0}_{1}(x) & = 4\sqrt{2} \\
-q^{0}_{2}(x) & = 8\sqrt{\frac{2}{15}}(3 - x^2) \\
-q^{0}_{3}(x) & = \frac{16}{3}\sqrt{\frac{2}{105}} (15 - 20x^2 + 4x^4)
-\end{align}
-%
-For $l=1$, we consider up to $N_{l}=3$ projectors:
-\begin{align}
-q^{1}_{1}(x) & = 8 \sqrt{\frac{1}{3}} \\
-q^{1}_{2}(x) & = 16 \sqrt{\frac{1}{105}} (5 - x^2) \\
-q^{1}_{3}(x) & = 8 \sqrt{\frac{1}{1155}} (35 - 28x^2 + 4x^4)
-\end{align}
-%
-For $l=2$, we consider up to $N_{l}=2$ projectors:
-\begin{align}
-q^{2}_{1}(x) & = 8\sqrt{\frac{2}{15}} \\
-q^{2}_{2}(x) & = \frac{16}{3} \sqrt{\frac{2}{105}}(7 - x^2)
-\end{align}
-%
-For $l=3$, we only consider up to $N_{l}=1$ projector:
-\begin{equation}
-q^{3}_{1}(x) = 16\sqrt{\frac{1}{105}}
+\int_{0}^{\infty} r^2\,p^{l}_{i}(r)\,p^{l}_{i}(r)\,\mathrm{d}r = 1 \, .
 \end{equation}
 
-In the present implementation, we construct the local and nonlocal
-components of pseudopotential in the $\mathbf{G}$-space using
-their Fourier-transformed expressions
-and transformed them back to real space if needed.
+In the case of periodic sytem, the local part of the pseudopotential
+is constructed using the formula in the $\mathbf{G}$-space 
+and transformed them back to real space.
 We refer the readers to the original
 reference \cite{Goedecker1996} and the book \cite{Marx2009}
 for more information about GTH pseudopotentials.
 
 Due to the separation of local and non-local components of electrons-nuclei
-interaction, Equation \eqref{eq:E_ele_nuc} can be written as
+interaction, interaction energy between electron and nuclei can be decomposed as
 \begin{equation}
 E_{\mathrm{ele-nuc}} = E^{\mathrm{PS}}_{\mathrm{loc}}
 + E^{\mathrm{PS}}_{\mathrm{nloc}}
 \end{equation}
 %
-The local pseudopotential contribution is
+where the local pseudopotential contribution is
 \begin{equation}
 E^{\mathrm{PS}}_{\mathrm{loc}} =
 \int_{\Omega} \rho(\mathbf{r})\,V^{\mathrm{PS}}_{\mathrm{loc}}(\mathbf{r})\,
@@ -134,16 +106,177 @@ E^{\mathrm{PS}}_{\mathrm{loc}} =
 and the non-local contribution is
 \begin{equation}
 E^{\mathrm{PS}}_{\mathrm{nloc}} = 
-\sum_{\mathbf{k}}
 \sum_{i}
-w_{\mathbf{k}}
-f_{i\mathbf{k}}
+f_{i}
 \int_{\Omega}\,
-\psi^{*}_{i\mathbf{k}}(\mathbf{r})
+\psi^{*}_{i}(\mathbf{r})
 \left[
 \sum_{I}\sum_{l=0}^{l_{\mathrm{max}}}
 V^{\mathrm{PS}}_{l}(\mathbf{r}-\mathbf{R}_{I},\mathbf{r}'-\mathbf{R}_{I})
 \right]
-\psi_{i\mathbf{k}}(\mathbf{r})
+\psi_{i}(\mathbf{r})
 \,\mathrm{d}\mathbf{r}.
 \end{equation}
+
+\begin{juliacode}
+struct PsPotNL
+  NbetaNL::Int64
+  prj2beta::Array{Int64,4}
+  betaNL::Array{Float64,2}
+end
+\end{juliacode}
+
+\begin{juliacode}
+function PsPotNL()
+  betaNL = zeros(Float64,1,1)
+  return PsPotNL( 0, zeros(Int64,1,1,1,1), betaNL )
+end
+\end{juliacode}
+
+\begin{juliacode}
+function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=false )
+  Natoms = atoms.Natoms
+  atm2species = atoms.atm2species
+  atpos = atoms.positions
+
+  prj2beta = Array{Int64}(undef,3,Natoms,4,7)
+  prj2beta[:] .= -1   # set to invalid index
+
+  NbetaNL = 0
+  for ia = 1:Natoms
+    isp = atm2species[ia]
+    psp = pspots[isp]
+    for l = 0:psp.lmax
+      for iprj = 1:psp.Nproj_l[l+1]
+        for m = -l:l
+          NbetaNL = NbetaNL + 1
+          prj2beta[iprj,ia,l+1,m+psp.lmax+1] = NbetaNL
+        end
+      end
+    end
+  end
+
+  # No nonlocal components
+  if NbetaNL == 0
+    # return dummy PsPotNL
+    betaNL = zeros(Float64,1,1)
+    return PsPotNL( 0, zeros(Int64,1,1,1,1), betaNL )
+  end
+
+  Npoints = grid.Npoints
+  betaNL = zeros(Float64, Npoints, NbetaNL)
+  setup_betaNL!( atoms, grid, pspots, betaNL )
+
+  return PsPotNL( NbetaNL, prj2beta, betaNL )
+end
+\end{juliacode}
+
+
+The function setup:
+\begin{juliacode}
+function setup_betaNL!( atoms, grid, pspots, betaNL )
+  Natoms = atoms.Natoms
+  Npoints = grid.Npoints
+  atm2species = atoms.atm2species
+
+  ibeta = 0
+  dr = zeros(3)
+  for ia = 1:Natoms
+    isp = atm2species[ia]
+    psp = pspots[isp]
+    for l = 0:psp.lmax
+    for iprj = 1:psp.Nproj_l[l+1]
+    for m = -l:l
+      ibeta = ibeta + 1
+      for ip in 1:Npoints
+        dr[1] = grid.r[1,ip] - atoms.positions[1,ia]
+        dr[2] = grid.r[2,ip] - atoms.positions[2,ia]
+        dr[3] = grid.r[3,ip] - atoms.positions[3,ia]
+        drm = sqrt( dr[1]^2 + dr[2]^2 + dr[3]^2 )
+        betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
+      end
+    end # m
+    end # iprj
+    end # l
+  end
+  return
+end
+\end{juliacode}
+
+Calculate energy:
+\begin{juliacode}
+function calc_E_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
+  # ... snipped, various shortcuts
+
+  betaNL_psi = calc_betaNL_psi( Ham.pspotNL.betaNL, psi )*dVol
+
+  E_Ps_nloc = 0.0
+  for ist = 1:Nstates
+    enl1 = 0.0
+    for ia = 1:Natoms
+      isp = atm2species[ia]
+      psp = pspots[isp]
+      for l = 0:psp.lmax, m = -l:l
+        for iprj = 1:psp.Nproj_l[l+1], jprj = 1:psp.Nproj_l[l+1]
+          ibeta = prj2beta[iprj,ia,l+1,m+psp.lmax+1]
+          jbeta = prj2beta[jprj,ia,l+1,m+psp.lmax+1]
+          hij = psp.h[l+1,iprj,jprj]
+          enl1 = enl1 + hij * betaNL_psi[ist,ibeta] * betaNL_psi[ist,jbeta]
+        end # jprj
+      end # m, l
+    end
+    E_Ps_nloc = E_Ps_nloc + Focc[ist]*enl1
+  end
+  return E_Ps_nloc
+end
+\end{juliacode}
+
+\begin{juliacode}
+function op_V_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
+  # ... snipped
+
+  betaNL_psi = psi' * Ham.pspotNL.betaNL * dVol
+  
+  Vpsi = zeros(Float64,Npoints,Nstates)
+  for ist = 1:Nstates
+    for ia = 1:Natoms
+      isp = atm2species[ia]
+      psp = pspots[isp]
+      for l = 0:psp.lmax, m = -l:l
+        for iprj = 1:psp.Nproj_l[l+1], jprj = 1:psp.Nproj_l[l+1]
+          ibeta = prj2beta[iprj,ia,l+1,m+psp.lmax+1]
+          jbeta = prj2beta[jprj,ia,l+1,m+psp.lmax+1]
+          hij = psp.h[l+1,iprj,jprj]
+          for ip = 1:Npoints
+              Vpsi[ip,ist] = Vpsi[ip,ist] + hij*betaNL[ip,ibeta]*betaNL_psi[ist,jbeta]
+          end
+        end # jprj, iprj
+      end # m, l
+    end # ia
+  end # ist
+  return Vpsi
+end
+\end{juliacode}
+
+
+\begin{juliacode}
+import Base: *
+function *( Ham::Hamiltonian, psi::Matrix{Float64} )
+  Nbasis = size(psi,1)
+  Nstates = size(psi,2)
+  Hpsi = -0.5*Ham.Laplacian*psi
+  if Ham.pspotNL.NbetaNL > 0
+    Vnlpsi = op_V_Ps_nloc(Ham, psi)
+    for ist in 1:Nstates, ip in 1:Nbasis
+        Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
+            Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist] + Vnlpsi[ip,ist]
+    end
+  else # no nonlocal pspot components
+    for ist in 1:Nstates, ip in 1:Nbasis
+            Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
+                Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
+    end
+  end
+  return Hpsi
+end
+\end{juliacode}
