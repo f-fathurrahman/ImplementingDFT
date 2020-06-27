@@ -16,10 +16,11 @@ include("KS_solve_SCF.jl")
 
 function main()
     
-    Ham = create_Ham_H2O(50)
+    #Ham = create_Ham_H2O(50)
     #Ham = create_Ham_H(41)
     #Ham = create_Ham_H2(50)
     #Ham = create_Ham_Ne(41)
+    Ham = create_Ham_CH4(41)
     #Ham = create_Ham_LiH(41)
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
