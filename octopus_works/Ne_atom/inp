@@ -17,6 +17,8 @@ MixField = density
 MixingScheme = Linear
 Mixing = 0.5
 
+PoissonSolver = cg_corrected
+PoissonSolverMaxMultipole = 4 # default
 FilterPotentials = filter_none
 
 UnitsXYZFiles = angstrom_units
