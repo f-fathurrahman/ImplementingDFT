@@ -8,10 +8,14 @@ in real space. It turns out that it is very difficult to construct local pseudop
 that have good accuracy and transferability. Most of the pseudopotentials that
 are used in density functional calculations have nonlocal components.
 
-In this chapter, we will use a family of pseudopotentials that was
+In this chapter, we will extend our code to handle
+nonlocal pseudopotential term.
+We will specifically use a family of pseudopotentials that was
 proposed by Goedecker-Teter-Hutter (GTH) \cite{Goedecker1996} in 1996.
-We have used local-only component of this pseudopotential in the previous chapters.
-Now, we will start to consider the nonlocal component.
+We have used local-only component of this pseudopotential in the previous chapters, so
+our study is limited to the elements for which this pseudopotential has only local
+component. Now, we will start to consider the nonlocal component.
+This will enable us to use all elements present in the GTH pseudopotential set.
 
 \section{GTH pseudopotentials}
 
@@ -41,9 +45,11 @@ C_{1} + C_{2}\bar{r}^2 + C_{3}\bar{r}^4 + C_{4}\bar{r}^6
 \right)
 \label{eq:V_ps_loc_R}
 \end{equation}
+%
 with $\bar{r}=r/r_{\mathrm{loc}}$ and $r_{\mathrm{loc}}$, $Z_{\mathrm{val}}$,
 $C_{1}$, $C_{2}$, $C_{3}$ and $C_{4}$ are the corresponding pseudopotential
 parameters.
+%
 In $\mathbf{G}$-space, the GTH local pseudopotential can be written as
 \begin{multline}
 V^{\mathrm{PS}}_{\mathrm{loc}}(G) = -\frac{4\pi}{\Omega}\frac{Z_{\mathrm{val}}}{G^2}
@@ -66,7 +72,7 @@ where $\beta_{\mu lm}(\mathbf{r})$ are atomic-centered projector functions
 \begin{equation}
 \beta_{\mu lm}(\mathbf{r}) = 
 p^{l}_{\mu}(r) Y_{lm}(\hat{\mathbf{r}})
-\label{eq:proj_NL_R}
+\label{eq:betaNL_R}
 \end{equation}
 %
 and $h^{l}_{\mu\nu}$ are the pseudopotential parameters and
@@ -77,6 +83,7 @@ The projectors can be written as
 p^{l}_{\mu}(r) = \frac{\sqrt{2}}
 {r^{l+(4i-1)/2}_{l}\sqrt{\Gamma(l + (4i-1)/2)}} r^{l+2(i-1)}
 \exp\left[-\dfrac{r^2}{2r^{2}_{l}}\right] \, ,
+\label{eq:proj_NL_R}
 \end{equation}
 where $\Gamma(x)$ is the gamma function. The projectors are normalized according
 to
@@ -120,6 +127,51 @@ V^{\mathrm{PS}}_{l}(\mathbf{r}-\mathbf{R}_{I},\mathbf{r}'-\mathbf{R}_{I})
 \,\mathrm{d}\mathbf{r}.
 \end{equation}
 
+\section{Data structures for nonlocal pseudopotential}
+
+\subsection{Storing pseudopotential parameter}
+
+We will consider how to store various information about GTH pseudopotential.
+First we consider the type \jlinline{PsPot_GTH}. This type stores GTH pseudopotential
+parameters for one element.
+
+\begin{juliacode}
+struct PsPot_GTH
+  pspfile::String
+  atsymb::String
+  zval::Int64
+  rlocal::Float64
+  rc::Array{Float64,1}  # indexed by l, originally [0:3]
+  c::Array{Float64,1}   # coefficients in local pseudopotential
+  h::Array{Float64,3}   # indexed l, 1:3,1:3
+  lmax::Int64           # l = 0, 1, 2, 3 (s, p, d, f)
+  Nproj_l::Array{Int64,1}  # originally 0:3
+  rcut_NL::Array{Float64,1}  # originally 0:3, needed for real space evaluation
+end
+\end{juliacode}
+
+Example constructor
+\begin{juliacode}
+pspot = PsPot_GTH("C-q4.gth")
+\end{juliacode}
+
+Several important functions for our case
+\begin{itemize}
+\item \jlinline{eval_V_loc_R} and \jlinline{eval_V_loc_G}: evaluates local component
+  of GTH pseudopotential in real (Equation \eqref{eq:V_loc_GTH})
+  and reciprocal space (Equation \eqref{eq:V_ps_loc_G}), respectively.
+\item \jlinline{eval_proj_R}: evaluates nonlocal projectors
+  of GTH pseudopotential in real (Equation \eqref{eq:proj_NL_R}).
+  There is also also the function \jlinline{eval_proj_G} which evaluates the
+  projector in reciprocal space, however it is usually used for plane wave basis.
+\end{itemize}
+
+
+\subsection{Nonlocal Hamiltonian}
+
+The type \jlinline{PsPotNL} stores several important quantities for Hamiltonian
+evaluation of nonlocal pseudopotential.
+%
 \begin{juliacode}
 struct PsPotNL
   NbetaNL::Int64
@@ -127,13 +179,9 @@ struct PsPotNL
   betaNL::Array{Float64,2}
 end
 \end{juliacode}
-
-\begin{juliacode}
-function PsPotNL()
-  betaNL = zeros(Float64,1,1)
-  return PsPotNL( 0, zeros(Int64,1,1,1,1), betaNL )
-end
-\end{juliacode}
+%
+The most important field of \jlinline{PsPotNL} is \jlinline{betaNL}. This array stores
+the atomic centered functions defined in Equation \eqref{eq:betaNL_R}.
 
 \begin{juliacode}
 function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=false )
@@ -173,7 +221,6 @@ function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=fal
 end
 \end{juliacode}
 
-
 The function setup:
 \begin{juliacode}
 function setup_betaNL!( atoms, grid, pspots, betaNL )
@@ -202,6 +249,14 @@ function setup_betaNL!( atoms, grid, pspots, betaNL )
     end # l
   end
   return
+end
+\end{juliacode}
+
+For system without any nonlocal pseudopotentials:
+\begin{juliacode}
+function PsPotNL()
+  betaNL = zeros(Float64,1,1)
+  return PsPotNL( 0, zeros(Int64,1,1,1,1), betaNL )
 end
 \end{juliacode}
 
