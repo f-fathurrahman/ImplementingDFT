@@ -138,8 +138,19 @@ FIXME: Needs correction, boundary condition is not treated properly.
 
 \section{Reciprocal space method}
 
-Using FFT, natural choice for periodic boundary condition
+Using FFT, natural choice for periodic boundary condition.
 
+Poisson equation in $\mathbf{G}$-space takes very simple form:
+\begin{equation}
+\mathbf{G}^{2} V_{\mathrm{Ha}}(\mathbf{G}) = 4\pi\rho(\mathbf{G})
+\end{equation}
+for which we can solve:
+\begin{equation}
+V_{\mathrm{Ha}}(\mathbf{G}) = 4\pi \frac{\rho(\mathbf{G})}{\mathbf{G}^{2}}
+\label{eq:V_Ha_G}
+\end{equation}
+Note that, we must exclude the term $\mathbf{G}=\mathbf{0}$ in the Equation
+\ref{eq:V_Ha_G}.
 
 
 \section{Direct integration}
