@@ -27,8 +27,8 @@ function do_run(N::Int64; Nstates=1)
     NN = [N, N]
 
     #grid = FD2dGrid( NN, AA, BB )
-    grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
-    #grid = LF2dGrid( NN, AA, BB, types=(:C,:C) )
+    #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
+    grid = LF2dGrid( NN, AA, BB, types=(:C,:C) )
 
     V_ext = pot_harmonic( grid, ω=0.22 )
     
@@ -105,10 +105,10 @@ function do_run(N::Int64; Nstates=1)
 
 end
 
-#do_run(20)
-#do_run(30)
-#do_run(40)
-do_run(50)
-do_run(60)
-do_run(70)
-do_run(80)
+do_run(20, Nstates=3)
+do_run(30, Nstates=3)
+do_run(40, Nstates=3)
+do_run(50, Nstates=3)
+do_run(60, Nstates=3)
+do_run(70, Nstates=3)
+do_run(80, Nstates=3)
