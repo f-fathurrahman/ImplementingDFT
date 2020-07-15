@@ -1,4 +1,5 @@
-push!(LOAD_PATH, pwd())
+# Only tested on Linux
+push!(LOAD_PATH, "/home/efefer/WORKS/my_github_repos/ImplementingDFT/codes/qdot_2d/")
 
 using Printf
 using Random
