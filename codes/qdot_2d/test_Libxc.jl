@@ -8,8 +8,12 @@ function main()
     epsxc = evaluate(x_func, rho=rho, derivatives=0).zk +
             evaluate(c_func, rho=rho, derivatives=0).zk
 
+    Vxc = evaluate(x_func, rho=rho, derivatives=1).vrho +
+          evaluate(c_func, rho=rho, derivatives=1).vrho
+
     println("epsxc = ", epsxc)
     println("Exc = ", sum(rho .* epsxc))
+    println("Vxc = ", Vxc)
 end
 
 main()
