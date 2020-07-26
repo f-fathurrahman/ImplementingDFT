@@ -1,4 +1,4 @@
-const PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
+const AMG_PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
 
 mutable struct Hamiltonian
     grid::Union{FD2dGrid,LF2dGrid}
@@ -8,13 +8,13 @@ mutable struct Hamiltonian
     V_XC::Vector{Float64}
     electrons::Electrons
     rhoe::Vector{Float64}
-    precKin::PREC_TYPE
+    precKin::Union{AMG_PREC_TYPE,ILU0Preconditioner}
     energies::Energies
 end
 
 function Hamiltonian( grid, V_loc::Array{Float64,1};
     Nelectrons=2, Nstates_extra=0,
-    stencil_order=9
+    stencil_order=9, prec_type=:ILU0
 )
 
     # Need better mechanism for this
@@ -33,7 +33,11 @@ function Hamiltonian( grid, V_loc::Array{Float64,1};
     Rhoe = zeros(Float64, Npoints)
 
     @printf("Building preconditioners ...")
-    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian + spdiagm(0 => V_Ps_loc)) )
+    if prec_type == :amg
+        precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian + spdiagm(0 => V_Ps_loc) ) )
+    else
+        precKin = ILU0Preconditioner( -0.5*Laplacian + spdiagm(0 => V_Ps_loc) )
+    end
     @printf("... done\n")
 
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
