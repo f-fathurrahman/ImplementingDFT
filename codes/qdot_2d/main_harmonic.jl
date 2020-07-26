@@ -84,7 +84,7 @@ function main()
         @gp "set term pdfcairo size 12cm,13cm fontscale 0.5" :-
         @gp :- "set output '$filesave'" :-
         @gp :- "set view 70, 40" :-
-        @gsp :- grid.x grid.y reshape(X[:,ist],Nx,Ny) "w pm3d notitle"
+        @gsp :- grid.x grid.y reshape(X[:,ist],Nx,Ny) "w pm3d notitle" palette(:viridis)
         @gsp :- "set xrange [-9:9]" :-
         @gsp :- "set yrange [-9:9]"
     end
