@@ -1,3 +1,5 @@
+const PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
+
 mutable struct Hamiltonian
     grid::Union{FD2dGrid,LF2dGrid}
     Laplacian::SparseMatrixCSC{Float64,Int64}
@@ -6,7 +8,7 @@ mutable struct Hamiltonian
     V_XC::Vector{Float64}
     electrons::Electrons
     rhoe::Vector{Float64}
-    precKin
+    precKin::PREC_TYPE
     energies::Energies
 end
 
