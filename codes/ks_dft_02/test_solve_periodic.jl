@@ -121,11 +121,12 @@ end
 
 function main()
     
-    Ham = create_Ham_H_periodic( 31, grid_type=:LF )
-    #Ham = create_Ham_Ne_periodic( 41 )
-    #Ham = create_Ham_LiH_periodic_v1( 41 )
-    #Ham = create_Ham_LiH_periodic_v2( 51 )
-    #Ham = create_Ham_CH4_periodic( 51, grid_type=:FD )
+    #Ham = create_Ham_H_periodic(31, grid_type=:LF)
+    #Ham = create_Ham_Ne_periodic(41)
+    #Ham = create_Ham_LiH_periodic_v1(41)
+    #Ham = create_Ham_LiH_periodic_v2(51)
+    Ham = create_Ham_CH4_periodic(55, grid_type=:FD)
+    #Ham = create_Ham_CH4_periodic(41, grid_type=:LF)
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 
@@ -140,4 +141,4 @@ function main()
     KS_solve_Emin_PCG!(Ham, psi)
 end
 
-main()
+@time main()

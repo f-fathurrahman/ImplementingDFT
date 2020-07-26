@@ -24,13 +24,14 @@ function main()
     #Ham = create_Ham_H(40, grid_type=:FD)
     
     #Ham = create_Ham_Ne(41)
-    Ham = create_Ham_Ar(41)
+    #Ham = create_Ham_Ar(41)
     
     #Ham = create_Ham_H2O(40, grid_type=:FD)
     
     #Ham = create_Ham_LiH(40, grid_type=:sinc)
 
     #Ham = create_Ham_CH4(50, grid_type=:sinc)
+    Ham = create_Ham_CH4(51, grid_type=:FD)
     
     #Ham = create_Ham_SiH4(30, grid_type=:sinc)
 
