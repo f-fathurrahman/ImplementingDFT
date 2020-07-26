@@ -2,6 +2,7 @@ using Printf
 using LinearAlgebra
 using SparseArrays
 using Random
+using Gnuplot
 
 include("INC_qdot_2d.jl")
 
@@ -20,8 +21,8 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 50
-    Ny = 50
+    Nx = 81
+    Ny = 81
     L = 50.0
     grid = FD2dGrid( (-L/2,L/2), Nx, (-L/2,L/2), Ny )
 
@@ -37,7 +38,7 @@ function main()
     @printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
 
     dVol = grid.dVol
-    Nstates = 1
+    Nstates = 5
     Npoints = Nx*Ny
     X = rand(Float64, Npoints, Nstates)
     ortho_sqrt!(X, dVol)
@@ -77,6 +78,17 @@ function main()
     for i in 1:Nstates
         @printf("%5d %18.10f\n", i, evals[i])
     end
+
+    for ist in 1:Nstates
+        filesave = "IMG_X_"*string(ist)*".pdf"
+        @gp "set term pdfcairo size 12cm,13cm fontscale 0.5" :-
+        @gp :- "set output '$filesave'" :-
+        @gp :- "set view 70, 40" :-
+        @gsp :- grid.x grid.y reshape(X[:,ist],Nx,Ny) "w pm3d notitle"
+        @gsp :- "set xrange [-9:9]" :-
+        @gsp :- "set yrange [-9:9]"
+    end
+
 
 end
 
