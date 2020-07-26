@@ -46,19 +46,16 @@ function calc_energies_only!( Ham, psi, Rhoe )
 end
 
 
-function linmin_grad!( Ham, psi, g, d, Rhoe; αt = 3e-5 )
+function linmin_grad!( Ham, psi, g, d, Rhoe, psic, gt; αt = 3e-5 )
 
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
     
-    psic = zeros(Float64,Nbasis,Nstates)
-    gt = zeros(Float64,Nbasis,Nstates)
-    
     dVol= Ham.grid.dVol
 
-    psic = psi + αt*d
+    psic[:] = psi + αt*d
     ortho_sqrt!(psic)
-    psic = psic/sqrt(dVol)
+    psic[:] = psic[:]/sqrt(dVol)
 
     calc_rhoe!( Ham, psic, Rhoe )
     update!( Ham, Rhoe )
@@ -93,6 +90,9 @@ function KS_solve_Emin_PCG!(
     Kg = zeros(Float64,Nbasis,Nstates)
     gPrev = zeros(Float64,Nbasis,Nstates)
     d = zeros(Float64,Nbasis,Nstates)
+
+    psic = zeros(Float64,Nbasis,Nstates)
+    gt = zeros(Float64,Nbasis,Nstates)
 
     Rhoe = zeros(Float64,Nbasis)
     Hsub = zeros(Nstates,Nstates)
@@ -155,7 +155,7 @@ function KS_solve_Emin_PCG!(
 
         constrain_search_dir!( d, psi, dVol )
 
-        α = linmin_grad!( Ham, psi, g, d, Rhoe )
+        α = linmin_grad!( Ham, psi, g, d, Rhoe, psic, gt )
 
         # Update psi
         @views psi[:] = psi[:] + α*d[:]
