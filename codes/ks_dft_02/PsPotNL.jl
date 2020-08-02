@@ -40,13 +40,13 @@ function setup_betaNL!( atoms, grid, pspots, betaNL )
     return
 end
 
-function check_norm( grid, pspotNL::PsPotNL )
+function check_betaNL_norm( grid, pspotNL::PsPotNL )
     betaNL = pspotNL.betaNL
     NbetaNL = size(betaNL,2)
     dVol = grid.dVol
-    println("\nTest normalization of betaNL\n")
+    @printf("\nTest normalization of betaNL (Nx=%d, Ny=%d, Nz=%d)\n", grid.Nx, grid.Ny, grid.Nz)
     for ibeta in 1:NbetaNL
-        @views ss = sum(betaNL[:,ibeta] .* betaNL[:,ibeta])*dVol
+        @views ss = dot(betaNL[:,ibeta], betaNL[:,ibeta])*dVol
         @printf("%5d %18.10f\n", ibeta, ss)
     end
     return

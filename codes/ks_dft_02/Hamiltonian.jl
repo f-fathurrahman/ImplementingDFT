@@ -107,7 +107,7 @@ Build a Hamiltonian with given FD grid and local potential.
 function Hamiltonian(
     atoms::Atoms, pspfiles::Array{String,1}, grid;
     Nstates_extra=0,
-    verbose=true,
+    verbose=false,
     stencil_order=9,
     prec_type=:ILU0
 )

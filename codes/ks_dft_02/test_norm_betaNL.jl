@@ -8,28 +8,15 @@ using SpecialFunctions
 using MyModule
 
 const DIR_PSP = "../pseudopotentials/pade_gth/"
+const DIR_STRUCTURES = "../structures"
 
 include("create_Ham.jl")
 
-function main(;N=41)
-    
-    #Ham = create_Ham_NH3(N)
-    #Ham = create_Ham_CH4(N)
-    Ham = create_Ham_Ne(N)
-    #Ham = create_Ham_Ar(N)
-    #Ham = create_Ham_SiH4(N)
-
-    dVol = Ham.grid.dVol
-    NbetaNL = Ham.pspotNL.NbetaNL
-    betaNL = Ham.pspotNL.betaNL
-    println("Test normalization")
-    for ibeta in 1:NbetaNL
-        @printf("%3d %18.10f\n", ibeta, sum(betaNL[:,ibeta].*betaNL[:,ibeta])*dVol)
-    end
-
+function main( create_Ham_func; N=41)    
+    Ham = create_Ham_func(N)
+    check_betaNL_norm(Ham.grid, Ham.pspotNL)
 end
 
-main(N=31)
-main(N=41)
-main(N=51)
-main(N=61)
+for N in range(21,stop=61,step=10)
+    main(create_Ham_CH4, N=N)
+end
