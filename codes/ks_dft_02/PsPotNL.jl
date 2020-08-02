@@ -40,6 +40,17 @@ function setup_betaNL!( atoms, grid, pspots, betaNL )
     return
 end
 
+function check_norm( grid, pspotNL::PsPotNL )
+    betaNL = pspotNL.betaNL
+    NbetaNL = size(betaNL,2)
+    dVol = grid.dVol
+    println("\nTest normalization of betaNL\n")
+    for ibeta in 1:NbetaNL
+        @views ss = sum(betaNL[:,ibeta] .* betaNL[:,ibeta])*dVol
+        @printf("%5d %18.10f\n", ibeta, ss)
+    end
+    return
+end
 
 function setup_betaNL_periodic!( atoms, grid, pspots, betaNL )
     
@@ -70,7 +81,9 @@ function setup_betaNL_periodic!( atoms, grid, pspots, betaNL )
 end
 
 
-function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=false )
+
+
+function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid )
 
     Natoms = atoms.Natoms
     atm2species = atoms.atm2species
