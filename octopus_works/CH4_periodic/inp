@@ -1,0 +1,25 @@
+CalculationMode = gs
+
+Dimensions = 3
+PeriodicDimensions = 3
+
+TheoryLevel = dft
+XCFunctional = lda_x + lda_c_vwn_1
+
+BoxShape = parallelepiped
+%Lsize
+ 8 | 8 | 8
+%
+
+spacing = 0.40
+
+MixField = density
+MixingScheme = Linear
+Mixing = 0.5
+
+FilterPotentials = filter_none
+
+UnitsXYZFiles = angstrom_units
+XYZCoordinates = "CH4_cell.xyz"
+
+PseudopotentialSet = hgh_lda
