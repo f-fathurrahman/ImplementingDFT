@@ -60,5 +60,5 @@ function test_main( NN::Array{Int64} )
 
 end
 
-test_main([64,64,64])
+test_main([39,39,39])
 

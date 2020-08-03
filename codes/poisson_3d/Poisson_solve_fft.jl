@@ -1,5 +1,5 @@
 struct PoissonSolverFFT
-    pbc::Tuple{Bool,Bool,Bool} # in case FFT is also used for 
+    pbc::Tuple{Bool,Bool,Bool} # in case FFT is also used for nonperiodic system
     gvec::GVectors
 end
 
@@ -26,8 +26,11 @@ function Poisson_solve_fft( grid, gvec::GVectors, rho::Vector{Float64} )
     fft!(ctmp)
 
     ctmp[1] = 0.0 + im*0.0
-    for ip in 2:Npoints
-        ctmp[ip] = 4.0*pi*ctmp[ip] / gvec.G2[ip]
+    Ng = gvec.Ng
+    idx_g2r = gvec.idx_g2r
+    for ig in 2:Ng
+        ip = idx_g2r[ig]
+        ctmp[ip] = 4.0*pi*ctmp[ip] / gvec.G2[ig]
     end
 
     # to real space
