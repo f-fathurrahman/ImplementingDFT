@@ -90,7 +90,8 @@ function init_V_Ps_loc_G( atoms, grid, gvec, pspots )
     for isp = 1:Nspecies
         psp = pspots[isp]
         for ig = 1:Ng
-            Vg[ig] = strf[ig,isp] * eval_Vloc_G( psp, G2[ig] )
+            ip = gvec.idx_g2r[ig]
+            Vg[ip] = strf[ig,isp] * eval_Vloc_G( psp, G2[ig] )
         end
         #
         ifft!(Vg)
