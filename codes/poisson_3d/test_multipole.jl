@@ -1,6 +1,7 @@
 using Printf
 using LinearAlgebra
 using SparseArrays
+using AlgebraicMultigrid
 using SpecialFunctions: erf
 
 include("INC_poisson_3d.jl")
@@ -35,6 +36,7 @@ function test_main( NN::Array{Int64} )
     phi_analytic = zeros(Float64, Npoints)
     # Initialization of charge density
     nrmfct = (2*pi*σ^2)^1.5
+    #nrmfct = 1.0
     dr = zeros(Float64,3)
     SMALL = eps()
     for ip in 1:Npoints
@@ -73,6 +75,41 @@ function test_main( NN::Array{Int64} )
 
     @time set_bc_isolated!( grid, Q_lm, V_x0, V_xN, V_y0, V_yN, V_z0, V_zN )
 
+    println("Building ∇2")
+    ∇2 = build_nabla2_matrix( grid )
+
+    println("Building preconditioner")
+    prec = aspreconditioner(ruge_stuben(∇2))
+
+    @printf("Size of ∇2   = %f MiB\n", Base.summarysize(∇2)/(1024*1024))
+    @printf("Size of prec = %f MiB\n", Base.summarysize(prec)/(1024*1024))
+
+    @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
+
+    print("Solving Poisson equation:\n")
+    #phi = Poisson_solve_PCG( ∇2, prec, rho, grid, V_x0, V_xN, V_y0, V_yN, V_z0, V_zN, verbose=true )
+    phi = Poisson_solve_PCG( ∇2, prec, rho, 1000 )
+    println("sum phi = ", sum(phi))
+
+    # Calculation of Hartree energy
+    Unum = 0.5*sum( rho .* phi ) * dVol
+    Uana = 0.5*sum( rho .* phi_analytic ) * dVol
+
+    phi = reshape(phi, (NN[1],NN[2],NN[3]))
+    phi_analytic = reshape(phi_analytic, (NN[1],NN[2],NN[3]))
+
+    filepot = open("POT.dat", "w")
+    iy = round(Int64,NN[2]/2)
+    iz = round(Int64,NN[3]/2)
+    for ix in 1:NN[1]
+        @printf(filepot, "%18.10f %18.10f %18.10f\n", grid.x[ix], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+    end
+    close(filepot)
+
+    @printf("Numeric  = %18.10f\n", Unum)
+    @printf("Uana     = %18.10f\n", Uana)
+    @printf("abs diff = %18.10e\n", abs(Unum-Uana))
+
 end
 
-test_main([50,50,50])
+test_main([64,64,64])
