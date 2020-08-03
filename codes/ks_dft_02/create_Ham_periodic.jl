@@ -18,7 +18,29 @@ function create_Ham_H_periodic( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB, pbc=(true,true,true) )
     end
-    println(grid)
+    return Hamiltonian( atoms, pspfiles, grid )
+end
+
+function create_Ham_He_periodic( N::Int64; grid_type=:FD )
+    atoms = Atoms( xyz_string=
+        """
+        1
+
+        He  8.0  8.0  8.0
+        """,
+        in_bohr=true,
+        pbc=(true,true,true),
+        LatVecs=16.0*diagm(ones(3)) )
+    println(atoms)
+    pspfiles = [joinpath(DIR_PSP,"He-q2.gth")]
+    AA = zeros(3)
+    BB = 16.0*ones(3)
+    NN = [N,N,N]
+    if grid_type == :LF
+        grid = LF3dGrid( NN, AA, BB, types=(:P,:P,:P) )
+    else
+        grid = FD3dGrid( NN, AA, BB, pbc=(true,true,true) )
+    end
     return Hamiltonian( atoms, pspfiles, grid )
 end
 

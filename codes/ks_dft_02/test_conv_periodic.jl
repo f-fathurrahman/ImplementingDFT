@@ -38,5 +38,5 @@ function main(Ham_func, N, grid_type)
 end
 
 for N in [21, 25, 31, 35, 41, 45, 51, 55, 61]
-    main(create_Ham_Ne_periodic, N, :FD)
+    main(create_Ham_He_periodic, N, :LF)
 end
