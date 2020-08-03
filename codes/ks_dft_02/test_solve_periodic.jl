@@ -17,16 +17,16 @@ include("create_Ham_periodic.jl")
 function main()
     
     #Ham = create_Ham_H_periodic(40, grid_type=:FD)
-    Ham = create_Ham_Ne_periodic(70)
+    #Ham = create_Ham_Ne_periodic(60)
     #Ham = create_Ham_LiH_periodic(40)
     #Ham = create_Ham_LiH_periodic_v2(40)
-    #Ham = create_Ham_CH4_periodic(40, grid_type=:FD)
+    Ham = create_Ham_CH4_periodic(40, grid_type=:FD)
     #Ham = create_Ham_CH4_periodic(41, grid_type=:LF)
 
     println(Ham.atoms)
     println(Ham.grid)
 
-    MyModule.check_norm(Ham.grid, Ham.pspotNL)
+    check_betaNL_norm(Ham.grid, Ham.pspotNL)
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 

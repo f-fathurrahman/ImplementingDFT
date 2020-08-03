@@ -12,6 +12,7 @@ const DIR_STRUCTURES = "../structures"
 
 include("create_Ham.jl")
 
+include("KS_solve_SCF.jl")
 include("KS_solve_Emin_PCG.jl")
 
 function main()
@@ -23,21 +24,23 @@ function main()
     #Ham = create_Ham_H(41)
     #Ham = create_Ham_H(40, grid_type=:FD)
     
-    #Ham = create_Ham_Ne(41)
+    Ham = create_Ham_Ne(41, grid_type=:FD)
     #Ham = create_Ham_Ar(41)
     
     #Ham = create_Ham_H2O(40, grid_type=:FD)
     
-    #Ham = create_Ham_LiH(40, grid_type=:sinc)
+    #Ham = create_Ham_LiH(40, grid_type=:FD)
 
     #Ham = create_Ham_CH4(50, grid_type=:sinc)
-    Ham = create_Ham_CH4(51, grid_type=:FD)
+    #Ham = create_Ham_CH4(61, grid_type=:FD)
     
     #Ham = create_Ham_SiH4(30, grid_type=:sinc)
 
     #Ham = create_Ham_HCl(30, grid_type=:sinc)
 
+    println(Ham.atoms)
     println(Ham.grid)
+    check_betaNL_norm(Ham.grid, Ham.pspotNL)
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 
@@ -48,7 +51,8 @@ function main()
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    KS_solve_Emin_PCG!(Ham, psi)
+    #KS_solve_Emin_PCG!(Ham, psi)
+    KS_solve_SCF!(Ham, psi, diag_func=diag_LOBPCG!)
 
 end
 
