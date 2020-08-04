@@ -191,34 +191,37 @@ function Poisson_solve_PCG(
     Ny = grid.Ny; hy = grid.hy
     Nz = grid.Nz; hz = grid.hz
 
+    COEFF = 1.0  # stencil = 3
+    #COEFF = 16.0/12.0 # stencil = 5, not working
+
     # Boundary condition in the x direction
     for k in 1:Nz, j in 1:Ny
         #
         ip = idx_xyz2ip[1,j,k]
-        rho[ip] = rho[ip] - V_x0[j,k]/hx^2
+        rho[ip] = rho[ip] - COEFF*V_x0[j,k]/hx^2
         #
         ip = idx_xyz2ip[Nx,j,k]
-        rho[ip] = rho[ip] - V_xN[j,k]/hx^2
+        rho[ip] = rho[ip] - COEFF*V_xN[j,k]/hx^2
     end
   
     # Boundary condition in the y direction
     for k in 1:Nz, i in 1:Nx
         #
         ip = idx_xyz2ip[i,1,k]
-        rho[ip] = rho[ip] - V_y0[i,k]/hy^2
+        rho[ip] = rho[ip] - COEFF*V_y0[i,k]/hy^2
         #
         ip = idx_xyz2ip[i,Ny,k]
-        rho[ip] = rho[ip] - V_yN[i,k]/hy^2
+        rho[ip] = rho[ip] - COEFF*V_yN[i,k]/hy^2
     end
   
     # Boundary condition in the z direction
     for j in 1:Ny, i in 1:Nx
         #
         ip = idx_xyz2ip[i,j,1]
-        rho[ip] = rho[ip] - V_z0[i,j]/hz^2
+        rho[ip] = rho[ip] - COEFF*V_z0[i,j]/hz^2
         #
         ip = idx_xyz2ip[i,j,Nz]
-        rho[ip] = rho[ip] - V_zN[i,j]/hz^2
+        rho[ip] = rho[ip] - COEFF*V_zN[i,j]/hz^2
     end
 
     Npoints = size(rho,1)

@@ -4,11 +4,14 @@ using SparseArrays
 using AlgebraicMultigrid
 using SpecialFunctions: erf
 
+import PyPlot
+const plt = PyPlot
+
 include("INC_poisson_3d.jl")
 
 function test_main( NN::Array{Int64} )
-    AA = [-7.0, -7.0, -7.0]
-    BB = [ 7.0,  7.0,  7.0]
+    AA = [-8.0, -8.0, -8.0]
+    BB = [ 8.0,  8.0,  8.0]
     
     grid = FD3dGrid( NN, AA, BB )
 
@@ -59,10 +62,10 @@ function test_main( NN::Array{Int64} )
 
     calc_multipole_moment!( grid, rho, Q_lm )
 
-    println("Multipole moment: ")
-    for i in 1:lmmax
-        @printf("%3d %18.10f\n", i, Q_lm[i])
-    end
+    #println("Multipole moment: ")
+    #for i in 1:lmmax
+    #    @printf("%3d %18.10f\n", i, Q_lm[i])
+    #end
 
     V_x0 = zeros(Float64, grid.Ny, grid.Nz)
     V_xN = zeros(Float64, grid.Ny, grid.Nz)
@@ -76,7 +79,7 @@ function test_main( NN::Array{Int64} )
     @time set_bc_isolated!( grid, Q_lm, V_x0, V_xN, V_y0, V_yN, V_z0, V_zN )
 
     println("Building ∇2")
-    ∇2 = build_nabla2_matrix( grid )
+    ∇2 = build_nabla2_matrix( grid, stencil_order=5 )
 
     println("Building preconditioner")
     prec = aspreconditioner(ruge_stuben(∇2))
@@ -87,22 +90,27 @@ function test_main( NN::Array{Int64} )
     @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
 
     print("Solving Poisson equation:\n")
-    #phi = Poisson_solve_PCG( ∇2, prec, rho, grid, V_x0, V_xN, V_y0, V_yN, V_z0, V_zN, verbose=true )
-    phi = Poisson_solve_PCG( ∇2, prec, rho, 1000 )
+    phi = Poisson_solve_PCG( ∇2, prec, rho, grid, V_x0, V_xN, V_y0, V_yN, V_z0, V_zN, verbose=true )
+    #phi = Poisson_solve_PCG( ∇2, prec, rho, 1000 )
     println("sum phi = ", sum(phi))
 
     # Calculation of Hartree energy
     Unum = 0.5*sum( rho .* phi ) * dVol
     Uana = 0.5*sum( rho .* phi_analytic ) * dVol
+    MAE_pot = sum( abs.( phi .- phi_analytic ) )/Npoints
 
+    rho = reshape(rho, (NN[1],NN[2],NN[3]))
     phi = reshape(phi, (NN[1],NN[2],NN[3]))
     phi_analytic = reshape(phi_analytic, (NN[1],NN[2],NN[3]))
 
     filepot = open("POT.dat", "w")
     iy = round(Int64,NN[2]/2)
     iz = round(Int64,NN[3]/2)
+    println("iy = ", iy)
+    println("iz = ", iz)
     for ix in 1:NN[1]
-        @printf(filepot, "%18.10f %18.10f %18.10f\n", grid.x[ix], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+        @printf(filepot, "%18.10f %18.10f %18.10f %18.10f\n",
+            grid.x[ix], rho[ix,iy,iz], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
     end
     close(filepot)
 
@@ -110,6 +118,21 @@ function test_main( NN::Array{Int64} )
     @printf("Uana     = %18.10f\n", Uana)
     @printf("abs diff = %18.10e\n", abs(Unum-Uana))
 
+    @printf("\nMAE pot = %18.10e\n", MAE_pot)
+
 end
 
-test_main([64,64,64])
+using DelimitedFiles
+function do_plot(filesave)
+    data = readdlm("POT.dat")
+    plt.clf()
+    plt.plot(data[:,1], data[:,3], label="Numeric")
+    plt.plot(data[:,1], data[:,4], label="Analytic")
+    plt.grid()
+    plt.legend()
+    plt.savefig(filesave)
+end
+
+test_main([50,50,50])
+do_plot("IMG_stencil_5.pdf")
+
