@@ -88,8 +88,9 @@ function calc_multipole_moment!( grid, rho, Q_lm ; L_max=4 )
                 xx = x/r
                 yy = y/r
                 zz = z/r
-                Q_lm[lm] = Q_lm[lm] + r^L * Ylm(lm, xx, yy, zz) * rho[ip] * dVol
+                Q_lm[lm] = Q_lm[lm] + r^L * Ylm(lm, xx, yy, zz) * rho[ip]
             end
+            Q_lm[lm] = Q_lm[lm]*dVol
         end
     end
     return
