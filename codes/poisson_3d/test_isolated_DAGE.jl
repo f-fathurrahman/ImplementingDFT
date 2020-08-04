@@ -28,8 +28,8 @@ function test_main( NN::Array{Int64} )
     y0 = AA[2] + Ly/2.0
     z0 = AA[3] + Lz/2.0
 
-    # Parameters for two gaussian functions
-    σ = 1.0
+    # Parameters for Gaussian density
+    σ = 0.5
     Npoints = grid.Npoints
 
     rho = zeros(Float64, Npoints)
@@ -41,10 +41,11 @@ function test_main( NN::Array{Int64} )
     dr = zeros(Float64,3)
     nrmfct = (2*pi*σ^2)^1.5
     #nrmfct = 1.0
+    SMALL = eps()
     for ip in 1:Npoints
-        dr[1] = grid.r[1,ip] - x0
-        dr[2] = grid.r[2,ip] - y0
-        dr[3] = grid.r[3,ip] - z0
+        dr[1] = grid.r[1,ip] - x0 + SMALL
+        dr[2] = grid.r[2,ip] - y0 + SMALL
+        dr[3] = grid.r[3,ip] - z0 + SMALL
         r = sqrt(dr[1]^2 + dr[2]^2 + dr[3]^2)
         rho[ip] = exp( -r^2 / (2.0*σ^2) ) / nrmfct
         phi_analytic[ip] = (2*pi*σ^2)^1.5 * erf(r/(sqrt(2)*σ))/r / nrmfct
@@ -67,14 +68,13 @@ function test_main( NN::Array{Int64} )
     integ_phi   = sum( phi ) * dVol
     integ_phi_a = sum( phi_analytic ) * dVol
 
-    phi = reshape(phi, (NN[1],NN[2],NN[3]))
-    phi_analytic = reshape(phi_analytic, (NN[1],NN[2],NN[3]))
-
-    ix = NN[1]
-    iz = NN[3]
-    for iy in 1:NN[2]
-        @printf("%18.10f %18.10f %18.10f\n", grid.y[iy], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
-    end
+    #phi = reshape(phi, (NN[1],NN[2],NN[3]))
+    #phi_analytic = reshape(phi_analytic, (NN[1],NN[2],NN[3]))
+    #ix = NN[1]
+    #iz = NN[3]
+    #for iy in 1:NN[2]
+    #    @printf("%18.10f %18.10f %18.10f\n", grid.y[iy], phi[ix,iy,iz], phi_analytic[ix,iy,iz])
+    #end
 
     @printf("Numeric  = %18.10f\n", Unum)
     @printf("Uana     = %18.10f\n", Uana)
@@ -83,8 +83,9 @@ function test_main( NN::Array{Int64} )
     @printf("integ_phi   = %18.10f\n", integ_phi)
     @printf("integ_phi_a = %18.10f\n", integ_phi_a)
     @printf("MAE         = %18.10e\n", abs(integ_phi-integ_phi_a)/Npoints)
+    @printf("MAE pot     = %18.10e\n", sum(abs.(phi .- phi_analytic))/Npoints)
 
 end
 
-test_main([42,42,42])
+test_main([45,45,45])
 
