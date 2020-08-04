@@ -9,7 +9,7 @@ const plt = PyPlot
 
 include("INC_poisson_3d.jl")
 
-function test_main( NN::Array{Int64} )
+function do_solve( NN::Array{Int64}; stencil_order=3 )
     AA = [-8.0, -8.0, -8.0]
     BB = [ 8.0,  8.0,  8.0]
     
@@ -25,12 +25,8 @@ function test_main( NN::Array{Int64} )
     y0 = AA[2] + Ly/2.0
     z0 = AA[3] + Lz/2.0
 
-    println("x0 = ", x0)
-    println("y0 = ", y0)
-    println("z0 = ", z0)
-
     # Parameters for two gaussian functions
-    σ = 1.0
+    σ = 0.5
     Npoints = grid.Npoints
 
     rho = zeros(Float64, Npoints)
@@ -53,7 +49,8 @@ function test_main( NN::Array{Int64} )
 
     dVol = grid.dVol
 
-    println("sum phi_analytic = ", sum(phi_analytic))
+    println("\nNN = ", NN)
+    println("stencil_order = ", stencil_order)
     println("integ rho = ", sum(rho)*dVol)
 
     lmax = 4
@@ -76,10 +73,10 @@ function test_main( NN::Array{Int64} )
     V_z0 = zeros(Float64, grid.Nx, grid.Ny)
     V_zN = zeros(Float64, grid.Nx, grid.Ny)
 
-    @time set_bc_isolated!( grid, Q_lm, V_x0, V_xN, V_y0, V_yN, V_z0, V_zN )
+    #@time set_bc_isolated!( grid, Q_lm, V_x0, V_xN, V_y0, V_yN, V_z0, V_zN )
 
     println("Building ∇2")
-    ∇2 = build_nabla2_matrix( grid, stencil_order=5 )
+    ∇2 = build_nabla2_matrix( grid, stencil_order=stencil_order )
 
     println("Building preconditioner")
     prec = aspreconditioner(ruge_stuben(∇2))
@@ -87,12 +84,9 @@ function test_main( NN::Array{Int64} )
     @printf("Size of ∇2   = %f MiB\n", Base.summarysize(∇2)/(1024*1024))
     @printf("Size of prec = %f MiB\n", Base.summarysize(prec)/(1024*1024))
 
-    @printf("Test norm charge: %18.10f\n", sum(rho)*dVol)
-
     print("Solving Poisson equation:\n")
-    phi = Poisson_solve_PCG( ∇2, prec, rho, grid, V_x0, V_xN, V_y0, V_yN, V_z0, V_zN, verbose=true )
+    phi = Poisson_solve_PCG( ∇2, prec, rho, grid, Q_lm, verbose=true )
     #phi = Poisson_solve_PCG( ∇2, prec, rho, 1000 )
-    println("sum phi = ", sum(phi))
 
     # Calculation of Hartree energy
     Unum = 0.5*sum( rho .* phi ) * dVol
@@ -133,6 +127,21 @@ function do_plot(filesave)
     plt.savefig(filesave)
 end
 
-test_main([50,50,50])
-do_plot("IMG_stencil_5.pdf")
+function main()
+    #
+    Ns = [60,60,60]
+    #
+    do_solve(Ns, stencil_order=3)
+    do_plot("IMG_stencil_3.pdf")
+    #
+    #do_solve(Ns, stencil_order=5)
+    #do_plot("IMG_stencil_5.pdf")
+    #
+    #do_solve(Ns, stencil_order=7)
+    #do_plot("IMG_stencil_7.pdf")
+    #
+    #do_solve(Ns, stencil_order=9)
+    #do_plot("IMG_stencil_9.pdf")
+end
 
+main()
