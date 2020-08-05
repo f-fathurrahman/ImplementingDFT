@@ -214,6 +214,7 @@ end
 """
 Evaluate GTH local pseudopotential in R-space
 """
+#=
 function eval_Vloc_R( psp::PsPot_GTH, r::Array{Float64,1} )
 
     Npoints = size(r)[1]
@@ -229,6 +230,7 @@ function eval_Vloc_R( psp::PsPot_GTH, r::Array{Float64,1} )
     end
     return Vloc
 end
+=#
 
 
 function eval_Vloc_R( psp::PsPot_GTH, r::Float64 )
@@ -240,7 +242,8 @@ function eval_Vloc_R( psp::PsPot_GTH, r::Float64 )
     end
     SMALL = eps()
     if r < SMALL
-        Vloc = -psp.zval * erf( SMALL )/SMALL + exp(-0.5*rrloc^2)*term1
+        Vloc = - 2*psp.zval/(sqrt(2*pi)*psp.rlocal) + psp.c[1]
+        #Vloc = -psp.zval * erf( SMALL )/SMALL #+ exp(-0.5*rrloc^2)*term1
     else
         Vloc = -psp.zval * erf( rrloc/sqrt(2.0) )/r + exp(-0.5*rrloc^2)*term1
     end
