@@ -5,7 +5,7 @@ function create_Ham_LiH( N::Int64; grid_type=:FD )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -20,7 +20,7 @@ function create_Ham_H2O( N::Int64; grid_type=:FD )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -39,7 +39,7 @@ function create_Ham_H( N::Int64; grid_type=:FD )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -59,7 +59,7 @@ function create_Ham_H2( N::Int64; grid_type=:FD )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -74,7 +74,7 @@ function create_Ham_NH3( N::Int64; grid_type=:FD )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -89,7 +89,7 @@ function create_Ham_CH4( N::Int64; grid_type=:sinc )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -108,7 +108,7 @@ function create_Ham_Ar( N::Int64; grid_type=:FD )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -127,7 +127,7 @@ function create_Ham_Ne( N::Int64; grid_type=:FD )
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -143,7 +143,7 @@ function create_Ham_SiH4( N::Int64; grid_type=:FD )
     BB =  8.0*ones(3)
     NN = [N,N,N]
     grid = FD3dGrid( NN, AA, BB )
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
@@ -159,7 +159,7 @@ function create_Ham_HCl( N::Int64; grid_type=:FD )
     BB =  8.0*ones(3)
     NN = [N,N,N]
     grid = FD3dGrid( NN, AA, BB )
-    if grid_type == :sinc
+    if (grid_type == :sinc) || (grid_type == :LF)
         grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     else
         grid = FD3dGrid( NN, AA, BB )
