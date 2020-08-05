@@ -1,12 +1,27 @@
-\chapter{Introduction to \textsf{Octopus} DFT code}
+\chapter{Introduction to \textsf{Octopus} package}
 
-Prerequisites:
+\textsf{Octopus} is a software package that can be used to perform electronic
+structure calculations based on various methods including using density functional theory and
+time-dependent density functional theory. It also uses finite-difference discretization
+of spatial domain and can do calculations in 1d, 2d and 3d systems with various
+boundary condition. In this book, \textsf{Octopus} is used to provide results which can
+be compared with our own calculation.
+
+\section{Installation}
+
+Octopus is a command line program and is distributed in the source form or source code.
+The source code should be compiled before use. The binary distribution might be available in
+some platform OS or Linux distros.
+
+The following packages are the mandatory requirement for compiling \textsf{Octopus}.
 \begin{itemize}
 \item Autotools and GNU Make
 \item C, C++ and Fortran compilers
 \item Libxc
 \end{itemize}
 
+Download the source tarball, extract it, change working directory to the extracted
+directory and do the following in the terminal:
 \begin{bashcode}
 autoreconf --install
 ./configure --prefix=path_to_install
@@ -14,38 +29,124 @@ make
 make install
 \end{bashcode}
 
-Example input:
+
+
+\section{A short description of input file}
+
+Octopus input is written in an input file named \txtinline{inp}. A typical
+input file might have the following content. Note that comments (starting with character
+\#) are allowed in the input file.
+
 \begin{textcode}
+# Type of calculation: gs means ground state calculation
 CalculationMode = gs
+
+# Dimension of the system
 Dimensions = 3
+
+# Number of periodic dimension
 PeriodicDimensions = 0
 
+# Electronic structure theory that is used
 TheoryLevel = dft
+# XC correlation function, here we specify the VWN exchange correlation
 XCFunctional = lda_x + lda_c_vwn_1
 
+# Box shape
 BoxShape = parallelepiped
-spacing = 0.4
+
+# Lsize is half of box size
+# Here we have have a box of size 16x16x16 bohr
 %Lsize
  8 | 8 | 8
 %
 
+# Grid spacing (in bohr, unless otherwise specified)
+spacing = 0.4
+
+# Some self-consistent field settings
 MixField = density
 MixingScheme = Linear
-Mixing = 0.5    
+Mixing = 0.5
 
-FilterPotentials = filter_none    
+# Pseudopotential set
 PseudopotentialSet = hgh_lda
-    
+
+# Do not alter potential
+FilterPotentials = filter_none
+
+# Atomic coordinates
 % Coordinates
   "H" | -0.75 | 0.0 | 0.0
   "H" |  0.75 | 0.0 | 0.0
-%    
+%
 \end{textcode}
 
+In this case we are having isolated or non-periodic system.
+For full 3d periodic dimension we can write:
+\begin{textcode}
+PeriodicDimensions = 3
+\end{textcode}
+
+For solving Schroedinger equation only (single particle):
+\begin{textcode}
+TheoryLevel = independent_particles
+\end{textcode}
+
+For Hartree-only calculation
 \begin{textcode}
 XCFunctional = none
 \end{textcode}
 
+Note that by default the potentials will be filtered in order to minimize egg-box effect.
+The following is the default setting:
 \begin{textcode}
-TheoryLevel = independent_particles
+FilterPotentials = filter_TS
+\end{textcode}
+We will usually use unfiltered pseudopotential as we generally does not implement any
+schemes to reduce eggbox effect in out Julia code.
+
+To execute the \textsf{Octopus} program and redirect the standard output and error to a
+file named \txtinline{LOG_calc} we can type:
+\begin{textcode}
+octopus >LOG_calc 2>&1
+\end{textcode}
+After successful executation, several files are produced. For our purposes the
+\txtinline{LOG_calc} file that contains standard output is sufficient. Usually we
+are interested in the converged total energy and eigenvalues which can be found
+near the end of \txtinline{LOG_calc} file.
+
+Redirect stdout to a file (\txtinline{>out}), and then redirect stderr to stdout
+(\txtinline{2>&1}).
+
+Poisson equation:
+\begin{textcode}
+PoissonSolver = cg_corrected
+PoissonSolverMaxMultipole = 4
+\end{textcode}
+Default value of isolated system: \txtinline{isf} (interpolating scaling function).
+
+Harmonic potential (user defined potential):
+\begin{textcode}
+# Harmonic potential, with 8 valence electrons or 4 states
+% Species 
+  'HO' | species_user_defined | potential_formula | "2*(x^2 + y^2 + z^2)" | valence | 8
+%
+
+# Define center of the potential
+% Coordinates
+  "HO" | 0 | 0 | 0
+%
+\end{textcode}
+
+
+Gaussian potential, using variable r and pi.
+\begin{textcode}
+% Species 
+  "X" | species_user_defined | potential_formula | "-exp(-r^2)/sqrt(1/pi)^3" | valence | 2
+%
+
+% Coordinates
+  "X" | 0 | 0 | 0
+%
 \end{textcode}
