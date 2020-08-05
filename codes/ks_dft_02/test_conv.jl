@@ -14,23 +14,17 @@ include("create_Ham.jl")
 
 include("KS_solve_Emin_PCG.jl")
 
-function main(N)
-
-    @assert iseven(N)
+function main(Ham_func, N, grid_type)
     
     Random.seed!(1234)
-    
-    #Ham = create_Ham_H(N, grid_type=:sinc)
-    #Ham = create_Ham_LiH(40, grid_type=:sinc)
 
-    #Ham = create_Ham_Ne(N)
-    Ham = create_Ham_H2O(N, grid_type=:sinc)
+    Ham = Ham_func(N, grid_type=grid_type)
 
+    println(Ham.atoms)
     println(Ham.grid)
+    check_betaNL_norm(Ham.grid, Ham.pspotNL)
 
-    @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
-
-    println("sum V_Ps_loc = ", sum(Ham.V_Ps_loc))
+    @printf("\nsizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 
     Nbasis = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
@@ -43,7 +37,14 @@ function main(N)
 
 end
 
-main(54)
-#for N in [10, 20, 30, 40, 50]
-#    main(N)
+#for N in [21, 25, 31, 35, 41, 45, 51, 55, 61]
+#    main(create_Ham_H, N, :FD)
+#end
+
+for N in [20, 25, 30, 35, 40, 45, 50, 55, 60]
+    main(create_Ham_CO, N, :LF)
+end
+
+#for N in [20, 26, 30, 36, 40, 46, 50, 56, 60]
+#    main(create_Ham_H2, N, :FD)
 #end

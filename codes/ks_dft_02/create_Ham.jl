@@ -13,6 +13,27 @@ function create_Ham_LiH( N::Int64; grid_type=:FD )
     return Hamiltonian( atoms, pspfiles, grid )    
 end
 
+function create_Ham_CO( N::Int64; grid_type=:FD )
+    atoms = Atoms( xyz_string=
+        """
+        2
+
+        C   0.575  0.0  0.0
+        O  -0.575  0.0  0.0
+        """) # coordinates are in angstrom
+    pspfiles = [ joinpath(DIR_PSP,"C-q4.gth"),
+                 joinpath(DIR_PSP,"O-q6.gth") ]
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    NN = [N,N,N]
+    if (grid_type == :sinc) || (grid_type == :LF)
+        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    else
+        grid = FD3dGrid( NN, AA, BB )
+    end
+    return Hamiltonian( atoms, pspfiles, grid )    
+end
+
 function create_Ham_H2O( N::Int64; grid_type=:FD )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"H2O.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"O-q6.gth"),
