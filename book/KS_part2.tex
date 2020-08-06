@@ -342,47 +342,45 @@ end
 
 Comparison with Octopus calculations.
 
-\subsection{Ne atom}
+\subsection{LiH}
 
-FIXME: This is a bad example as Ne atom shows very severe eggbox effect.
-
+N = 40, spacing = 0.41026
 \begin{textcode}
-   36     -33.2419937530   3.3191088278e-07   8.0527228312e-10
-   37     -33.2419929933   7.5978377367e-07   6.1279774911e-10
+Emin_PCG step       25 =      -0.7670931285  6.9040618e-07
+Emin_PCG step       26 =      -0.7670933986  2.7002749e-07
 
-SCF is converged in iter: 37
- 
-Eigenvalues:
-  1      -2.0514588028
-  2      -0.4257844044
-  3      -0.4257844038
-  4      -0.4257843741
+Emin_PCG_dot is converged in iter: 26
+
 ----------------------------
-Total energy components
+Final Kohn-Sham eigenvalues:
 ----------------------------
-Kinetic =      21.9606066031
-Ps_loc  =     -78.5227825557
-Ps_nloc =       0.4250276268
-Hartree =      28.2669988706
-XC      =      -5.3718435381
-NN      =       0.0000000000
+
+  1      -0.1609715031
+
 ----------------------------
-Total   =     -33.2419929933 
+Final Kohn-Sham energies:
+----------------------------
+
+Kinetic =       0.6405954267
+Ps_loc  =      -2.2606439171
+Ps_nloc =       0.0431343816
+Hartree =       0.9469417869
+XC      =      -0.4899058838
+NN      =       0.3527848071
+----------------------------
+Total   =      -0.7670933986
 \end{textcode}
 
 Octopus result
 \begin{textcode}
- *********************** SCF CYCLE ITER #   14 ************************
- etot  = -3.32741274E+01 abs_ev   =  1.21E-05 rel_ev   =  1.81E-06
- ediff =       -4.38E-11 abs_dens =  5.95E-05 rel_dens =  7.44E-06
-Matrix vector products:     23
-Converged eigenvectors:      3
+*********************** SCF CYCLE ITER #   15 ************************
+ etot  = -7.86985069E-01 abs_ev   =  8.84E-07 rel_ev   =  2.74E-06
+ ediff =       -3.96E-11 abs_dens =  1.54E-05 rel_dens =  7.71E-06
+Matrix vector products:      3
+Converged eigenvectors:      1
 
 #  State  Eigenvalue [H]  Occupation    Error
-      1       -2.064775    2.000000   (9.6E-07)
-      2       -0.425357    2.000000   (9.8E-07)
-      3       -0.425357    2.000000   (9.8E-07)
-      4       -0.425357    2.000000   (1.0E-06)   
+      1       -0.161349    2.000000   (7.4E-07)
 \end{textcode}
 
 Similar result with Octopus.
