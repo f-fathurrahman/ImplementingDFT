@@ -29,8 +29,8 @@ function find_E_fermi(
     Elw = Elw - 2*kT
     Eup = Eup + 2*kT
 
-    println("Elw = ", Elw)
-    println("Eup = ", Eup)
+    verbose && println("Elw = ", Elw)
+    verbose && println("Eup = ", Eup)
 
     sumlw = sum_Focc( smear_func, evals, Elw, kT )
     sumup = sum_Focc( smear_func, evals, Eup, kT )
