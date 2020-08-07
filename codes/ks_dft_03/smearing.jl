@@ -107,6 +107,7 @@ function wgauss( ϵ, E_f::Float64, kT::Float64 )
 
 end
 
+# For calculating entropy, the sign is different from smear_*_entropy
 function w1gauss(ϵ, E_f::Float64, kT::Float64 )
     #
     x = (E_f - ϵ)/kT

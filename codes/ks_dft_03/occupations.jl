@@ -1,3 +1,27 @@
+function update_Focc!(
+    Focc::Array{Float64,1},
+    smear_func, smear_func_entropy,
+    evals::Array{Float64,1},
+    Nelectrons::Float64,
+    kT::Float64,
+)
+
+    E_f = find_E_fermi( smear_func, evals, Nelectrons, kT )
+
+    Nstates = size(evals,1)
+    w = 2.0 # weight factor
+    for ist in 1:Nstates
+        Focc[ist] = w*smear_func( evals[ist], E_f, kT )
+    end
+  
+    mTS = 0.0
+    for ist = 1:Nstates
+        mTS = mTS - w*kT*smear_func_entropy( evals[ist], E_f, kT )
+    end
+    return E_f, mTS  
+end
+
+
 function sum_Focc(
     smear_func,
     evals::Array{Float64,1},
