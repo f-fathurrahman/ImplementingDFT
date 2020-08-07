@@ -2,7 +2,8 @@ function KS_solve_SCF!(
     Ham::Hamiltonian, psi::Array{Float64,2};
     NiterMax=200,
     i_cg_beta=2, etot_conv_thr=1e-6,
-    diag_func=diag_LOBPCG!
+    diag_func=diag_LOBPCG!,
+    kT=0.01
 )
 
     Npoints = Ham.grid.Npoints
@@ -41,16 +42,29 @@ function KS_solve_SCF!(
             ethr = max( ethr, ethr_evals_last )
         end
 
-        evals = diag_func( Ham, psi, Ham.precKin )
-        #psi = psi*sqrt(dVol) # for diag_davidson
-        #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
+        evals = diag_func( Ham, psi, Ham.precKin, tol=ethr )
+        if diag_func == diag_davidson!
+            psi = psi*sqrt(dVol) # for diag_davidson
+        end
 
         psi = psi/sqrt(dVol) # renormalize
 
+        E_f, Ham.energies.mTS =
+        update_Focc!( Ham.electrons.Focc, smear_fermi, smear_fermi_entropy,
+                      evals, Float64(Ham.electrons.Nelectrons), kT )
+        println("Nelectrons = ", Ham.electrons.Nelectrons)
+        println("Focc = ", Ham.electrons.Focc)
+        println("sum(Focc) = ", sum(Ham.electrons.Focc))
+
         calc_rhoe!( Ham, psi, Rhoe_new )
-        #println("integ Rhoe before mix = ", sum(Rhoe)*dVol)
+        integ_rho = sum(Rhoe_new)*dVol
+        for ip in 1:length(Rhoe_new)
+            Rhoe_new[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe_new[ip]
+        end
+        println("integ Rhoe before mix = ", sum(Rhoe_new)*dVol)
+
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-        #println("integ Rhoe after mix  = ", sum(Rhoe)*dVol)
+        println("integ Rhoe after mix  = ", sum(Rhoe)*dVol)
         update!( Ham, Rhoe )
 
         calc_energies!( Ham, psi )

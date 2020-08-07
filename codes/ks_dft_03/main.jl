@@ -10,6 +10,8 @@ using MyModule
 const DIR_PSP = "../pseudopotentials/pade_gth/"
 const DIR_STRUCTURES = "../structures"
 
+include("smearing.jl")
+include("occupations.jl")
 include("create_Ham.jl")
 include("KS_solve_SCF.jl")
 
@@ -36,4 +38,5 @@ function main(Ham_func, N, grid_type)
 
 end
 
-main(create_Ham_LiH, 40, :FD)
+#main(create_Ham_LiH, 40, :FD)
+main(create_Ham_C_atom, 40, :FD)

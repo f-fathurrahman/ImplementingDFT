@@ -5,15 +5,16 @@ mutable struct Energies
     Hartree::Float64
     XC::Float64
     NN::Float64
+    mTS::Float64
 end
 
 function Energies()
-    return Energies(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    return Energies(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 end
 
 import Base: sum
 function sum( ene::Energies )
-    return ene.Kinetic + ene.Ps_loc + ene.Ps_nloc + ene.Hartree + ene.XC + ene.NN
+    return ene.Kinetic + ene.Ps_loc + ene.Ps_nloc + ene.Hartree + ene.XC + ene.NN + ene.mTS
 end
 
 import Base: println
@@ -29,6 +30,7 @@ function println( ene::Energies; banner=true )
     @printf("Hartree = %18.10f\n", ene.Hartree)
     @printf("XC      = %18.10f\n", ene.XC)
     @printf("NN      = %18.10f\n", ene.NN)
+    @printf("mTS     = %18.10f\n", ene.mTS)
     @printf("----------------------------\n")
     @printf("Total   = %18.10f\n", sum(ene))
 end
