@@ -30,7 +30,7 @@ function create_Ham_LiH( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )    
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=2 ) 
 end
 
 function create_Ham_CO( N::Int64; grid_type=:FD )
@@ -51,7 +51,7 @@ function create_Ham_CO( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )    
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=3 )  
 end
 
 function create_Ham_H2O( N::Int64; grid_type=:FD )
