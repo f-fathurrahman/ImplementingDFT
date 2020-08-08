@@ -1,7 +1,7 @@
 function KS_solve_SCF!(
     Ham::Hamiltonian, psi::Array{Float64,2};
-    NiterMax=200,
-    i_cg_beta=2, etot_conv_thr=1e-6,
+    NiterMax=200, betamix=0.5,
+    etot_conv_thr=1e-6,
     diag_func=diag_LOBPCG!
 )
 
@@ -18,7 +18,6 @@ function KS_solve_SCF!(
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
-    betamix = 0.5
     dRhoe = 0.0
     NiterMax = 100
 
@@ -41,11 +40,12 @@ function KS_solve_SCF!(
             ethr = max( ethr, ethr_evals_last )
         end
 
-        evals = diag_func( Ham, psi, Ham.precKin )
-        #psi = psi*sqrt(dVol) # for diag_davidson
-        #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
-
-        psi = psi/sqrt(dVol) # renormalize
+        evals = diag_func( Ham, psi, Ham.precKin, tol=ethr )
+        if diag_func == diag_davidson!
+            psi = psi*sqrt(dVol) # for diag_davidson
+        else
+            psi = psi/sqrt(dVol) # renormalize
+        end
 
         calc_rhoe!( Ham, psi, Rhoe_new )
         #println("integ Rhoe before mix = ", sum(Rhoe)*dVol)
