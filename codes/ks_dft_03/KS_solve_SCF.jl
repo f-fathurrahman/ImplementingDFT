@@ -25,6 +25,11 @@ function KS_solve_SCF!(
     ethr_evals_last=1e-5
     ethr = 0.1
 
+    # Mixing arrays
+    betav = betamix*ones(Float64, Npoints)
+    df = zeros(Float64, Npoints)
+
+
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
     Nconverges = 0
@@ -68,8 +73,16 @@ function KS_solve_SCF!(
         end
         println("integ Rhoe before mix = ", sum(Rhoe_new)*dVol)
 
-        Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        #Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+        
+        integ_rho = sum(Rhoe)*dVol
+        println("integ_rho (before renormalized) = ", integ_rho)
+        for ip in 1:length(Rhoe)
+            Rhoe[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe[ip]
+        end
         println("integ Rhoe after mix  = ", sum(Rhoe)*dVol)
+
         update!( Ham, Rhoe )
 
         calc_energies!( Ham, psi )

@@ -13,6 +13,7 @@ const DIR_STRUCTURES = "../structures"
 include("smearing.jl")
 include("occupations.jl")
 include("create_Ham.jl")
+include("mix_adaptive.jl")
 include("KS_solve_SCF.jl")
 include("KS_solve_SCF_NLsolve.jl")
 
@@ -35,7 +36,7 @@ function main(Ham_func, N, grid_type)
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    KS_solve_SCF!(Ham, psi, betamix=0.5)
+    KS_solve_SCF!(Ham, psi, betamix=0.1)
     #KS_solve_SCF_NLsolve!(Ham, psi, betamix=0.25)
 
 end
