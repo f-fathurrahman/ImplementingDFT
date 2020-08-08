@@ -14,6 +14,7 @@ include("smearing.jl")
 include("occupations.jl")
 include("create_Ham.jl")
 include("KS_solve_SCF.jl")
+include("KS_solve_SCF_NLsolve.jl")
 
 function main(Ham_func, N, grid_type)
     
@@ -35,9 +36,12 @@ function main(Ham_func, N, grid_type)
     ortho_sqrt!(psi,dVol)
 
     KS_solve_SCF!(Ham, psi, betamix=0.5)
+    #KS_solve_SCF_NLsolve!(Ham, psi, betamix=0.25)
 
 end
 
 #main(create_Ham_LiH, 40, :FD)
 #main(create_Ham_CO, 40, :FD)
-main(create_Ham_C_atom, 40, :FD)
+#main(create_Ham_C_atom, 40, :FD)
+#main(create_Ham_C_atom, 40, :LF)
+main(create_Ham_Al_atom, 40, :FD)

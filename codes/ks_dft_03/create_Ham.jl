@@ -1,3 +1,22 @@
+function create_Ham_Al_atom( N::Int64; grid_type=:FD )
+    atoms = Atoms( xyz_string=
+        """
+        1
+
+        Al   0.0  0.0  0.0
+        """) # coordinates are in angstrom
+    pspfiles = [ joinpath(DIR_PSP,"Al-q3.gth") ]
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    NN = [N,N,N]
+    if (grid_type == :sinc) || (grid_type == :LF)
+        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    else
+        grid = FD3dGrid( NN, AA, BB )
+    end
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=4 )
+end
+
 function create_Ham_C_atom( N::Int64; grid_type=:FD )
     atoms = Atoms( xyz_string=
         """

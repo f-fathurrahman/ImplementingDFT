@@ -50,10 +50,10 @@ function KS_solve_SCF!(
         end
 
         E_f, Ham.energies.mTS =
-        #update_Focc!( Ham.electrons.Focc, smear_fermi, smear_fermi_entropy,
-        #              evals, Float64(Ham.electrons.Nelectrons), kT )
-        update_Focc!( Ham.electrons.Focc, smear_cold, smear_cold_entropy,
+        update_Focc!( Ham.electrons.Focc, smear_fermi, smear_fermi_entropy,
                       evals, Float64(Ham.electrons.Nelectrons), kT )
+        #update_Focc!( Ham.electrons.Focc, smear_cold, smear_cold_entropy,
+        #              evals, Float64(Ham.electrons.Nelectrons), kT )
         #update_Focc!( Ham.electrons.Focc, smear_gauss, smear_gauss_entropy,
         #              evals, Float64(Ham.electrons.Nelectrons), kT )
         println("Nelectrons = ", Ham.electrons.Nelectrons)
