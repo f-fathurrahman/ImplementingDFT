@@ -37,7 +37,7 @@ function create_Ham_C_atom( N::Int64; grid_type=:FD )
 end
 
 
-function create_Ham_LiH( N::Int64; grid_type=:FD )
+function create_Ham_LiH( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"LiH.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"H-q1.gth"),
                  joinpath(DIR_PSP,"Li-q1.gth") ]
@@ -49,10 +49,10 @@ function create_Ham_LiH( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=2 ) 
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra ) 
 end
 
-function create_Ham_CO( N::Int64; grid_type=:FD )
+function create_Ham_CO( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_string=
         """
         2
@@ -70,10 +70,10 @@ function create_Ham_CO( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=3 )  
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )  
 end
 
-function create_Ham_H2O( N::Int64; grid_type=:FD )
+function create_Ham_H2O( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"H2O.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"O-q6.gth"),
                  joinpath(DIR_PSP,"H-q1.gth") ]
@@ -85,10 +85,10 @@ function create_Ham_H2O( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    Ham = Hamiltonian( atoms, pspfiles, grid )
+    Ham = Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
 end
 
-function create_Ham_H( N::Int64; grid_type=:FD )
+function create_Ham_H( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_string=
         """
         1
@@ -104,10 +104,10 @@ function create_Ham_H( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
 end
 
-function create_Ham_H2( N::Int64; grid_type=:FD )
+function create_Ham_H2( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_string=
         """
         2
@@ -127,7 +127,7 @@ function create_Ham_H2( N::Int64; grid_type=:FD )
     return Hamiltonian( atoms, pspfiles, grid )
 end
 
-function create_Ham_NH3( N::Int64; grid_type=:FD )
+function create_Ham_NH3( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"NH3.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"N-q5.gth"),
                  joinpath(DIR_PSP,"H-q1.gth") ]
@@ -139,10 +139,10 @@ function create_Ham_NH3( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
 end
 
-function create_Ham_CH4( N::Int64; grid_type=:sinc )
+function create_Ham_CH4( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"CH4.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"C-q4.gth"),
                  joinpath(DIR_PSP,"H-q1.gth") ]
@@ -154,10 +154,10 @@ function create_Ham_CH4( N::Int64; grid_type=:sinc )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
 end
 
-function create_Ham_Ar( N::Int64; grid_type=:FD )
+function create_Ham_Ar( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_string=
         """
         1
@@ -173,10 +173,10 @@ function create_Ham_Ar( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
 end
 
-function create_Ham_Ne( N::Int64; grid_type=:FD )
+function create_Ham_Ne( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_string=
         """
         1
@@ -192,10 +192,10 @@ function create_Ham_Ne( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
 end
 
-function create_Ham_SiH4( N::Int64; grid_type=:FD )
+function create_Ham_SiH4( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"SiH4.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"Si-q4.gth"),
                  joinpath(DIR_PSP,"H-q1.gth") ]
@@ -208,10 +208,10 @@ function create_Ham_SiH4( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
 end
 
-function create_Ham_HCl( N::Int64; grid_type=:FD )
+function create_Ham_HCl( N::Int64; grid_type=:FD, Nstates_extra=0 )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"HCl.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"Cl-q7.gth"),
                  joinpath(DIR_PSP,"H-q1.gth") ]
@@ -224,5 +224,5 @@ function create_Ham_HCl( N::Int64; grid_type=:FD )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    return Hamiltonian( atoms, pspfiles, grid )
+    return Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
 end

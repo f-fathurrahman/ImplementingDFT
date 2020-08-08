@@ -17,11 +17,9 @@ include("mix_adaptive.jl")
 include("KS_solve_SCF.jl")
 include("KS_solve_SCF_NLsolve.jl")
 
-function main(Ham_func, N, grid_type)
+function main( Ham::Hamiltonian; use_smearing=false )
     
     Random.seed!(1234)
-
-    Ham = Ham_func(N, grid_type=grid_type)
 
     println(Ham.atoms)
     println(Ham.grid)
@@ -36,13 +34,10 @@ function main(Ham_func, N, grid_type)
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    KS_solve_SCF!(Ham, psi, betamix=0.01, use_smearing=true)
-    #KS_solve_SCF_NLsolve!(Ham, psi, betamix=1.0, use_smearing=true)
+    #KS_solve_SCF!(Ham, psi, betamix=0.25, use_smearing=use_smearing)
+    KS_solve_SCF_NLsolve!(Ham, psi, betamix=0.25, use_smearing=use_smearing)
 
 end
 
-#main(create_Ham_LiH, 40, :FD)
-#main(create_Ham_CO, 40, :FD)
-#main(create_Ham_C_atom, 40, :FD)
-#main(create_Ham_C_atom, 40, :LF)
-main(create_Ham_Al_atom, 40, :FD)
+#main( create_Ham_Al_atom(40, grid_type=:FD), use_smearing=true )
+main( create_Ham_LiH(40, grid_type=:FD), use_smearing=false )
