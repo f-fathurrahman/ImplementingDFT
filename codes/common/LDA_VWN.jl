@@ -11,6 +11,10 @@ function excVWN( n::Array{Float64,1} )
     Npoints = size(n)[1]
     out = zeros(Float64,Npoints)
     for ip = 1:Npoints
+        if n[ip] < eps()
+            out[ip] = 0.0
+            continue
+        end
         rs = (4.0*pi/3.0*n[ip])^(-1.0/3.0) # Added internal conversion to rs
         x = sqrt(rs)
         X = x*x + b*x + c    
@@ -34,6 +38,10 @@ function excpVWN( n::Array{Float64,1} )
     Npoints = size(n)[1]
     out = zeros(Float64,Npoints)
     for ip = 1:Npoints
+        if n[ip] < eps()
+            out[ip] = 0.0
+            continue
+        end
         rs = (4.0*pi/3.0*n[ip])^(-1.0/3.0) # Added internal conversion to rs
         x = sqrt(rs)
         X = x*x + b*x + c
