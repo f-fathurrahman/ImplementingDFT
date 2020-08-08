@@ -3,6 +3,8 @@ function KS_solve_SCF!(
     NiterMax=200, betamix=0.5,
     etot_conv_thr=1e-6,
     diag_func=diag_LOBPCG!,
+    use_smearing=false,
+    smear_func=smear_fermi, smear_func_entropy=smear_fermi_entropy,
     kT=0.01
 )
 
@@ -54,13 +56,12 @@ function KS_solve_SCF!(
             psi = psi/sqrt(dVol) # renormalize
         end
 
-        E_f, Ham.energies.mTS =
-        update_Focc!( Ham.electrons.Focc, smear_fermi, smear_fermi_entropy,
+        if use_smearing
+            E_f, Ham.energies.mTS =
+            update_Focc!( Ham.electrons.Focc, smear_func, smear_func_entropy,
                       evals, Float64(Ham.electrons.Nelectrons), kT )
-        #update_Focc!( Ham.electrons.Focc, smear_cold, smear_cold_entropy,
-        #              evals, Float64(Ham.electrons.Nelectrons), kT )
-        #update_Focc!( Ham.electrons.Focc, smear_gauss, smear_gauss_entropy,
-        #              evals, Float64(Ham.electrons.Nelectrons), kT )
+            @printf("Fermi energy = %18.10f\n", E_f)
+        end
         println("Nelectrons = ", Ham.electrons.Nelectrons)
         println("Focc = ", Ham.electrons.Focc)
         println("sum(Focc) = ", sum(Ham.electrons.Focc))

@@ -22,6 +22,8 @@ function KS_solve_SCF_NLsolve!(
     NiterMax=200, betamix=0.5,
     etot_conv_thr=1e-6,
     diag_func=diag_LOBPCG!,
+    use_smearing=false,
+    smear_func=smear_fermi, smear_func_entropy=smear_fermi_entropy,
     kT=0.01
 )
 
@@ -54,18 +56,14 @@ function KS_solve_SCF_NLsolve!(
                               Nstates_conv=Ham.electrons.Nstates_occ )
         psi[:] = psi[:]/sqrt(dVol) # renormalize
 
-        E_f, Ham.energies.mTS =
-        update_Focc!( Ham.electrons.Focc, smear_fermi, smear_fermi_entropy,
-                      evals, Float64(Ham.electrons.Nelectrons), kT )
+        if use_smearing
+            E_f, Ham.energies.mTS =
+            update_Focc!( Ham.electrons.Focc, smear_func, smear_func_entropy,
+                          evals, Float64(Ham.electrons.Nelectrons), kT )
+        end
 
         calc_rhoe!( Ham, psi, Rhoe_out )
-        # Make sure no negative rhoe
-        for ip in 1:length(Rhoe_out)
-            if Rhoe_out[ip] < eps()
-                println("Negative Rhoe is encountered")
-                Rhoe_out[ip] = 0.0
-            end
-        end
+        
         # Renormalize
         integ_rho = sum(Rhoe_out)*dVol
         #println("integ_rho (before renormalized) = ", integ_rho)
