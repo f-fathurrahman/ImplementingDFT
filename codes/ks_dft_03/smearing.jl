@@ -53,7 +53,7 @@ end
 
 function smear_cold_entropy( ϵ::Float64, E_f::Float64, kT::Float64 )
     x = (ϵ - E_f)/(2.0*kT)
-    return exp(-(x+sqrt(0.5)^2)) * (1 + x*sqrt(2))/sqrt(pi)
+    return exp( -(x+sqrt(0.5))^2 ) * (1 + x*sqrt(2))/sqrt(pi)
 end
 
 function smear_cold_prime( ϵ::Float64, E_f::Float64, kT::Float64 )
