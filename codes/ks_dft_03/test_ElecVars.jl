@@ -16,6 +16,7 @@ include("create_Ham.jl")
 include("gen_gaussian_density.jl")
 
 include("ElecVars.jl")
+include("emin_smearing.jl")
 
 function main( Ham::Hamiltonian; use_smearing=false )
     
@@ -33,13 +34,26 @@ function main( Ham::Hamiltonian; use_smearing=false )
 
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
+    kT = 0.01
 
     evars = ElecVars(Ham, psi)
     println(evars)
-    println("Pass here")
+
+    Ham.electrons.eorbs[:] = evars.Hsub_eigs[:]
+
+    g = ElecGradient(Ham)
+    Kg = ElecGradient(Ham)
+
+    calc_energies_grad!( Ham, evars, g, Kg, kT )
+
+    println("evars.Hsub")
+    display(evars.Hsub); println()
+    println("g.Haux")
+    display(g.Haux); println()
+    println("Kg.Haux")
+    display(Kg.Haux); println()
 
 end
 
-#main( create_Ham_Al_atom(40, grid_type=:FD), use_smearing=true )
-#main( create_Ham_LiH(40, grid_type=:FD), use_smearing=false )
-main( create_Ham_CO(40, grid_type=:FD), use_smearing=false )
+main( create_Ham_Al_atom(40, grid_type=:FD), use_smearing=true )
+#main( create_Ham_C_atom(40, grid_type=:FD), use_smearing=true )
