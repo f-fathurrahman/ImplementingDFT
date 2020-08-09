@@ -24,7 +24,8 @@ function KS_solve_SCF_NLsolve!(
     diag_func=diag_LOBPCG!,
     use_smearing=false,
     smear_func=smear_fermi, smear_func_entropy=smear_fermi_entropy,
-    kT=0.01
+    kT=0.01,
+    guess_density=:random
 )
 
     Npoints = Ham.grid.Npoints
@@ -34,9 +35,26 @@ function KS_solve_SCF_NLsolve!(
     Rhoe_out = zeros(Float64,Npoints)
     Rhoe = zeros(Float64,Npoints)
     
-    calc_rhoe!( Ham, psi, Rhoe )
-    update!( Ham, Rhoe )
-    
+    if guess_density == :random
+        calc_rhoe!( Ham, psi, Rhoe )
+        update!( Ham, Rhoe )
+        evals = zeros(Float64,Nstates)
+    else
+        gen_gaussian_density!( Ham.grid, Ham.atoms, Ham.pspots, Rhoe )
+        update!( Ham, Rhoe )
+        #
+        evals = diag_func( Ham, psi, Ham.precKin, tol=1e-3,
+                           Nstates_conv=Ham.electrons.Nstates_occ )
+        if diag_func == diag_davidson!
+            psi = psi*sqrt(dVol) # for diag_davidson
+        else
+            psi = psi/sqrt(dVol) # renormalize
+        end
+        #
+        calc_rhoe!(Ham, psi, Rhoe)
+        update!( Ham, Rhoe )
+    end
+
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
