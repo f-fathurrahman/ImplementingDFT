@@ -3,7 +3,7 @@ mutable struct Electrons
     Nstates::Int64
     Nstates_occ::Int64
     Focc::Array{Float64,1}
-    ene::Array{Float64,1}
+    eorbs::Array{Float64,1}
 end
 
 
@@ -29,7 +29,7 @@ function Electrons(
     end
 
     Focc = zeros(Float64,Nstates)
-    ene = zeros(Float64,Nstates)
+    eorbs = zeros(Float64,Nstates)
     
     Nstates_occ = Nstates - Nstates_empty
     
@@ -49,5 +49,5 @@ function Electrons(
         error(@sprintf("ERROR: diff sum(Focc) and Nelectrons is not small\n"))
     end
 
-    return Electrons( Nelectrons, Nstates, Nstates_occ, Focc, ene )
+    return Electrons( Nelectrons, Nstates, Nstates_occ, Focc, eorbs )
 end
