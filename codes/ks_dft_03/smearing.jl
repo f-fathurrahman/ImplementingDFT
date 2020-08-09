@@ -68,8 +68,8 @@ end
 
 # `smear` and `smear_prime` must match
 function grad_smear(
-    smear::Function, smear_prime::Function,
-    evals::Array{Float64,1}, E_f::Float64, kT::Float64, ∇F::Matrix{ComplexF64}
+    smear_func, smear_func_prime,
+    evals::Array{Float64,1}, E_f::Float64, kT::Float64, ∇F::Matrix{Float64}
 )
     ∇ϵ = copy(∇F)
     #
@@ -78,9 +78,9 @@ function grad_smear(
     for j in 1:Ncols, i in 1:Nrows
         dϵ = evals[i] - evals[j]
         if abs(dϵ) < 1e-6
-            ∇ϵ[i,j] = ∇ϵ[i,j] * smear_prime( evals[i], E_f, kT )
+            ∇ϵ[i,j] = ∇ϵ[i,j] * smear_func_prime( evals[i], E_f, kT )
         else
-            ∇ϵ[i,j] = ∇ϵ[i,j] * ( smear(evals[i], E_f, kT) - smear(evals[j], E_f, kT) ) / dϵ
+            ∇ϵ[i,j] = ∇ϵ[i,j] * ( smear_func(evals[i], E_f, kT) - smear_func(evals[j], E_f, kT) ) / dϵ
         end
     end
     return ∇ϵ
