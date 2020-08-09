@@ -14,6 +14,7 @@ include("smearing.jl")
 include("occupations.jl")
 include("create_Ham.jl")
 include("mix_adaptive.jl")
+include("gen_gaussian_density.jl")
 include("KS_solve_SCF.jl")
 include("KS_solve_SCF_NLsolve.jl")
 
@@ -34,10 +35,14 @@ function main( Ham::Hamiltonian; use_smearing=false )
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    #KS_solve_SCF!(Ham, psi, betamix=0.25, use_smearing=use_smearing)
-    KS_solve_SCF_NLsolve!(Ham, psi, betamix=0.25, use_smearing=use_smearing)
+    #KS_solve_SCF!(Ham, psi, betamix=0.25, use_smearing=use_smearing, guess_density=:gaussian)
+
+    KS_solve_SCF_NLsolve!(Ham, psi, betamix=1.0,
+        use_smearing=use_smearing,
+        guess_density=:gaussian)
 
 end
 
 #main( create_Ham_Al_atom(40, grid_type=:FD), use_smearing=true )
-main( create_Ham_LiH(40, grid_type=:FD), use_smearing=false )
+#main( create_Ham_LiH(40, grid_type=:FD), use_smearing=false )
+main( create_Ham_CO(40, grid_type=:FD), use_smearing=false )

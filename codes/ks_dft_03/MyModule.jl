@@ -72,6 +72,7 @@ export Energies
 
 include("../common/PsPot_GTH.jl")
 export PsPot_GTH, PsPot_GTH_octopus, eval_Vloc_R, eval_proj_R
+export get_Zvals
 
 include("PsPotNL.jl")
 export PsPotNL, check_betaNL_norm

@@ -5,20 +5,37 @@ function KS_solve_SCF!(
     diag_func=diag_LOBPCG!,
     use_smearing=false,
     smear_func=smear_fermi, smear_func_entropy=smear_fermi_entropy,
-    kT=0.01
+    kT=0.01,
+    guess_density=:random
 )
 
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     dVol = Ham.grid.dVol
 
-    Rhoe_new = zeros(Float64,Npoints)
     Rhoe = zeros(Float64,Npoints)
+    Rhoe_new = zeros(Float64,Npoints)
     
-    calc_rhoe!( Ham, psi, Rhoe )
-    update!( Ham, Rhoe )
-    
-    evals = zeros(Float64,Nstates)
+    if guess_density == :random
+        calc_rhoe!( Ham, psi, Rhoe )
+        update!( Ham, Rhoe )
+        evals = zeros(Float64,Nstates)
+    else
+        gen_gaussian_density!( Ham.grid, Ham.atoms, Ham.pspots, Rhoe )
+        update!( Ham, Rhoe )
+        #
+        evals = diag_func( Ham, psi, Ham.precKin, tol=1e-3,
+                           Nstates_conv=Ham.electrons.Nstates_occ )
+        if diag_func == diag_davidson!
+            psi = psi*sqrt(dVol) # for diag_davidson
+        else
+            psi = psi/sqrt(dVol) # renormalize
+        end
+        #
+        calc_rhoe!(Ham, psi, Rhoe)
+        update!( Ham, Rhoe )
+    end
+
     Etot_old = 0.0
     dEtot = 0.0
     dRhoe = 0.0
@@ -30,7 +47,6 @@ function KS_solve_SCF!(
     # Mixing arrays
     betav = betamix*ones(Float64, Npoints)
     df = zeros(Float64, Npoints)
-
 
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
@@ -74,15 +90,15 @@ function KS_solve_SCF!(
         end
         println("integ Rhoe before mix = ", sum(Rhoe_new)*dVol)
 
-        #Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-        mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+        Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        #mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
         
         integ_rho = sum(Rhoe)*dVol
-        println("integ_rho (before renormalized) = ", integ_rho)
+        println("integ Rhoe after mix (before renormalized) = ", integ_rho)
         for ip in 1:length(Rhoe)
             Rhoe[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe[ip]
         end
-        println("integ Rhoe after mix  = ", sum(Rhoe)*dVol)
+        println("integ Rhoe after mix (after renormalized) = ", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 
