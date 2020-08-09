@@ -78,27 +78,27 @@ function KS_solve_SCF!(
                       evals, Float64(Ham.electrons.Nelectrons), kT )
             @printf("Fermi energy = %18.10f\n", E_f)
         end
-        println("Nelectrons = ", Ham.electrons.Nelectrons)
-        println("Focc = ", Ham.electrons.Focc)
-        println("sum(Focc) = ", sum(Ham.electrons.Focc))
+        #println("Nelectrons = ", Ham.electrons.Nelectrons)
+        #println("Focc = ", Ham.electrons.Focc)
+        #println("sum(Focc) = ", sum(Ham.electrons.Focc))
 
         calc_rhoe!( Ham, psi, Rhoe_new )
-        integ_rho = sum(Rhoe_new)*dVol
-        println("integ_rho (before renormalized) = ", integ_rho)
-        for ip in 1:length(Rhoe_new)
-            Rhoe_new[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe_new[ip]
-        end
-        println("integ Rhoe before mix = ", sum(Rhoe_new)*dVol)
+        #integ_rho = sum(Rhoe_new)*dVol
+        #println("integ_rho (before renormalized) = ", integ_rho)
+        #for ip in 1:length(Rhoe_new)
+        #    Rhoe_new[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe_new[ip]
+        #end
+        #println("integ Rhoe before mix = ", sum(Rhoe_new)*dVol)
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
         #mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
         
-        integ_rho = sum(Rhoe)*dVol
-        println("integ Rhoe after mix (before renormalized) = ", integ_rho)
-        for ip in 1:length(Rhoe)
-            Rhoe[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe[ip]
-        end
-        println("integ Rhoe after mix (after renormalized) = ", sum(Rhoe)*dVol)
+        #integ_rho = sum(Rhoe)*dVol
+        #println("integ Rhoe after mix (before renormalized) = ", integ_rho)
+        #for ip in 1:length(Rhoe)
+        #    Rhoe[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe[ip]
+        #end
+        #println("integ Rhoe after mix (after renormalized) = ", sum(Rhoe)*dVol)
 
         update!( Ham, Rhoe )
 

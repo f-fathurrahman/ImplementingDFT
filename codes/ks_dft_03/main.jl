@@ -35,11 +35,12 @@ function main( Ham::Hamiltonian; use_smearing=false )
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    #KS_solve_SCF!(Ham, psi, betamix=0.25, use_smearing=use_smearing, guess_density=:gaussian)
+    KS_solve_SCF!(Ham, psi, betamix=0.25,
+                  use_smearing=use_smearing, guess_density=:random)
 
-    KS_solve_SCF_NLsolve!(Ham, psi, betamix=1.0,
-        use_smearing=use_smearing,
-        guess_density=:gaussian)
+    #KS_solve_SCF_NLsolve!(Ham, psi, betamix=1.0,
+    #    use_smearing=use_smearing,
+    #    guess_density=:gaussian)
 
 end
 

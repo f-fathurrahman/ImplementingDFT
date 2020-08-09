@@ -33,8 +33,8 @@ function main(Ham_func, N, grid_type)
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    KS_solve_Emin_PCG!(Ham, psi)
-    #KS_solve_SCF!(Ham, psi, betamix=0.25
+    #KS_solve_Emin_PCG!(Ham, psi)
+    KS_solve_SCF!(Ham, psi, betamix=0.25)
 end
 
 main(create_Ham_CO, 40, :FD)
