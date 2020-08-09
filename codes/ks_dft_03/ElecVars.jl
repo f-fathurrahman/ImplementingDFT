@@ -9,9 +9,9 @@ mutable struct SubspaceRotations
 end
 
 function SubspaceRotations( Nstates::Int64 )
-    prev[i] = diagm( 0 => ones(Float64,Nstates) )
-    prevC[i] = diagm( 0 => ones(Float64,Nstates) )
-    prevCinv[i] = diagm( 0 => ones(Float64,Nstates) )
+    prev = diagm( 0 => ones(Float64,Nstates) )
+    prevC = diagm( 0 => ones(Float64,Nstates) )
+    prevCinv = diagm( 0 => ones(Float64,Nstates) )
     return SubspaceRotations(prev, prevC, prevCinv)
 end
 
@@ -37,6 +37,20 @@ import Base: -
 function -(e1::ElecGradient, e2::ElecGradient)
     return ElecGradient( e1.psi - e2.psi, e1.Haux - e2.Haux )
 end
+
+function dot_ElecGradient( v1::ElecGradient, v2::ElecGradient, dVol )
+    #ss = 2.0*real( dot(v1.psi, v2.psi) )
+    ss = dot(v1.psi, v2.psi)*dVol # ??
+    ss = ss + dot(v1.Haux, v2.Haux) # no factor of 2
+    return ss
+end
+
+function dot_ElecGradient_v2( v1::ElecGradient, v2::ElecGradient, dVol )
+    ss1 = dot(v1.psi, v2.psi)*dVol # ??
+    ss2 = dot(v1.Haux, v2.Haux) # no factor of 2
+    return ss1, ss2
+end
+
 
 #
 # Electronic variables (wave functions and subspace Hamiltonian)
@@ -64,6 +78,11 @@ function ElecVars( Ham::Hamiltonian, psi::Matrix{Float64} )
     Hsub_eigs = eigvals(Hermitian(Hsub))
     return ElecVars( psi, Hsub, Hsub_eigs )
 end
+
+function calc_Hsub_eigs!( evars::ElecVars )
+    evars.Hsub_eigs[:] = eigvals( Hermitian(evars.Hsub) )
+end
+
 
 import Base: show
 function show( io::IO, evars::ElecVars )
