@@ -247,3 +247,10 @@ function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
     Ham.V_XC = excVWN( Rhoe ) + Rhoe .* excpVWN( Rhoe )
     return
 end
+
+function calc_rhoe_update!( Ham::Hamiltonian, psi::Array{Float64,2} )
+    calc_rhoe!( Ham, psi, Ham.rhoe )
+    Ham.V_Hartree = Poisson_solve( Ham.psolver, Ham.grid, Ham.rhoe )
+    Ham.V_XC = excVWN( Ham.rhoe ) + Ham.rhoe .* excpVWN( Ham.rhoe )
+    return
+end
