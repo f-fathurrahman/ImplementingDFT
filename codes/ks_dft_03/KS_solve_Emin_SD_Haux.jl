@@ -29,8 +29,22 @@ function KS_solve_Emin_SD_Haux!(
     # Begin iter
     for iter in 1:NiterMax
 
-        gKnorm = dot_ElecGradient(g, Kg, dVol)
-        @printf("gKnorm = %18.10e\n", gKnorm)
+        @printf("\nBegin iteration #%4d\n", iter)
+
+        ss = dot(evars.psi, g.psi)*dVol
+        @printf("dot evars.psi and g.psi     = %18.10f\n", ss)
+
+        ss = dot(diagm(0 => Ham.electrons.eorbs), g.Haux)
+        @printf("dot diagm(eorbs) and g.Haux = %18.10f\n", ss)
+
+        ss = dot(g.psi, Kg.psi)*dVol
+        @printf("dot g.psi and Kg.psi   = %18.10f\n", ss)
+
+        ss = dot(g.Haux, Kg.Haux)
+        @printf("dot g.Haux and Kg.Haux = %18.10f\n", ss)
+
+        #gKnorm = dot_ElecGradient(g, Kg, dVol)
+        #@printf("gKnorm = %18.10e\n", gKnorm)
 
         # Check convergence here ....
 

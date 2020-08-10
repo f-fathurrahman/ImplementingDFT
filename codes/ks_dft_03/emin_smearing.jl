@@ -25,14 +25,20 @@ function calc_energies_grad!(
     g::ElecGradient, Kg::ElecGradient, kT::Float64
 )
 
-    println("eorbs = ", Ham.electrons.eorbs)
+    println("\nCalculating energy and gradients\n")
+
+    Nstates = Ham.electrons.Nstates
 
     # Using electrons.eorbs as energy eigevalues
     E_f, Ham.energies.mTS =
     update_Focc!( Ham.electrons.Focc, smear_fermi, smear_fermi_entropy,
                   Ham.electrons.eorbs, Float64(Ham.electrons.Nelectrons), kT )
-    println("Focc = ", Ham.electrons.Focc)
-    @printf("Fermi energy = %18.10f\n", E_f)
+    
+    println("Electron orbital energies")
+    for ist in 1:Nstates
+        @printf("%5d %18.10f %18.10f\n", ist, Ham.electrons.eorbs[ist], Ham.electrons.Focc[ist])
+    end
+    @printf("Fermi energy = %18.10f\n\n", E_f)
 
     Rhoe = zeros(Float64, Ham.grid.Npoints)
     calc_rhoe!( Ham, evars.psi, Rhoe )
@@ -40,8 +46,6 @@ function calc_energies_grad!(
     
     # Calculate total energy
     calc_energies!( Ham, evars.psi )
-
-    Nstates = Ham.electrons.Nstates
 
     #
     # Gradient for psi
@@ -82,6 +86,8 @@ function calc_energies_grad!(
     
     g.Haux = w * 0.5 * (g_tmp' + g_tmp) # 
     Kg.Haux = -0.1*copy(gradF0) #-0.1*copy(gradF0), precondition?
+
+    println("\nFinished calculating energy and gradients\n")
 
     # Return total free energy
     return sum( Ham.energies )
