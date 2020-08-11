@@ -138,9 +138,11 @@ FIXME: Needs correction, boundary condition is not treated properly.
 
 \section{Reciprocal space method}
 
-Using FFT, natural choice for periodic boundary condition.
+Another popular method for solving Poisson equation is by using
+reciprocal space method.
+This method is the natural choice for systems with periodic boundary condition.
 
-Poisson equation in $\mathbf{G}$-space takes very simple form:
+In the reciprocal or $\mathbf{G}$-space, Poisson equation is transformed to
 \begin{equation}
 \mathbf{G}^{2} V_{\mathrm{Ha}}(\mathbf{G}) = 4\pi\rho(\mathbf{G})
 \end{equation}
@@ -155,25 +157,23 @@ Note that, we must exclude the term $\mathbf{G}=\mathbf{0}$ in the Equation
 
 \section{Direct integration}
 
-Ref:
-D. Sundholm.
-Universal method for computation of electrostatic potentials
-J. Chem. Phys. 122 194107 (2005)
+An alternative to solving Poisson equation is to integrate the equation defining
+the Hartree potential directly. However a naive integration algorithm will scale
+badly. In this section, we will adopt a direct integration method that is proposed
+in \cite{Sundholm2005}. We will only describe the method for isolated system.
+The extension to periodic system is described in \cite{Losilla2010}.
 
-S.A. Losilla, D. Sundholm, and J. Juselius.
-Direct approach to gravitation and electrostatics method for periodic systems
-J. Chem. Phys. 132 024102 (2010)
-
+We will begin from the definition of Hartree potential:
 \begin{equation}
 V(\mathbf{r}_{1}) = \int_{-\infty}^{+\infty}
 \rho(\mathbf{r}_{2}) \frac{1}{r_{12}} \, \mathrm{d}\mathbf{r}_{2}
 \end{equation}
 
-Rewriting Coulomb operator as integral expression using:
+The Coulomb operator, $\frac{1}{r}$ can we written as the integral
 \begin{equation}
-\frac{1}{r} = \frac{2}{\sqrt{2}} \int_{0}^{\infty} e^{-r^2 t^2}\,\mathrm{d}t
+\frac{1}{r} = \frac{2}{\sqrt{pi}} \int_{0}^{\infty} e^{-r^2 t^2}\,\mathrm{d}t
 \end{equation}
-
+Using this identity, the Hartree potential is written as
 \begin{equation}
 V(\mathbf{r}_{1}) = \frac{2}{\sqrt{\pi}}
 \int_{0}^{\infty}
@@ -182,12 +182,12 @@ e^{-t^2(\mathbf{r}_1 - \mathbf{r}_2)^2} \rho(\mathbf{r}_2)
 \, \mathrm{d}\mathbf{r}_{2}\mathrm{d}t
 \end{equation}
 
-Numerical tensorial basis:
+By expanding the electron density in the following form
 \begin{equation}
 \rho(\mathbf{r}_2) = \sum_{\alpha\beta\gamma} d_{\alpha\beta\gamma}
 \chi_{\alpha}(x_2) \chi_{\beta}(y_2) \chi_{\gamma}(z_2)
 \end{equation}
-
+the Hartree potential can be written as
 \begin{multline}
 V_{0}(x_{1},y_{1},z_{1}) = \frac{2}{\sqrt{pi}}\sum_{\alpha_t} \omega_{\alpha_t}
 \sum_{\alpha\beta\gamma} d_{\alpha\beta\gamma}
@@ -195,15 +195,15 @@ V_{0}(x_{1},y_{1},z_{1}) = \frac{2}{\sqrt{pi}}\sum_{\alpha_t} \omega_{\alpha_t}
 \times \int_{-\infty}^{\infty} e^{-t^2_{\alpha_t}(y_{1} - y_{2}) } \chi_{\beta}(y_2)\mathrm{d}y_2 \\
 \times \int_{-\infty}^{\infty} e^{-t^2_{\alpha_t}(x_{1} - x_{2}) } \chi_{\alpha}(x_2)\mathrm{d}x_2
 \end{multline}
-
-$t_{\alpha_t}$: integration points, $w_{\alpha_t}$: integration weights, 
-
-
+where
+$t_{\alpha_t}$ are integration points and $w_{\alpha_t}$ are the corresponding
+integration weights.
+By defining the following quantity:
 \begin{equation}
 F_{\gamma_x \alpha_t}^{x,\alpha_x} = \int_{-\infty}^{\infty}
 e^{-t^2_{\alpha_t} (x_{\alpha_x} - x_2)^2} \chi_{\gamma_x}(x_2)\,\mathrm{d}x_2
 \end{equation}
-
+Hartree potential can be written as
 \begin{equation}
 V_{\alpha_x \alpha_y \alpha_z} = \frac{2}{\sqrt{\pi}} \sum_{\alpha_t} w_{\alpha_t}
 \sum_{\gamma_z} F_{\gamma_z \alpha_z}^{z,\alpha_t}
@@ -211,3 +211,5 @@ V_{\alpha_x \alpha_y \alpha_z} = \frac{2}{\sqrt{\pi}} \sum_{\alpha_t} w_{\alpha_
 \sum_{\gamma_x} F_{\gamma_x \alpha_x}^{x,\alpha_t}
 d_{\gamma_x \gamma_y \gamma_z}
 \end{equation}
+
+
