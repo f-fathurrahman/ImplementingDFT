@@ -32,6 +32,8 @@ function linmin_grad_v2!(
     subrot_; αt = 3e-5
 )
 
+    println("Performing line minimization")
+
     dVol = Ham.grid.dVol
 
     # Probably preallocate these outside linmin_grad?
@@ -56,6 +58,8 @@ function linmin_grad_v2!(
     else
         α_aux = 0.0
     end
+
+    println("Done performing line minimization")
 
     return α, α_aux
 

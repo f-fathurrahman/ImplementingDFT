@@ -33,12 +33,8 @@ function calc_energies_grad!(
     E_f, Ham.energies.mTS =
     update_Focc!( Ham.electrons.Focc, smear_fermi, smear_fermi_entropy,
                   Ham.electrons.eorbs, Float64(Ham.electrons.Nelectrons), kT )
-    
-    println("Electron orbital energies")
-    for ist in 1:Nstates
-        @printf("%5d %18.10f %18.10f\n", ist, Ham.electrons.eorbs[ist], Ham.electrons.Focc[ist])
-    end
-    @printf("Fermi energy = %18.10f\n\n", E_f)
+
+    @printf("Updating Focc: Fermi energy = %18.10f\n\n", E_f)
 
     Rhoe = zeros(Float64, Ham.grid.Npoints)
     calc_rhoe!( Ham, evars.psi, Rhoe )
@@ -71,12 +67,11 @@ function calc_energies_grad!(
         fprimeNum[ist] = fprime[ist] * ( evars.Hsub[ist,ist] - Ham.electrons.eorbs[ist] )
     end
     
-    dmuNum = dmuNum + w*sum(fprimeNum)
-    dmuDen = dmuDen + w*sum(fprime)
+    dmuNum = w*sum(fprimeNum)
+    dmuDen = w*sum(fprime)
     dmuContrib = dmuNum/dmuDen
     
     gradF0 = evars.Hsub - diagm( 0 => Ham.electrons.eorbs )
-    #gradF0[:] = diagm( 0 => ( diag(evars.Hsub[i]) - evars.Haux_eigs[:,i] ) )
         
     gradF = copy(gradF0)
     for ist in 1:Nstates
@@ -85,9 +80,9 @@ function calc_energies_grad!(
     g_tmp = grad_smear( smear_fermi, smear_fermi_prime, Ham.electrons.eorbs, E_f, kT, gradF )
     
     g.Haux = w * 0.5 * (g_tmp' + g_tmp) # 
-    Kg.Haux = -0.1*copy(gradF0) #-0.1*copy(gradF0), precondition?
+    Kg.Haux = -copy(gradF0) #-0.1*copy(gradF0), precondition?
 
-    println("\nFinished calculating energy and gradients\n")
+    println("Finished calculating energy and gradients\n")
 
     # Return total free energy
     return sum( Ham.energies )
@@ -108,11 +103,11 @@ function calc_grad!(
     Focc = Ham.electrons.Focc
     #
     Hψ = op_H( Ham, ψ )
-    Hsub[:] = ψ' * Hψ * Ham.grid.dVol
+    Hsub[:,:] = ψ' * Hψ * Ham.grid.dVol
     Hψ = Hψ - ψ*Hsub
     #
     for ist in 1:Nstates
-        g[:,ist] = Focc[ist] * Hψ[:,ist]
+        @views g[:,ist] = Focc[ist] * Hψ[:,ist]
     end
     return
 end
@@ -131,18 +126,13 @@ function do_step!(
     rotPrevC = subrot.prevC
     rotPrevCinv = subrot.prevCinv
 
-    Haux = zeros(Float64,Nstates,Nstates)
-    rot = zeros(Float64,Nstates,Nstates)
-    rotC = zeros(Float64,Nstates,Nstates)
-
     evars.psi = evars.psi + α*d.psi*rotPrevC
 
     # Haux fillings:
     Haux = diagm( 0 => Ham.electrons.eorbs )
-
     Haux = Haux + α_Haux*( rotPrev' * d.Haux * rotPrev )
 
-    Ham.electrons.eorbs[:], rot = eigen(Hermitian(Haux)) # need to symmetrize?
+    Ham.electrons.eorbs, rot = eigen(Hermitian(Haux)) # need to symmetrize?
  
     #rotC = rot
     #eVars.orthonormalize(q, &rotC);
@@ -151,9 +141,9 @@ function do_step!(
     evars.psi = evars.psi*rotC
 
     # Accumulate rotation
-    rotPrev = rotPrev * rot
-    rotPrevC = rotPrevC * rotC
-    rotPrevCinv = inv(rotC) * rotPrevCinv
+    subrot.prev = rotPrev * rot
+    subrot.prevC = rotPrevC * rotC
+    subrot.prevCinv = inv(rotC) * rotPrevCinv
     return 
 end
 

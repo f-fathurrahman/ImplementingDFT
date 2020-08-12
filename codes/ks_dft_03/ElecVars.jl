@@ -84,6 +84,18 @@ function calc_Hsub_eigs!( evars::ElecVars )
 end
 
 
+function print_eorbs_Hsub_eigs( Ham, evars )
+    eorbs = Ham.electrons.eorbs
+    Hsub_eigs = evars.Hsub_eigs
+    Nstates = size(eorbs,1)
+    println("\neorbs and Hsub eigenvalues:")
+    for ist in 1:Nstates
+        @printf("%4d %10.5f %18.10f %18.10f %18.10e\n", ist, Ham.electrons.Focc[ist],
+            eorbs[ist], Hsub_eigs[ist], abs(eorbs[ist]-Hsub_eigs[ist]))
+    end
+    return
+end
+
 import Base: show
 function show( io::IO, evars::ElecVars )
     #

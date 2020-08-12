@@ -8,7 +8,7 @@ function KS_solve_Emin_SD_Haux!(
 
     g = ElecGradient(Ham)
     Kg = ElecGradient(Ham)
-    gPrev = ElecGradient(Ham)
+    #gPrev = ElecGradient(Ham)
 
     subrot = SubspaceRotations(Nstates)
 
@@ -22,14 +22,22 @@ function KS_solve_Emin_SD_Haux!(
     d = deepcopy(g) # XXX should only allocate memory
 
     # Constrain
-    constrain_search_dir!( d, evars, dVol )
+    #constrain_search_dir!( d, evars, dVol )
 
     β = 0.0
 
     # Begin iter
     for iter in 1:NiterMax
 
-        @printf("\nBegin iteration #%4d\n", iter)
+        @printf("---------------------\n")
+        @printf("Begin iteration #%4d\n", iter)
+        @printf("---------------------\n")
+
+        println(evars)
+
+        println("\ng.Haux = ")
+        display(g.Haux); println()
+        println()
 
         ss = dot(evars.psi, g.psi)*dVol
         @printf("dot evars.psi and g.psi     = %18.10f\n", ss)
@@ -54,19 +62,23 @@ function KS_solve_Emin_SD_Haux!(
         d.psi[:] = -Kg.psi[:]
         d.Haux[:]  = -Kg.Haux[:]
 
-        constrain_search_dir!( d, evars, dVol )
+        #constrain_search_dir!( d, evars, dVol )
 
         #α = linmin_grad_v1!( Ham, evars, g, d, kT, subrot )
         #α_Haux = α
-        α, α_Haux = linmin_grad_v2!( Ham, evars, g, d, kT, subrot )
-        #α = 1.0
-        #α_Haux = 1.0
+        #α, α_Haux = linmin_grad_v2!( Ham, evars, g, d, kT, subrot )
+        α = 0.1
+        α_Haux = 0.1
         println("α      = ", α)
         println("α_Haux = ", α_Haux)
+        println("\nDoing real step:")
+        println("d.Haux = ")
+        display(d.Haux); println()
         do_step!( Ham, α, α_Haux, evars, d, subrot )
 
         Etot_old = Etot
         Etot = compute!( Ham, evars, g, Kg, kT, subrot )
+
         #println(Ham.energies)
         diffE = Etot - Etot_old
         @printf("Emin_SD_Haux: %5d %18.10f %18.10e ", iter, Etot, abs(diffE))
@@ -76,6 +88,7 @@ function KS_solve_Emin_SD_Haux!(
             println()
         end
         calc_Hsub_eigs!(evars)
+        print_eorbs_Hsub_eigs(Ham, evars)
     end
 
     println()
