@@ -36,18 +36,18 @@ function main( Ham::Hamiltonian; use_smearing=false )
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    KS_solve_SCF!(Ham, psi, betamix=0.25, use_smearing=use_smearing,
-        guess_density=:random)
-    
-    #KS_solve_SCF_potmix!(Ham, psi, betamix=0.25, use_smearing=use_smearing,
+    #KS_solve_SCF!(Ham, psi, betamix=0.25, use_smearing=use_smearing,
     #    guess_density=:random)
+    
+    KS_solve_SCF_potmix!(Ham, psi, betamix=0.25, use_smearing=use_smearing,
+        guess_density=:random)
 
-    #KS_solve_SCF_NLsolve!(Ham, psi, betamix=1.0,
-    #    use_smearing=use_smearing,
-    #    guess_density=:gaussian)
+    #KS_solve_SCF_NLsolve!(Ham, psi, betamix=0.25, use_smearing=use_smearing,
+    #    guess_density=:random)
 
 end
 
-@time main( create_Ham_Al_atom(40, grid_type=:FD), use_smearing=true )
+#@time main( create_Ham_Al_atom(40, grid_type=:FD), use_smearing=true )
+@time main( create_Ham_Al_atom(40, grid_type=:LF), use_smearing=true )
 #@time main( create_Ham_LiH(40, grid_type=:FD), use_smearing=false )
 #@time main( create_Ham_CO(40, grid_type=:FD), use_smearing=false )
