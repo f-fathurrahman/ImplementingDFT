@@ -37,6 +37,9 @@ function main( Ham::Hamiltonian; use_smearing=false )
 
     evars = ElecVars(Ham, psi)
     println(evars)
+    #Ham.electrons.eorbs[:] = [-6.0, -5.0, -4.0, -3.0, -2.0, -1.0] #evars.Hsub_eigs[:]
+
+    println("Initial eorbs is set to Hsub_eigs")
     Ham.electrons.eorbs[:] = evars.Hsub_eigs[:]
 
     g = ElecGradient(Ham)
@@ -52,38 +55,16 @@ function main( Ham::Hamiltonian; use_smearing=false )
     ss = dot(diagm(0 => Ham.electrons.eorbs), g.Haux)
     @printf("dot diagm(eorbs) and g.Haux = %18.10f\n", ss)
 
-    println("eorbs = ")
-    display(Ham.electrons.eorbs); println()
-
     # Doing step
     d = deepcopy(g)
-    d.psi[:] = -Kg.psi[:]
-    d.Haux[:]  = -Kg.Haux[:]
+    d.psi[:] = -g.psi[:]
+    d.Haux[:]  = -g.Haux[:]
     α = 0.0
     α_Haux = 0.1
-    #
-    println("g.Haux = ")
-    display(g.Haux); println()
-    println("d.Haux = ")
-    display(d.Haux); println()
-    #
+
     do_step!( Ham, α, α_Haux, evars, d, subrot )
-    println("After do_step!")
-    println(evars)
 
-    println("eorbs = ")
-    display(Ham.electrons.eorbs); println()
-
-    Etot_new = compute!( Ham, evars, g, Kg, kT, subrot )
-    #
-    println("After compute!")
-    println(evars)
-    println("eorbs = ")
-    display(Ham.electrons.eorbs); println()
-    println("g.Haux = ")
-    display(g.Haux); println()
-
-
+    Etot_new = compute!( Ham, evars, g, Kg, kT, subrot )    
 
     ss = dot(evars.psi, g.psi)*dVol
     @printf("dot evars.psi and g.psi     = %18.10f\n", ss)

@@ -8,6 +8,12 @@ function compute!(
     
     rotPrevCinv = subrot.prevCinv
     rotPrev = subrot.prev
+
+    println("in compute! rotPrev: ")
+    display(rotPrev); println()
+
+    println("in compute! rotPrevCinv: ")
+    display(rotPrevCinv); println()
     
     g.psi = g.psi * rotPrevCinv
     Kg.psi = Kg.psi * rotPrevCinv
@@ -25,19 +31,29 @@ function calc_energies_grad!(
     g::ElecGradient, Kg::ElecGradient, kT::Float64
 )
 
-    println("\nCalculating energy and gradients\n")
+    println("--------------------------------")
+    println("Calculating energy and gradients")
+    println("--------------------------------")
 
     Nstates = Ham.electrons.Nstates
+
+    println("eorbs (Haux):")
+    display(Ham.electrons.eorbs); println()
+
+    println("Before: ", Ham.electrons.Focc)
 
     # Using electrons.eorbs as energy eigevalues
     E_f, Ham.energies.mTS =
     update_Focc!( Ham.electrons.Focc, smear_fermi, smear_fermi_entropy,
                   Ham.electrons.eorbs, Float64(Ham.electrons.Nelectrons), kT )
 
+    println("After:  ", Ham.electrons.Focc)
+
     @printf("Updating Focc: Fermi energy = %18.10f\n\n", E_f)
 
     Rhoe = zeros(Float64, Ham.grid.Npoints)
     calc_rhoe!( Ham, evars.psi, Rhoe )
+    println("integ Rhoe = ", sum(Rhoe)*Ham.grid.dVol)
     update!( Ham, Rhoe )
     
     # Calculate total energy
@@ -52,6 +68,9 @@ function calc_energies_grad!(
     for ist in 1:Nstates
         @views ldiv!(Ham.precKin, Kg.psi[:,ist])
     end
+
+    println("Hsub = ")
+    display(evars.Hsub); println()
 
     #
     # Gradient for Haux
@@ -70,19 +89,42 @@ function calc_energies_grad!(
     dmuNum = w*sum(fprimeNum)
     dmuDen = w*sum(fprime)
     dmuContrib = dmuNum/dmuDen
-    
+    println("fprime     = ", fprime)
+    println("fprimeNum  = ", fprimeNum)
+    println("dmuContrib = ", dmuContrib)
+    if isnan(dmuContrib)
+        exit()
+    end
+
+
     gradF0 = evars.Hsub - diagm( 0 => Ham.electrons.eorbs )
-        
+    
+    println("gradF0 = ")
+    display(gradF0); println()
+
     gradF = copy(gradF0)
     for ist in 1:Nstates
         gradF[ist,ist] = gradF0[ist,ist] - dmuContrib
     end
+    println("gradF = ")
+    display(gradF); println()
+
     g_tmp = grad_smear( smear_fermi, smear_fermi_prime, Ham.electrons.eorbs, E_f, kT, gradF )
+    println("g_tmp = ")
+    display(g_tmp); println()
     
     g.Haux = w * 0.5 * (g_tmp' + g_tmp) # 
     Kg.Haux = -copy(gradF0) #-0.1*copy(gradF0), precondition?
 
-    println("Finished calculating energy and gradients\n")
+    println("g.Haux = ")
+    display(g.Haux); println()
+
+    println("Kg.Haux = ")
+    display(Kg.Haux); println()
+
+    println("-----------------------------------------")
+    println("Finished calculating energy and gradients")
+    println("-----------------------------------------")
 
     # Return total free energy
     return sum( Ham.energies )
@@ -119,6 +161,12 @@ function do_step!(
     α::Float64, α_Haux::Float64, evars::ElecVars, d::ElecGradient,
     subrot::SubspaceRotations
 )
+
+    println("-----------------------------")
+    println("Doing step α      = ", α)
+    println("           α_Haux = ", α_Haux)
+    println("-----------------------------")
+
     dVol = Ham.grid.dVol
     Nstates = size(evars.psi,2)
 
@@ -130,9 +178,22 @@ function do_step!(
 
     # Haux fillings:
     Haux = diagm( 0 => Ham.electrons.eorbs )
+    println("Haux: ")
+    display(Haux); println()
+    println("d.Haux: ")
+    display(d.Haux); println()
+    println("rotPrev = ")
+    display(rotPrev); println()
+
     Haux = Haux + α_Haux*( rotPrev' * d.Haux * rotPrev )
 
+    println("Haux + d.Haux: ")
+    display(Haux); println()
+
     Ham.electrons.eorbs, rot = eigen(Hermitian(Haux)) # need to symmetrize?
+
+    println("After diagonalization eorbs: ")
+    display(Ham.electrons.eorbs); println()
  
     #rotC = rot
     #eVars.orthonormalize(q, &rotC);
@@ -144,6 +205,18 @@ function do_step!(
     subrot.prev = rotPrev * rot
     subrot.prevC = rotPrevC * rotC
     subrot.prevCinv = inv(rotC) * rotPrevCinv
+
+    println("rotPrev = ")
+    display(subrot.prev); println()
+    println("rotPrevC = ")
+    display(subrot.prevC); println()
+    println("rotPrevCinv = ")
+    display(subrot.prevCinv); println()
+
+    println("---------------")
+    println("End of do_step!")
+    println("---------------")
+
     return 
 end
 
