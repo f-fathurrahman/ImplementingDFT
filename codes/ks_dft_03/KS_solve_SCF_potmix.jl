@@ -1,4 +1,4 @@
-function KS_solve_SCF!(
+function KS_solve_SCF_potmix!(
     Ham::Hamiltonian, psi::Array{Float64,2};
     NiterMax=200, betamix=0.5,
     etot_conv_thr=1e-6,
@@ -41,12 +41,12 @@ function KS_solve_SCF!(
     dRhoe = 0.0
     NiterMax = 100
 
-    ethr_evals_last=1e-5
-    ethr = 0.1
+    Rhoe_old = copy(Rhoe)
+    Vxc_inp = zeros(Float64,Npoints)
+    VHa_inp = zeros(Float64,Npoints)
 
-    # Mixing arrays
-    betav = betamix*ones(Float64, Npoints)
-    df = zeros(Float64, Npoints)
+    ethr_evals_last = 1e-5
+    ethr = 0.1
 
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
@@ -78,37 +78,24 @@ function KS_solve_SCF!(
                       evals, Float64(Ham.electrons.Nelectrons), kT )
             @printf("Fermi energy = %18.10f\n", E_f)
         end
-        #println("Nelectrons = ", Ham.electrons.Nelectrons)
-        #println("Focc = ", Ham.electrons.Focc)
-        #println("sum(Focc) = ", sum(Ham.electrons.Focc))
 
-        calc_rhoe!( Ham, psi, Rhoe_new )
-        #integ_rho = sum(Rhoe_new)*dVol
-        #println("integ_rho (before renormalized) = ", integ_rho)
-        #for ip in 1:length(Rhoe_new)
-        #    Rhoe_new[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe_new[ip]
-        #end
-        #println("integ Rhoe before mix = ", sum(Rhoe_new)*dVol)
+        calc_rhoe!( Ham, psi, Rhoe )
 
-        Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-        #mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
-        
-        #integ_rho = sum(Rhoe)*dVol
-        #println("integ Rhoe after mix (before renormalized) = ", integ_rho)
-        #for ip in 1:length(Rhoe)
-        #    Rhoe[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe[ip]
-        #end
-        #println("integ Rhoe after mix (after renormalized) = ", sum(Rhoe)*dVol)
+        # Save the old (input) potential, before updating the potential
+        Vxc_inp[:] = Ham.V_XC
+        VHa_inp[:] = Ham.V_Hartree
 
         update!( Ham, Rhoe )
+
+        # Now Ham.potentials contains new (output) potential
 
         calc_energies!( Ham, psi )
         Etot = sum( Ham.energies )
 
-        dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints # MAE
+        dRhoe = sum(abs.(Rhoe - Rhoe_old))/Npoints # MAE
         dEtot = abs(Etot - Etot_old)
 
-        @printf("SCF: %5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
+        @printf("SCF_potmix: %5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
 
         if dEtot < etot_conv_thr
             Nconverges = Nconverges + 1
@@ -117,7 +104,7 @@ function KS_solve_SCF!(
         end
 
         if Nconverges >= 2
-            @printf("\nSCF is converged in iter: %d\n", iterSCF)
+            @printf("\nSCF_potmix is converged in iter: %d\n", iterSCF)
             @printf("\nEigenvalues:\n")
             for i in 1:Nstates
                 @printf("%3d %18.10f\n", i, evals[i])
@@ -125,7 +112,14 @@ function KS_solve_SCF!(
             break
         end
 
+        # Mix potential
+        Ham.V_Hartree = betamix*Ham.V_Hartree + (1-betamix)*VHa_inp
+        Ham.V_XC = betamix*Ham.V_XC + (1-betamix)*Vxc_inp
+
         Etot_old = Etot
+        Rhoe_old = copy(Rhoe)
+        flush(stdout)
+
     end
 
     println(Ham.energies)
