@@ -96,6 +96,9 @@ function KS_solve_SCF_potmix!(
         dEtot = abs(Etot - Etot_old)
 
         @printf("SCF_potmix: %5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
+        if Etot_old - Etot < 0.0
+            println("WARNING: Energy is not reducing")
+        end
 
         if dEtot < etot_conv_thr
             Nconverges = Nconverges + 1
@@ -105,9 +108,9 @@ function KS_solve_SCF_potmix!(
 
         if Nconverges >= 2
             @printf("\nSCF_potmix is converged in iter: %d\n", iterSCF)
-            @printf("\nEigenvalues:\n")
+            @printf("\nOccupations and eigenvalues:\n")
             for i in 1:Nstates
-                @printf("%3d %18.10f\n", i, evals[i])
+                @printf("%3d %8.5f %18.10f\n", i, Ham.electrons.Focc[i], evals[i])
             end
             break
         end

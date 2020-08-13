@@ -118,9 +118,9 @@ function KS_solve_SCF!(
 
         if Nconverges >= 2
             @printf("\nSCF is converged in iter: %d\n", iterSCF)
-            @printf("\nEigenvalues:\n")
+            @printf("\nOccupations and eigenvalues:\n")
             for i in 1:Nstates
-                @printf("%3d %18.10f\n", i, evals[i])
+                @printf("%3d %8.5f %18.10f\n", i, Ham.electrons.Focc[i], evals[i])
             end
             break
         end
