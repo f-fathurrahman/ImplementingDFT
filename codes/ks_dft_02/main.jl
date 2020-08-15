@@ -12,6 +12,7 @@ const DIR_STRUCTURES = "../structures"
 
 include("create_Ham.jl")
 include("KS_solve_SCF.jl")
+include("KS_solve_SCF_potmix.jl")
 include("KS_solve_Emin_PCG.jl")
 
 function main(Ham_func, N, grid_type)
@@ -34,7 +35,8 @@ function main(Ham_func, N, grid_type)
     ortho_sqrt!(psi,dVol)
 
     #KS_solve_Emin_PCG!(Ham, psi)
-    KS_solve_SCF!(Ham, psi, betamix=0.25)
+    #KS_solve_SCF!(Ham, psi, betamix=0.25)
+    KS_solve_SCF_potmix!(Ham, psi, betamix=0.25)
 end
 
 main(create_Ham_CO, 40, :FD)
