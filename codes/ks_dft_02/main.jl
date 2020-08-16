@@ -37,8 +37,12 @@ function main(Ham_func, N, grid_type)
 
     #KS_solve_Emin_PCG!(Ham, psi)
     #KS_solve_SCF!(Ham, psi, betamix=0.25)
-    #KS_solve_SCF_potmix!(Ham, psi, betamix=0.25)
-    KS_solve_TRDCM!(Ham, psi)
+    KS_solve_SCF_potmix!(Ham, psi, betamix=0.25)
+    #KS_solve_TRDCM!(Ham, psi)
 end
 
-@time main(create_Ham_CO, 40, :FD)
+#@time main(create_Ham_CO, 40, :FD)
+#@time main(create_Ham_H2O, 40, :FD)
+#@time main(create_Ham_LiH, 40, :FD)
+#@time main(create_Ham_NH3, 40, :FD)
+@time main(create_Ham_CH4, 40, :FD)
