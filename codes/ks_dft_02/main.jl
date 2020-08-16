@@ -14,6 +14,7 @@ include("create_Ham.jl")
 include("KS_solve_SCF.jl")
 include("KS_solve_SCF_potmix.jl")
 include("KS_solve_Emin_PCG.jl")
+include("KS_solve_TRDCM.jl")
 
 function main(Ham_func, N, grid_type)
     
@@ -34,9 +35,10 @@ function main(Ham_func, N, grid_type)
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    KS_solve_Emin_PCG!(Ham, psi)
+    #KS_solve_Emin_PCG!(Ham, psi)
     #KS_solve_SCF!(Ham, psi, betamix=0.25)
     #KS_solve_SCF_potmix!(Ham, psi, betamix=0.25)
+    KS_solve_TRDCM!(Ham, psi)
 end
 
 @time main(create_Ham_CO, 40, :FD)
