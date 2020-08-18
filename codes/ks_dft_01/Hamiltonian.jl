@@ -1,3 +1,5 @@
+const AMG_PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
+
 mutable struct Hamiltonian
     grid::Union{FD3dGrid,LF3dGrid}
     Laplacian::SparseMatrixCSC{Float64,Int64}
@@ -7,7 +9,7 @@ mutable struct Hamiltonian
     electrons::Electrons
     rhoe::Vector{Float64}
     atoms::Atoms
-    precKin
+    precKin::Union{AMG_PREC_TYPE,ILU0Preconditioner}
     psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
     energies::Energies
     gvec::Union{Nothing,GVectors}

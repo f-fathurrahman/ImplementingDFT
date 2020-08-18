@@ -28,17 +28,10 @@ function main()
 
     grid = LF3dGrid( NN, AA, BB )
 
-    println("hx = ", grid.hx)
-    println("hy = ", grid.hy)
-    println("hz = ", grid.hz)
-    println("dVol = ", grid.dVol)
-    println(grid.hx*grid.hy*grid.hz)
-
-    my_pot_harmonic( grid ) = pot_harmonic( grid, ω=2 )
-
-    Nstates = 4
-    Nelectrons = 2*Nstates
-    Ham = Hamiltonian( grid, my_pot_harmonic, Nelectrons=Nelectrons )
+    V_Ps_loc = pot_harmonic( grid, ω=2 )
+    Nelectrons = 8
+    Nstates = round(Int64,Nelectrons/2)
+    Ham = Hamiltonian( Atoms(), grid, V_Ps_loc, Nelectrons=Nelectrons )
 
     Nbasis = prod(NN)
 
@@ -47,10 +40,6 @@ function main()
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi)
     psi = psi/sqrt(dVol)
-
-    for i in 1:Nstates
-        @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
-    end
 
     Rhoe = calc_rhoe( Ham, psi )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
@@ -67,10 +56,6 @@ function main()
     for iterSCF in 1:NiterMax
 
         evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-
-        #psi = psi*sqrt(dVol) # for diag_davidson
-        #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
-
         psi = psi/sqrt(dVol) # renormalize
 
         Rhoe_new = calc_rhoe( Ham, psi )

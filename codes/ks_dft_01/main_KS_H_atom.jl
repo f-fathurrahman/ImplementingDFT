@@ -17,7 +17,6 @@ function main()
     NN = [41, 41, 41]
 
     grid = FD3dGrid( NN, AA, BB )
-    #grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
     println(grid)
 
     atoms = Atoms(xyz_string="""
@@ -60,14 +59,8 @@ function main()
     for iterSCF in 1:NiterMax
 
         evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-        #evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=false )
-
-        #psi = psi*sqrt(dVol) # for diag_davidson
-        #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
-
         psi = psi/sqrt(dVol) # renormalize
 
-        #Rhoe_new = calc_rhoe( Ham, psi )
         calc_rhoe!( Ham, psi, Rhoe_new )
 
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe

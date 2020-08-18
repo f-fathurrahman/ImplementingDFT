@@ -34,17 +34,11 @@ function main()
 
     grid = FD3dGrid( NN, AA, BB )
 
-    println("hx = ", grid.hx)
-    println("hy = ", grid.hy)
-    println("hz = ", grid.hz)
-    println("dVol = ", grid.dVol)
-    println(grid.hx*grid.hy*grid.hz)
-
-    my_pot_local( grid ) = pot_gaussian( grid, α=1.0, A=1.0, normalized=true )
+    V_Ps_loc = pot_gaussian( grid, α=1.0, A=1.0, normalized=true )
 
     Nstates = 1
     Nelectrons = 2*Nstates
-    Ham = Hamiltonian( grid, my_pot_local, Nelectrons=Nelectrons )
+    Ham = Hamiltonian( Atoms(), grid, V_Ps_loc, Nelectrons=Nelectrons )
 
     Nbasis = prod(NN)
 
@@ -53,10 +47,6 @@ function main()
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi)
     psi = psi/sqrt(dVol)
-
-    for i in 1:Nstates
-        @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
-    end
 
     Rhoe = zeros(Float64, Nbasis)
     Rhoe_new = zeros(Float64, Nbasis)
@@ -76,10 +66,6 @@ function main()
     for iterSCF in 1:NiterMax
 
         evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-
-        #psi = psi*sqrt(dVol) # for diag_davidson
-        #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
-
         psi = psi/sqrt(dVol) # renormalize
 
         Rhoe_new = calc_rhoe( Ham, psi )

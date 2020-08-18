@@ -42,10 +42,6 @@ function main()
     ortho_sqrt!(psi)
     psi = psi/sqrt(dVol)
 
-    for i in 1:Nstates
-        @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
-    end
-
     Rhoe = calc_rhoe( Ham, psi )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
 
