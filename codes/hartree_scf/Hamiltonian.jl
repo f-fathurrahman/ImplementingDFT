@@ -1,3 +1,5 @@
+const AMG_PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
+
 mutable struct Hamiltonian
     grid::Union{FD3dGrid,LF3dGrid}
     Laplacian::SparseMatrixCSC{Float64,Int64}
@@ -6,7 +8,7 @@ mutable struct Hamiltonian
     electrons::Electrons
     rhoe::Vector{Float64}
     atoms::Atoms
-    precKin
+    precKin::Union{AMG_PREC_TYPE,ILU0Preconditioner}
     psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
     energies::Energies
     gvec::Union{Nothing,GVectors}
@@ -17,7 +19,9 @@ Build a Hamiltonian with given FD grid and local potential.
 """
 function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
     Nelectrons=2, Nstates_extra=0,
-    stencil_order=9
+    stencil_order=9,
+    prec_type=:ILU0
+
 )
     
     # Need better mechanism for this
@@ -40,7 +44,11 @@ function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
     Rhoe = zeros(Float64, Npoints)
 
     @printf("Building preconditioners ...")
-    precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+    if prec_type == :amg
+        precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+    else
+        precKin = ILU0Preconditioner(-0.5*Laplacian)
+    end
     @printf("... done\n")
 
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
@@ -57,8 +65,7 @@ function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
                         Rhoe, atoms, precKin, psolver, energies, gvec )
 end
 
-import Base: *
-function *( Ham::Hamiltonian, psi::Matrix{Float64} )
+function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
     Hpsi = zeros(Float64,Nbasis,Nstates)
@@ -67,6 +74,11 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
         Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] ) * psi[ip,ist]
     end
     return Hpsi
+end
+
+import Base: *
+function *( Ham::Hamiltonian, psi::Matrix{Float64} )
+    return op_H(Ham, psi)
 end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )

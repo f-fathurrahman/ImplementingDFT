@@ -44,6 +44,8 @@ export Atoms
 include("../common/GVectors.jl")
 export GVectors
 
+include("../common/ILU0Preconditioner.jl")
+
 include("../common/calc_strfact.jl")
 export calc_strfact, calc_strfact_shifted
 
