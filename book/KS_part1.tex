@@ -1,13 +1,14 @@
 \chapter{Kohn-Sham equation part I}
 
-In this chapter we will put together tools that we have built in the previous chapters.
-Our task is to solve the Kohn-Sham equation:
+\section{Introduction}
+
+In this chapter we will put together Schroedinger and Poisson solver
+that we have built in the previous chapters to solve the Kohn-Sham equation:
 \begin{equation}
 \left[ -\frac{1}{2}\nabla^2 + V_{\mathrm{KS}}(\mathbf{r}) \right]
 \psi_{i}(\mathbf{r}) = \epsilon_{i} \psi_{i}(\mathbf{r})
 \end{equation}
-where $V_{\mathrm{KS}}(\mathbf{r})$ is effective single
-particle potential or
+where $V_{\mathrm{KS}}(\mathbf{r})$ is effective single particle potential or
 the Kohn-Sham potential:
 \begin{equation}
 V_{\mathrm{KS}}(\mathbf{r}) =
@@ -15,21 +16,49 @@ V_{\mathrm{ext}}(\mathbf{r}) + V_{\mathrm{Ha}}(\mathbf{r}) + V_{\mathrm{xc}}(\ma
 \label{eq:KS_pot_local}
 \end{equation}
 
-The Kohn-Sham equation looks very much like Schroedinger equation, but with two additional
-potentials: the Hartree and XC potential.
-We will consider a 3d systems, so the techniques
-that we have learned in Chapter \ref{chap:sch_3d} will be used for solving the
-Kohn-Sham equation. Due to the presence of Hartree and XC potential, there will be additional
-steps that need to be performed in order to solve the Kohn-Sham equation.
-To calculate Hartree and XC potential, we need to calculate electron density which depend
-on the solution of the Kohn-Sham equation itself. Because of this chicken-and-egg
-characteristic, the Kohn-Sham equation must be solved self-consistently.
-
-Solutions to the Kohn-Sham equation are the Kohn-Sham orbitals
-$\psi_{i}(\mathrm{r})$ and eigenvalues $\epsilon_{i}$.
-Total Kohn-Sham energy can be written as:
+The Kohn-Sham equation looks very much like Schroedinger equation,
+but with two additional potentials: the Hartree and XC potential.
+Hartree potential is the classical electrostatic interaction potential which is defined as
 \begin{equation}
-E^{\mathrm{KS}}_{\mathrm{tot}} = E_{\mathrm{kin}} + E_{\mathrm{ext}}
+V_{\mathrm{Ha}}(\mathbf{r}) = \int \frac{\rho(\mathbf{r}')}{\left| \mathbf{r} - \mathbf{r}' \right|}
+\,\mathrm{d}\mathbf{r}'
+\end{equation}
+where $\rho(\mathbf{r})$ is the electron density:
+\begin{equation}
+\rho(\mathbf{r}) = \sum_{i} f_{i} \psi_{i}^{*}(\mathbf{r}) \psi_{i}(\mathbf{r})
+\label{eq:elec_dens_01}
+\end{equation}
+we can use any methods in Chapter \ref{chap:poisson_3d} to calculate
+$V_{\mathrm{Ha}}(\mathbf{r})$. The factor $f_{i}$ in the Equation \ref{eq:elec_dens_01}
+is the occupation number of the electron.
+Exchange-correlation potential, $V_{\mathrm{xc}}$, has no explicit form in terms of
+electron density. For practical purpose, we must resort to approximate forms which
+will be given later.
+
+Note that to calculate electron density, we must know the Kohn-Sham orbitals.
+To obtain Kohn-Sham orbitals, we must solve the Kohn-Sham equations which
+demand us to calculate $V_{\mathrm{Ha}}$ and $V_{\mathrm{xc}}$. Meanwhile,
+we can not these potentials without knowing electron density.
+Because of this chicken-and-egg
+characteristic, the Kohn-Sham equation must be solved using self-consitent field (SCF) method.
+We usually start from a guess or "input" electron density and solve the Kohn-Sham equation
+for this guess density. From the solution of the Kohn-Sham equation, we obtain
+Kohn-Sham energies and orbitals which can be used to calculate "output" electron density.
+This "output" density is then compared with the "input" electron density. If they are
+not the same then we create a new input density to the Kohn-Sham solver. This procedure
+is repeated until the difference between "input" and "output" density is small.
+In this case, we said that the SCF is convergent.
+
+We also can monitor the convergence of other quantities other than electron density.
+In this book, we will usually use total energy as the convergence criteria for SCF.
+Thus, we will begin by reviewing total energy terms in a typical density functional
+theory calculations.
+
+\section{Total energy terms}
+
+The main quantity of interest is total energy
+\begin{equation}
+E_{\mathrm{KS}} = E_{\mathrm{kin}} + E_{\mathrm{ext}}
 + E_{\mathrm{Ha}} + E_{\mathrm{xc}}
 \end{equation}
 %
@@ -47,7 +76,7 @@ E_{\mathrm{ext}} = \int \rho(\mathbf{r}) V_{\mathrm{ext}}(\mathbf{r})
 %
 Hartree energy:
 \begin{equation}
-E_{\mathrm{ext}} = \int \rho(\mathbf{r}) V_{\mathrm{Ha}}(\mathbf{r})
+E_{\mathrm{Ha}} = \frac{1}{2} \int \rho(\mathbf{r}) V_{\mathrm{Ha}}(\mathbf{r})
 \,\mathrm{d}\mathbf{r}
 \end{equation}
 %
@@ -60,48 +89,50 @@ where $\varepsilon_{\mathrm{xc}}$ is the XC energy per particle per volume.
 
 Alternative expression of total energy as sum of orbital energies:
 \begin{equation}
-E^{\mathrm{KS}}_{\mathrm{tot}} = \sum_{i}^{N} \epsilon_{i} - E_{\mathrm{Ha}} + E_{\mathrm{xc}}
+E_{\mathrm{KS}} = \sum_{i}^{N} \epsilon_{i} - E_{\mathrm{Ha}} + E_{\mathrm{xc}}
 - \int \frac{\delta E_{\mathrm{xc}}}{\delta \rho(\mathbf{r})} \rho(\mathbf{r})
 \,\mathrm{d}\mathbf{r}
 \end{equation}
 
-Nucleus-nucleus interaction energy:
+Nucleus-nucleus interaction energy is also usually added to the Kohn-Sham energy
+making up the total energy of the system:
 \begin{equation}
-E_{\mathrm{tot}} = E^{\mathrm{KS}}_{\mathrm{tot}} + E_{\mathrm{NN}}
+E_{\mathrm{tot}} = E_{\mathrm{KS}} + E_{\mathrm{NN}}
+\end{equation}
+where:
+\begin{equation}
+E_{\mathrm{NN}} = \frac{1}{2} \sum_{I,J \neq I}
+\frac{Z_{I} Z_{J}}{\left| \mathbf{R}_{I} - \mathbf{R}_{J} \right|}
 \end{equation}
 
-We first consider that the case of $V_{\mathrm{xc}}=0$. This will make our first implementation
+
+
+\section{Data structures}
+
+We will first describe several custom data structure (or \jlinline{struct}s)
+to make our program somewhat more manageable.
+
+In the following, we will first consider the case of
+$V_{\mathrm{xc}}=0$. This will make our first implementation
 of self-consistent field to be easier.
+We will consider a 3d systems, so the programs
+that we have made in Chapter \ref{chap:sch_3d} will be used as the starting point
+for building and Kohn-Sham solver.
 
-\section{Hartree calculation}
+\subsection{The Hamiltonian}
 
-Hartree potential is the classical electrostatic interaction potential.
-It is defined as
-\begin{equation}
-V_{\mathrm{Ha}}(\mathbf{r}) = \int \frac{\rho(\mathbf{r}')}{\left| \mathbf{r} - \mathbf{r}' \right|}
-\,\mathrm{d}\mathbf{r}'
-\end{equation}
-Given the electron density:
-\begin{equation}
-\rho(\mathbf{r}) = \sum_{i} f_{i} \psi_{i}^{*}(\mathbf{r}) \psi_{i}(\mathbf{r})
-\label{eq:elec_dens_01}
-\end{equation}
-we can use any methods in Chapter \ref{chap:poisson_3d} to calculate
-$V_{\mathrm{Ha}}(\mathbf{r})$. The factor $f_{i}$ in the Equation \ref{eq:elec_dens_01}
-is the occupation number of the electron.
-
-\subsection{The Hamiltonian struct}
-
-Because our Hamiltonian contain additional potential, its action to a wave function is
+Because our Hamiltonian now contains additional potentials other that external ionic
+potential, its action or multiplication to a wave function is
 more complicated. We also need to implement several operations such as calculation
 of electron density for given wave functions and total energy.
-These calculations usually need access to several variables. To make access to various
+These calculations usually need to access to several variables. To make access to various
 variables easy, we will wrap them in a "big" Julia struct. We will call this struct
 as \jlinline{Hamiltonian}.
 
 The definition of the \jlinline{Hamiltonian} struct can be seen in the following
 Julia code.
 \begin{juliacode}
+const AMG_PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
 mutable struct Hamiltonian
   grid::Union{FD3dGrid,LF3dGrid}
   Laplacian::SparseMatrixCSC{Float64,Int64}
@@ -110,7 +141,7 @@ mutable struct Hamiltonian
   electrons::Electrons
   rhoe::Vector{Float64}
   atoms::Atoms
-  precKin
+  precKin::Union{AMG_PREC_TYPE,ILU0Preconditioner}
   psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
   energies::Energies
   gvec::Union{Nothing,GVectors}
@@ -161,11 +192,17 @@ periodic structure.
 The following constructor can be used to initialize an instance of \jlinline{Hamiltonian}.
 
 \begin{juliacode}
-function Hamiltonian(
-  atoms::Atoms, grid, V_Ps_loc;
-  Nelectrons=2, Nstates_extra=0
+function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
+  Nelectrons=2, Nstates_extra=0, stencil_order=9,
+  prec_type=:ILU0
 )
-  Laplacian = build_nabla2_matrix( grid )
+  # Grid
+  if typeof(grid) == FD3dGrid
+      Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
+  else
+      Laplacian = build_nabla2_matrix( grid )
+  end
+  # Initialize gvec for periodic case
   if grid.pbc == (true,true,true)
       gvec = GVectors(grid)
   else
@@ -174,7 +211,11 @@ function Hamiltonian(
   Npoints = grid.Npoints
   V_Hartree = zeros(Float64, Npoints)
   Rhoe = zeros(Float64, Npoints)
-  precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+  if prec_type == :amg
+      precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+  else
+      precKin = ILU0Preconditioner(-0.5*Laplacian)
+  end
   electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
   if grid.pbc == (false,false,false)
       psolver = PoissonSolverDAGE(grid)
@@ -189,14 +230,9 @@ end
 
 An important operation that must be defined for \jlinline{Hamiltonian} is the
 multiplication between Hamiltonian and wave function.
-We can define this operator by overloading the \jlinline{*} operator.
-In the following code, first we apply the kinetic matrix by using the
-\jlinline{Laplacian} field of \jlinline{Hamiltonian}, using sparse matrix
-multiplication. This step is the followed by application of potential operator
-which now consists of \jlinline{V_Ps_loc} and \jlinline{V_Hartree}.
+This task is implemented in the function \jlinline{op_H}
 \begin{juliacode}
-import Base: *
-function *( Ham::Hamiltonian, psi::Matrix{Float64} )
+function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
   Nbasis = size(psi,1)
   Nstates = size(psi,2)
   Hpsi = zeros(Float64,Nbasis,Nstates)
@@ -207,9 +243,23 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
   return Hpsi
 end
 \end{juliacode}
+In the function \jlinline{o_H}, first we apply the kinetic matrix by using the
+\jlinline{Laplacian} field of \jlinline{Hamiltonian}, using sparse matrix
+multiplication. This step is the followed by application of potential operator
+which now consists of \jlinline{V_Ps_loc} and \jlinline{V_Hartree}.
 
+We optionally can overload \jlinline{*} function so that we can use the usual
+multiplication operator to carry out the action of Hamiltonian to wave function
+\begin{juliacode}
+import Base: *
+function *( Ham::Hamiltonian, psi::Matrix{Float64} )
+  return op_H(Ham, psi)
+end
+\end{juliacode}
 
-We also define a function for updating the potential for an input electron density.
+We also define a function for updating the potentials (in this case only the Hartree potential, in
+a full KS calculatio it also includes XC potential)
+for an input electron density.
 For our current purpose, this function do two things:
 copy the input electron density to \jlinline{Ham.rhoe} and calculate the
 Hartree potential by calling \jlinline{Poisson_solve} function.
@@ -317,11 +367,14 @@ end
 \end{juliacode}
 
 
-\subsection{Harmonic potential}
+\section{Examples Hartree theory calculations}
 
-We are now ready to implement our self-consistent field solution to the Kohn-Sham equation.
-As in the previous chapters, we will chose a system with 3d harmonic potential as the
-external potential.
+In this section, we will begin our implementation of SCF Hatree theory for several
+simple systems.
+As in the previous chapters, we will start fromm a system with 3d harmonic potential as the
+external potential. We will also 
+
+\subsection{Harmonic potential}
 
 First, we define the grid.
 \begin{juliacode}
@@ -332,7 +385,8 @@ grid = FD3dGrid( NN, AA, BB )
 \end{juliacode}
 
 The, we calculate the external potential. We will use \jlinline{V_Ps_loc} as the name of
-the external potential. We also choose $\omega=2$.
+the external potential even though we are not dealing with pseudopotential.
+We also choose $\omega=2$.
 \begin{juliacode}
 V_Ps_loc = pot_harmonic( grid, ω=2 )
 \end{juliacode}
@@ -346,7 +400,7 @@ Nstates = round(Int64,Nelectrons/2)
 Ham = Hamiltonian( Atoms(), grid, V_Ps_loc, Nelectrons=Nelectrons )
 \end{juliacode}
 
-We prepare random wave functions for guess solution to the Kohn-Sham equation.
+After that, we prepare random wave functions for guess solution to the Kohn-Sham equation.
 \begin{juliacode}
 Npoints = grid.Npoints
 dVol = grid.dVol
@@ -399,15 +453,21 @@ is the input density for the next SCF iteration.
 The SCF cycle is implemented in the following Julia code.
 \begin{juliacode}
 for iterSCF in 1:NiterMax
+  # Diagonalize the Hamiltonian
   evals = diag_LOBPCG!(Ham, psi, Ham.precKin)
   psi = psi/sqrt(dVol)
+  # Calculate output electron density
   Rhoe_new = calc_rhoe(Ham, psi)
+  # Mix electron density
   Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+  # Update potential
   update!( Ham, Rhoe )
+  # Calculate total energy
   Etot = sum( calc_energies( Ham, psi ) )
   dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints
   dEtot = abs(Etot - Etot_old)
   @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
+  # Check convergence
   if dEtot < 1e-6
     @printf("Convergence is achieved in %d iterations\n", iterSCF)
     for i in 1:Nstates
@@ -440,6 +500,22 @@ NN      =       0.0000000000
 Total   =      62.2907100832
 \end{textcode}
 
+Here is the result obtained using Octopus.
+\begin{textcode}
+ *********************** SCF CYCLE ITER #   18 ************************
+ etot  =  6.22907491E+01 abs_ev   =  1.22E-04 rel_ev   =  1.41E-06
+ ediff =       -1.13E-04 abs_dens =  6.72E-05 rel_dens =  8.39E-06
+Matrix vector products:     27
+Converged eigenvectors:      0
+
+#  State  Eigenvalue [H]  Occupation    Error
+      1        9.803876    2.000000   (9.3E-06)
+      2       11.150521    2.000000   (9.3E-06)
+      3       11.150524    2.000000   (7.1E-06)
+      4       11.150525    2.000000   (9.6E-06) 
+\end{textcode}
+
+We get similar result with Octopus.
 
 
 
@@ -481,8 +557,10 @@ NN      =       0.0000000000
 Total   =      -0.2562602740
 \end{textcode}
 
-TODO: try using denser grid. Study convergence of the total energy with respect
-grid spacing.
+
+\begin{center}
+\includegraphics[scale=1.0]{../codes/hartree_scf/LOG_files/IMG_H.pdf}
+\end{center}
 
 
 \subsection{$\ce{H2}$ molecule}
@@ -528,10 +606,9 @@ NN      =       0.6666666667
 Total   =      -0.5972197417
 \end{textcode}
 
-TODO: try using denser grid. Study convergence of the total energy with respect
-grid spacing.
-
-
+\begin{center}
+\includegraphics[scale=1.0]{../codes/hartree_scf/LOG_files/IMG_H2.pdf}
+\end{center}
 
 
 \section{Kohn-Sham calculations}
@@ -629,8 +706,7 @@ end
 Application of Hamiltonian
 
 \begin{juliacode}
-import Base: *
-function *( Ham::Hamiltonian, psi::Matrix{Float64} )
+function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
   Nbasis = size(psi,1)
   Nstates = size(psi,2)
   Hpsi = zeros(Float64,Nbasis,Nstates)
@@ -645,9 +721,11 @@ end
 
 Calculation of XC energy:
 \begin{juliacode}
-psxc = calc_epsxc_VWN( XCCalculator(), Ham.rhoe )
+epsxc = calc_epsxc_VWN( XCCalculator(), Ham.rhoe )
 Ham.energies.XC = sum( epsxc .* Ham.rhoe )*dVol
 \end{juliacode}
+
+\section{Examples of KS calculations}
 
 \subsection{Harmonic potential}
 
@@ -787,3 +865,13 @@ Similar observation as H atom.
 {\centering
 \includegraphics[scale=1.0]{../codes/ks_dft_02/LOG_files/IMG_H2.pdf}
 }
+
+\section{Exercise}
+
+SCF convergence. Vary the \jlinline{betamix} parameter. Observe or the convergence
+of SCF with respect to betamix.
+
+Try adding one empty orbitals. Visualize the orbitals. Compare the results of
+KS and Hartree. Are there any difference?
+
+Calculate KS for periodic H-chain.
