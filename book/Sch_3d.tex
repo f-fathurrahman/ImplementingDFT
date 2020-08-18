@@ -15,19 +15,19 @@ $\nabla^2$ is the Laplacian operator in 3d:
 \frac{\partial^2}{\partial z^2}
 \end{equation}
 
-\subsection{Three-dimensional grid}
+\section{Three-dimensional grid}
 
 As in the preceeding chapter, our first task is to create a representation of 3d grid
 points and various quantities defined on it. This task is realized using straightforward
-extension of \txtinline{FD2dGrid} to \txtinline{FD3dGrid}.
-
+extension of \jlinline{FD2dGrid} to \jlinline{FD3dGrid}.
+We refer the readers to the file \txtinline{FD3dGrid.jl} for the full definition of
+\jlinline{FD3dGrid}.
 
 Visualization of 3d functions as isosurface map or slice of 3d array.
 
 Introducing 3d xsf
 
-
-\subsection{Laplacian operator}
+\section{Laplacian operator}
 
 The Laplacian in 3d can be written as:
 \begin{equation}
@@ -99,7 +99,7 @@ Convergence is achieved based on nconv
 %
 The obtained eigenvalues are close the the analytic solution.
 Note that the we have second lowest eigenstate of degeneracy 3.
-You can try to vary the number of requested eigenstates to very that the degeneracies are
+We can vary the number of requested eigenstates to verify that the degeneracies are
 correct.
 
 
@@ -108,7 +108,7 @@ correct.
 \subsection{Coulomb potential and its singularity}
 
 Until now, we only have considered simple potentials such as harmonic potential. Now we will
-move on and consider more realistic potentials which is used in practical electronic calculations.
+consider more realistic potentials which is used in practical molecular electronic calculations.
 
 For most applications in materials physics and chemistry the external potential that is
 felt by electrons is the Coulombic potential due to atomic nucleus. This potential has
