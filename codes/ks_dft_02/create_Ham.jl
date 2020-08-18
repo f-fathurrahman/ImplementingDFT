@@ -1,3 +1,23 @@
+function create_Ham_Al2( N::Int64; grid_type=:FD )
+    atoms = Atoms( xyz_string=
+        """
+        2
+
+        Al  1.06196 0.0  0.0
+        Al -1.06196 0.0  0.0
+        """)
+    pspfiles = [ joinpath(DIR_PSP,"Al-q3.gth") ]
+    AA = -8.0*ones(3)
+    BB =  8.0*ones(3)
+    NN = [N,N,N]
+    if (grid_type == :sinc) || (grid_type == :LF)
+        grid = LF3dGrid( NN, AA, BB, types=(:sinc,:sinc,:sinc) )
+    else
+        grid = FD3dGrid( NN, AA, BB )
+    end
+    return Hamiltonian( atoms, pspfiles, grid )    
+end
+
 function create_Ham_LiH( N::Int64; grid_type=:FD )
     atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"LiH.xyz") )
     pspfiles = [ joinpath(DIR_PSP,"H-q1.gth"),

@@ -35,9 +35,9 @@ function main(Ham_func, N, grid_type)
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    #KS_solve_Emin_PCG!(Ham, psi)
+    KS_solve_Emin_PCG!(Ham, psi)
     #KS_solve_SCF!(Ham, psi, betamix=0.25)
-    KS_solve_SCF_potmix!(Ham, psi, betamix=0.25)
+    #KS_solve_SCF_potmix!(Ham, psi, betamix=0.25)
     #KS_solve_TRDCM!(Ham, psi)
 end
 
@@ -45,4 +45,5 @@ end
 #@time main(create_Ham_H2O, 40, :FD)
 #@time main(create_Ham_LiH, 40, :FD)
 #@time main(create_Ham_NH3, 40, :FD)
-@time main(create_Ham_CH4, 40, :FD)
+#@time main(create_Ham_CH4, 40, :FD)
+@time main(create_Ham_Al2, 40, :FD)
