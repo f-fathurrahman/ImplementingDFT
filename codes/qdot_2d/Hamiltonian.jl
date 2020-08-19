@@ -34,9 +34,9 @@ function Hamiltonian( grid, V_loc::Array{Float64,1};
 
     @printf("Building preconditioners ...")
     if prec_type == :amg
-        precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian + spdiagm(0 => V_Ps_loc) ) )
+        precKin = aspreconditioner(ruge_stuben(-0.5*Laplacian))
     else
-        precKin = ILU0Preconditioner( -0.5*Laplacian + spdiagm(0 => V_Ps_loc) )
+        precKin = ILU0Preconditioner(-0.5*Laplacian)
     end
     @printf("... done\n")
 
