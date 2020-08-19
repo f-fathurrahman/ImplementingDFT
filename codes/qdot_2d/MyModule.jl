@@ -61,4 +61,12 @@ export calc_E_xc_2d, calc_V_xc_2d, calc_E_xc_V_xc_2d
 include("calc_energies.jl")
 export calc_energies!
 
+include("smearing.jl")
+include("occupations.jl")
+include("KS_solve_SCF.jl")
+export KS_solve_SCF!
+
+include("KS_solve_SCF_potmix.jl")
+export KS_solve_SCF_potmix!
+
 end

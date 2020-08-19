@@ -1,4 +1,4 @@
-function KS_solve_SCF!(
+function KS_solve_SCF_potmix!(
     Ham::Hamiltonian, psi::Array{Float64,2};
     NiterMax=200, betamix=0.5,
     etot_conv_thr=1e-6,
@@ -18,14 +18,18 @@ function KS_solve_SCF!(
     
     calc_rhoe!( Ham, psi, Rhoe )
     update!( Ham, Rhoe )
-    evals = zeros(Float64,Nstates)
+    evals = zeros(Float64, Nstates)
 
     Etot_old = 0.0
     dEtot = 0.0
     dRhoe = 0.0
     NiterMax = 100
 
-    ethr_evals_last=1e-5
+    Rhoe_old = copy(Rhoe)
+    Vxc_inp = zeros(Float64,Npoints)
+    VHa_inp = zeros(Float64,Npoints)
+
+    ethr_evals_last = 1e-5
     ethr = 0.1
 
     Nconverges = 0
@@ -57,17 +61,26 @@ function KS_solve_SCF!(
             @printf("Fermi energy = %18.10f\n", E_f)
         end
 
-        calc_rhoe!( Ham, psi, Rhoe_new )
-        Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        calc_rhoe!( Ham, psi, Rhoe )
+
+        # Save the old (input) potential, before updating the potential
+        Vxc_inp[:] = Ham.V_XC
+        VHa_inp[:] = Ham.V_Hartree
 
         update!( Ham, Rhoe )
+
+        # Now Ham.potentials contains new (output) potential
+
         calc_energies!( Ham, psi )
         Etot = sum( Ham.energies )
 
-        dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints # MAE
+        dRhoe = sum(abs.(Rhoe - Rhoe_old))/Npoints # MAE
         dEtot = abs(Etot - Etot_old)
 
-        @printf("SCF: %5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
+        @printf("SCF_potmix: %5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
+        if Etot_old - Etot < 0.0
+            println("WARNING: Energy is not reducing")
+        end
 
         if dEtot < etot_conv_thr
             Nconverges = Nconverges + 1
@@ -76,19 +89,24 @@ function KS_solve_SCF!(
         end
 
         if Nconverges >= 2
-            @printf("\nSCF is converged in iter: %d\n", iterSCF)
+            @printf("\nSCF_potmix is converged in iter: %d\n", iterSCF)
             break
         end
 
+        # Mix potential
+        Ham.V_Hartree = betamix*Ham.V_Hartree + (1-betamix)*VHa_inp
+        Ham.V_XC = betamix*Ham.V_XC + (1-betamix)*Vxc_inp
+
         Etot_old = Etot
+        Rhoe_old = copy(Rhoe)
         flush(stdout)
+
     end
 
     @printf("\nOccupations and eigenvalues:\n")
     for i in 1:Nstates
         @printf("%3d %8.5f %18.10f\n", i, Ham.electrons.Focc[i], evals[i])
     end
-
     println(Ham.energies)
 
     return
