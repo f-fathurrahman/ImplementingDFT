@@ -89,7 +89,27 @@ function show( io::IO, grid::LF2dGrid )
     @printf("LF2dGrid instance\n")
     @printf("-----------------\n")
 
-    @printf(io, "Nx = %8d, hx = %18.10f\n", grid.Nx, grid.hx)
-    @printf(io, "Ny = %8d, hy = %18.10f\n", grid.Ny, grid.hy)
+    Nx = grid.Nx; hx = grid.hx
+    Ny = grid.Ny; hy = grid.hy
+
+    println()
+    @printf(io, "Box size          = %10.5f %10.5f\n", grid.Lx, grid.Ly)
+    @printf(io, "Grid spacing      = %10.5f %10.5f\n", hx, hy)
+    @printf(io, "Sampling Nx Ny Nz = %8d %8d\n", Nx, Ny)
+    @printf(io, "Number of points  = %10d\n", grid.Npoints)
+    @printf(io, "dVol              = %10.5f\n", grid.dVol)
+    println()
+    @printf("Some grid points in x, y, and z directions:\n")
+    println()
+    @printf("%8d %10.5f %8d %10.5f\n", 1, grid.x[1], 1, grid.y[1])
+    @printf("%8d %10.5f %8d %10.5f\n", 2, grid.x[2], 2, grid.y[2])
+    @printf("       ..   .......        ..   .......\n")
+    @printf("%8d %10.5f %8d %10.5f\n", Nx-1, grid.x[Nx-1], Ny-1, grid.y[Ny-1])
+    @printf("%8d %10.5f %8d %10.5f\n", Nx, grid.x[Nx], Ny, grid.y[Ny])
+    println()
+
+    println()
+    println("grid.pbc = ", grid.pbc)
+    println()
 end
 show( fdgrid::LF2dGrid ) = show(stdout, grid)
