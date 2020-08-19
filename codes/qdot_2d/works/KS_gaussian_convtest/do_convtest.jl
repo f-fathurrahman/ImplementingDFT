@@ -8,47 +8,47 @@ using SpecialFunctions
 
 using MyModule
 
-function pot_harmonic( grid; ω=1.0, center=[0.0, 0.0] )
+function pot_gaussian( grid::FD2dGrid; A=1.0, α=1.0 )
     Npoints = grid.Npoints
-    Vpot = zeros(Npoints)
+    f = zeros(Npoints)
     for i in 1:Npoints
-        x = grid.r[1,i] - center[1]
-        y = grid.r[2,i] - center[2]
-        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
+        x = grid.r[1,i]
+        y = grid.r[2,i]
+        r2 = x^2 + y^2
+        f[i] = -A*exp(-α*r2)
     end
-    return Vpot
+    return f
 end
 
-function do_run(N::Int64; Nstates=1)
+function do_run(N::Int64; Nstates=1, basis=:FD)
 
     Random.seed!(1234)
 
-    AA = [-25.0, -25.0]
-    BB = [ 25.0,  25.0]
+    AA = [-8.0, -8.0]
+    BB = [ 8.0,  8.0]
     NN = [N, N]
 
-    #grid = FD2dGrid( NN, AA, BB )
-    #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
-    grid = LF2dGrid( NN, AA, BB, types=(:C,:C) )
+    if basis == :FD
+        grid = FD2dGrid( NN, AA, BB )
+    elseif basis == :sinc
+        grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
+    elseif basis == :pib
+        grid = LF2dGrid( NN, AA, BB, types=(:C,:C) )
+    else
+        error("Unknown basis: ", basis)
+    end
 
-    V_ext = pot_harmonic( grid, ω=0.22 )
+    V_ext = pot_gaussian( grid, α=1.0, A=10.0 )
     
     Nelectrons = 2*Nstates
     Ham = Hamiltonian( grid, V_ext, Nelectrons=Nelectrons )
-
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 
-    Nbasis = prod(NN)
-
+    Npoints = grid.Npoints
     dVol = grid.dVol
-
-    psi = rand(Float64,Nbasis,Nstates)
+    psi = rand(Float64,Npoints,Nstates)
     ortho_sqrt!(psi)
     psi = psi/sqrt(dVol)
-
-    for i in 1:Nstates
-        @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
-    end
 
     Rhoe = calc_rhoe( Ham, psi )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
@@ -58,7 +58,7 @@ function do_run(N::Int64; Nstates=1)
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
-    betamix = 0.5
+    betamix = 0.1
     dRhoe = 0.0
     NiterMax = 200
     etot_conv_thr = 1e-6
@@ -67,7 +67,6 @@ function do_run(N::Int64; Nstates=1)
     for iterSCF in 1:NiterMax
 
         evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-
         psi = psi/sqrt(dVol) # renormalize
 
         Rhoe_new = calc_rhoe( Ham, psi )
@@ -79,7 +78,7 @@ function do_run(N::Int64; Nstates=1)
         calc_energies!( Ham, psi )
         Etot = sum( Ham.energies )
 
-        dRhoe = norm(Rhoe - Rhoe_new)
+        dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints
         dEtot = abs(Etot - Etot_old)
 
         @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)
@@ -92,24 +91,22 @@ function do_run(N::Int64; Nstates=1)
 
         if Nconverges >= 1
             @printf("\nSCF is converged in iter: %d\n", iterSCF)
-            @printf("\nEigenvalues:\n")
-            for i in 1:Nstates
-                @printf("%3d %18.10f\n", i, evals[i])
-            end
             break
         end
 
         Etot_old = Etot
     end
 
+    @printf("\nEigenvalues:\n")
+    for i in 1:Nstates
+        @printf("%3d %18.10f\n", i, evals[i])
+    end
+
     println(Ham.energies)
 
 end
 
-do_run(20, Nstates=3)
-do_run(30, Nstates=3)
-do_run(40, Nstates=3)
-do_run(50, Nstates=3)
-do_run(60, Nstates=3)
-do_run(70, Nstates=3)
-do_run(80, Nstates=3)
+do_run(30, Nstates=2, basis=:FD)
+#for N in range(20, stop=80, step=10)
+#    do_run(N, Nstates=3, basis=:FD)
+#end
