@@ -9,6 +9,16 @@ function KS_solve_SCF_potmix!(
     guess_density=:random
 )
 
+    if use_smearing
+        Nstates_occ = Ham.electrons.Nstates_occ
+        Nstates = Ham.electrons.Nstates
+        if Nstates <= Nstates_occ
+            println("Nstates_occ = ", Nstates_occ)
+            println("Nstates     = ", Nstates)
+            error("Cannot use smearing")
+        end
+    end
+
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     dVol = Ham.grid.dVol
@@ -23,7 +33,6 @@ function KS_solve_SCF_potmix!(
     Etot_old = 0.0
     dEtot = 0.0
     dRhoe = 0.0
-    NiterMax = 100
 
     Rhoe_old = copy(Rhoe)
     Vxc_inp = zeros(Float64,Npoints)
@@ -33,6 +42,7 @@ function KS_solve_SCF_potmix!(
     ethr = 0.1
 
     Nconverges = 0
+    CONVERGED = false
 
     for iterSCF in 1:NiterMax
 
@@ -57,7 +67,12 @@ function KS_solve_SCF_potmix!(
         if use_smearing
             E_f, Ham.energies.mTS =
             update_Focc!( Ham.electrons.Focc, smear_func, smear_func_entropy,
-                      evals, Float64(Ham.electrons.Nelectrons), kT )
+                          evals, Float64(Ham.electrons.Nelectrons), kT )
+            @printf("\nOccupations and eigenvalues:\n")
+            for i in 1:Nstates
+                @printf("%3d %8.5f %18.10f\n", i, Ham.electrons.Focc[i], evals[i])
+            end
+            println("kT = ", kT)
             @printf("Fermi energy = %18.10f\n", E_f)
         end
 
@@ -89,6 +104,7 @@ function KS_solve_SCF_potmix!(
         end
 
         if Nconverges >= 2
+            CONVERGED = true
             @printf("\nSCF_potmix is converged in iter: %d\n", iterSCF)
             break
         end
@@ -108,6 +124,8 @@ function KS_solve_SCF_potmix!(
         @printf("%3d %8.5f %18.10f\n", i, Ham.electrons.Focc[i], evals[i])
     end
     println(Ham.energies)
+    println("CONVERGED = ", CONVERGED)
+
 
     return
 end
