@@ -5,7 +5,7 @@ end
 
 function ortho_sqrt!( psi )
     Udagger = inv(sqrt(psi'*psi))
-    psi[:,:] = psi*Udagger
+    @views psi[:,:] = psi[:,:]*Udagger
 end
 
 function ortho_sqrt( psi, dVol )
@@ -15,5 +15,5 @@ end
 
 function ortho_sqrt!( psi, dVol )
     Udagger = inv(sqrt(psi'*psi*dVol))
-    psi[:,:] = psi*Udagger
+    @views psi[:,:] = psi[:,:]*Udagger
 end

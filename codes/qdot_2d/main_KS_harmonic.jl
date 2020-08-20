@@ -7,13 +7,13 @@ using SpecialFunctions
 
 using MyModule
 
-function pot_harmonic( grid; ω=1.0, center=[0.0, 0.0] )
+function pot_harmonic( grid; ω=1.0, center=[0.0, 0.0], A=1.0 )
     Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
         x = grid.r[1,i] - center[1]
         y = grid.r[2,i] - center[2]
-        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
+        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 ) - A
     end
     return Vpot
 end
@@ -29,7 +29,10 @@ function main()
     grid = FD2dGrid( NN, AA, BB )
     #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
 
-    V_ext = pot_harmonic( grid, ω=0.22 )
+    Npoints = grid.Npoints
+    dVol = grid.dVol
+
+    V_ext = pot_harmonic( grid, ω=0.22, A=1.0 )
     
     Nstates = 1
     Nelectrons = 2*Nstates
@@ -37,19 +40,13 @@ function main()
 
     @printf("sizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 
-    Nbasis = prod(NN)
+    psi = rand(Float64,Npoints,Nstates)
+    ortho_sqrt!(psi, dVol)
 
-    dVol = grid.dVol
+    Rhoe = zeros(Float64,Npoints)
+    Rhoe_new = zeros(Float64,Npoints)
 
-    psi = rand(Float64,Nbasis,Nstates)
-    ortho_sqrt!(psi)
-    psi = psi/sqrt(dVol)
-
-    for i in 1:Nstates
-        @printf("%18.10f\n", dot(psi[:,i], psi[:,i])*dVol )
-    end
-
-    Rhoe = calc_rhoe( Ham, psi )
+    calc_rhoe!( Ham, psi, Rhoe )
     @printf("Integrated Rhoe = %18.10f\n", sum(Rhoe)*dVol)
 
     update!( Ham, Rhoe )
@@ -59,18 +56,17 @@ function main()
     dEtot = 0.0
     betamix = 0.5
     dRhoe = 0.0
-    NiterMax = 200
+    NiterMax = 1
     etot_conv_thr = 1e-6
     Nconverges = 1
 
     for iterSCF in 1:NiterMax
 
-        evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-
+        #evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
+        evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=false )
         psi = psi/sqrt(dVol) # renormalize
 
-        Rhoe_new = calc_rhoe( Ham, psi )
-
+        calc_rhoe!( Ham, psi, Rhoe_new )
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
 
         update!( Ham, Rhoe )
@@ -78,7 +74,7 @@ function main()
         calc_energies!( Ham, psi )
         Etot = sum( Ham.energies )
 
-        dRhoe = norm(Rhoe - Rhoe_new)
+        dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints
         dEtot = abs(Etot - Etot_old)
 
         @printf("%5d %18.10f %18.10e %18.10e\n", iterSCF, Etot, dEtot, dRhoe)

@@ -8,13 +8,13 @@ using Gnuplot
 
 using MyModule
 
-function pot_harmonic( grid; ω=1.0 )
+function pot_harmonic( grid; ω=1.0, A=0.0 )
     Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
         x = grid.r[1,i]
         y = grid.r[2,i]
-        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
+        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 ) - A
     end
     return Vpot
 end
@@ -23,14 +23,16 @@ function main()
 
     Random.seed!(1234)
 
-    Nx = 81
-    Ny = 81
-    L = 50.0
-    grid = FD2dGrid( (-L/2,L/2), Nx, (-L/2,L/2), Ny )
+    AA = [-25.0, -25.0]
+    BB = [ 25.0,  25.0]
+    NN = [81, 81]
+
+    #grid = FD2dGrid( NN, AA, BB )
+    grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
 
     ∇2 = build_nabla2_matrix( grid )
 
-    Vpot = pot_harmonic( grid, ω=0.22 )
+    Vpot = pot_harmonic( grid, ω=0.22, A=1.0 )
     
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
@@ -41,7 +43,7 @@ function main()
 
     dVol = grid.dVol
     Nstates = 5
-    Npoints = Nx*Ny
+    Npoints = grid.Npoints
     X = rand(Float64, Npoints, Nstates)
     ortho_sqrt!(X, dVol)
 
@@ -86,7 +88,7 @@ function main()
         @gp "set term pdfcairo size 12cm,13cm fontscale 0.5" :-
         @gp :- "set output '$filesave'" :-
         @gp :- "set view 70, 40" :-
-        @gsp :- grid.x grid.y reshape(X[:,ist],Nx,Ny) "w pm3d notitle" palette(:viridis)
+        @gsp :- grid.x grid.y reshape(X[:,ist],NN[1],NN[2]) "w pm3d notitle" palette(:viridis)
         @gsp :- "set xrange [-9:9]" :-
         @gsp :- "set yrange [-9:9]"
     end

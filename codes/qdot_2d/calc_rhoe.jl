@@ -16,7 +16,7 @@ function calc_rhoe!( Ham::Hamiltonian, psi::Array{Float64,2}, Rhoe::Array{Float6
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
     Focc = Ham.electrons.Focc
-    Rhoe[:] = zeros(Float64,Nbasis)
+    @views Rhoe[:] .= 0.0
     for ist in 1:Nstates
         for ip in 1:Nbasis
             Rhoe[ip] = Rhoe[ip] + Focc[ist]*psi[ip,ist]*psi[ip,ist]

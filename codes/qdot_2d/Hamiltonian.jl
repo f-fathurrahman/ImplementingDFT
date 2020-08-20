@@ -61,7 +61,6 @@ end
 function op_H( Ham::Hamiltonian, psi )
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
-    Hpsi = zeros(eltype(psi),Nbasis,Nstates)
     Hpsi = -0.5*Ham.Laplacian * psi
     for ist in 1:Nstates, ip in 1:Nbasis
         Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
