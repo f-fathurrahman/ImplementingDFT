@@ -8,6 +8,9 @@ LOG_*
 IMG_*
 ORIG_*
 
+*.cov
+*.mem
+
 *.dat
 *.swp
 *.swo
