@@ -50,7 +50,7 @@ include("../common/NoPreconditioner.jl")
 export ILU0Preconditioner, NoPreconditioner
 
 include("Hamiltonian.jl")
-export Hamiltonian, update!, op_H
+export Hamiltonian, update!, op_H, op_H!
 
 include("calc_rhoe.jl")
 export calc_rhoe, calc_rhoe!

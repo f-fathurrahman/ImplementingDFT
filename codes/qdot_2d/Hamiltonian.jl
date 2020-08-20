@@ -14,7 +14,7 @@ end
 
 function Hamiltonian( grid, V_loc::Array{Float64,1};
     Nelectrons=2, Nstates_extra=0,
-    stencil_order=9, prec_type=:ILU0
+    stencil_order=9, prec_type=:ILU0, verbose=false
 )
 
     # Need better mechanism for this
@@ -32,13 +32,13 @@ function Hamiltonian( grid, V_loc::Array{Float64,1};
     V_XC = zeros(Float64, Npoints)
     Rhoe = zeros(Float64, Npoints)
 
-    @printf("Building preconditioners ...")
+    verbose && @printf("Building preconditioners ...")
     if prec_type == :amg
         precKin = aspreconditioner(ruge_stuben(-0.5*Laplacian))
     else
         precKin = ILU0Preconditioner(-0.5*Laplacian)
     end
-    @printf("... done\n")
+    verbose && @printf("... done\n")
 
     electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
 
@@ -47,11 +47,21 @@ function Hamiltonian( grid, V_loc::Array{Float64,1};
                         Rhoe, precKin, energies )
 end
 
-
-function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
+# In-place version
+function op_H!( Ham::Hamiltonian, psi, Hpsi )
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
-    Hpsi = zeros(Float64,Nbasis,Nstates)
+    Hpsi[:,:] = -0.5*Ham.Laplacian * psi
+    for ist in 1:Nstates, ip in 1:Nbasis
+        Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
+    end
+    return
+end
+
+function op_H( Ham::Hamiltonian, psi )
+    Nbasis = size(psi,1)
+    Nstates = size(psi,2)
+    Hpsi = zeros(eltype(psi),Nbasis,Nstates)
     Hpsi = -0.5*Ham.Laplacian * psi
     for ist in 1:Nstates, ip in 1:Nbasis
         Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
