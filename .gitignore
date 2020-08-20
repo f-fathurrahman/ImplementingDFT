@@ -1,3 +1,5 @@
+clean_mem_cov.sh
+
 .ipynb_checkpoints
 *.data
 OUT_*
