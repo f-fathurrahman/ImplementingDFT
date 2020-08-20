@@ -12,7 +12,7 @@ function calc_rhoe( Ham::Hamiltonian, psi::Array{Float64,2} )
 end
 
 
-function calc_rhoe!( Ham::Hamiltonian, psi::Array{Float64}, Rhoe::Array{Float64,1} )
+function calc_rhoe!( Ham::Hamiltonian, psi::Array{Float64,2}, Rhoe::Array{Float64,1} )
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
     Focc = Ham.electrons.Focc
