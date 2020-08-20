@@ -1,12 +1,14 @@
+push!(LOAD_PATH, pwd())
+
 using Printf
 using LinearAlgebra
 using SparseArrays
 using Random
 using Gnuplot
 
-include("INC_qdot_2d.jl")
+using MyModule
 
-function pot_harmonic( grid::FD2dGrid; ω=1.0 )
+function pot_harmonic( grid; ω=1.0 )
     Npoints = grid.Npoints
     Vpot = zeros(Npoints)
     for i in 1:Npoints
