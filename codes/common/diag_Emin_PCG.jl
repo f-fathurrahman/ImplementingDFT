@@ -1,30 +1,30 @@
 # used by diag_Emin_PCG
-function calc_grad_evals( Ham, psi::Array{Float64,2} )
+function calc_grad_evals!( Ham, psi, grad )
     Nbasis  = size(psi,1)
     Nstates = size(psi,2)
     #
-    grad = zeros(Float64,Nbasis,Nstates)
-    #
     H_psi = Ham*psi
     for ist in 1:Nstates
-        grad[:,ist] = H_psi[:,ist]
+        @views grad[:,ist] = H_psi[:,ist]
         for jst in 1:Nstates
-            grad[:,ist] = grad[:,ist] - dot( psi[:,jst], H_psi[:,ist] ) * psi[:,jst]
+            @views grad[:,ist] = grad[:,ist] - dot( psi[:,jst], H_psi[:,ist] ) * psi[:,jst]
         end
     end
     return grad
 end
 
 
-function diag_Emin_PCG!( Ham, X::Array{Float64,2}, prec;
-                         tol=1e-5,
-                         NiterMax=100,
-                         verbose=false,
-                         verbose_last=false,
-                         Nstates_conv=0,
-                         tol_ebands=1e-4,
-                         α_t=3e-5,
-                         i_cg_beta=2 )
+function diag_Emin_PCG!(
+    Ham, X::Array{Float64,2}, prec;
+    tol=1e-5,
+    NiterMax=100,
+    verbose=false,
+    verbose_last=false,
+    Nstates_conv=0,
+    tol_ebands=1e-4,
+    α_t=3e-5,
+    conv_info=[0,0]
+)
 
     Nbasis  = size(X,1)
     Nstates = size(X,2)
@@ -36,19 +36,19 @@ function diag_Emin_PCG!( Ham, X::Array{Float64,2}, prec;
     #
     # Variabls for PCG
     #
-    d = zeros(Float64,Nbasis,Nstates)
-    g_old = copy(d)
-    d_old = copy(d)
-    Kg = copy(d)
-    Kg_old = copy(d)
-    Xc = copy(d)
-    gt = copy(d)
+    g = zeros(Float64,Nbasis,Nstates)
+    d = copy(g)
+    g_old = copy(g)
+    d_old = copy(g)
+    Kg = copy(g)
+    Xc = copy(g)
+    gt = copy(g)
     
     β = 0.0
     
     Ebands_old = 0.0
 
-    Hr = Symmetric( X' * (Ham*X) )
+    Hr = Hermitian( X' * (Ham*X) )
 
     evals = eigvals(Hr)
     Ebands = sum(evals)
@@ -57,26 +57,21 @@ function diag_Emin_PCG!( Ham, X::Array{Float64,2}, prec;
     devals = ones(Nstates)
 
     IS_CONVERGED = false
+    gKg_old = 1.0
 
     for iter = 1:NiterMax
 
-        g = calc_grad_evals( Ham, X)
-        #Kg = Kprec( Ham.ik, pw, g )
-        Kg = copy(g)
+        calc_grad_evals!( Ham, X, g )
+
+        @views Kg[:,:] .= g[:,:]
         for i in 1:Nstates
             @views ldiv!(prec, Kg[:,i])
         end
 
+        gKg = real(dot(g,Kg))
         if iter != 1
-            if i_cg_beta == 1
-                β = real(sum(conj(g).*Kg))/real(sum(conj(g_old).*Kg_old))
-            elseif i_cg_beta == 2
-                β = real(sum(conj(g-g_old).*Kg))/real(sum(conj(g_old).*Kg_old))
-            elseif i_cg_beta == 3
-                β = real(sum(conj(g-g_old).*Kg))/real(sum(conj(g-g_old).*d))
-            else
-                β = real(sum(conj(g).*Kg))/real(sum((g-g_old).*conj(d_old)))
-            end
+            gOldKg = real(dot(g_old,Kg))
+            β = (gKg - gOldKg) / gKg_old
         end
         if β < 0.0
             β = 0.0
@@ -85,11 +80,11 @@ function diag_Emin_PCG!( Ham, X::Array{Float64,2}, prec;
         d = -Kg + β * d_old
 
         Xc = ortho_sqrt( X + α_t*d )
-        gt = calc_grad_evals( Ham, Xc )
+        calc_grad_evals!( Ham, Xc, gt )
 
-        denum = real(sum(conj(g-gt).*d))
+        denum = real(dot(g-gt,d))
         if denum != 0.0
-            α = abs( α_t*real(sum(conj(g).*d))/denum )
+            α = abs( α_t*real(dot(g,d))/denum )
         else
             α = 0.0
         end
@@ -118,25 +113,20 @@ function diag_Emin_PCG!( Ham, X::Array{Float64,2}, prec;
         end
         if nconv >= Nstates_conv
             IS_CONVERGED = true
+            conv_info[1] = nconv # no of converged eigevalues
+            conv_info[2] = iter  # no of iterations to converge
             if verbose || verbose_last
                 @printf("Convergence is achieved based on nconv\n")
             end
             break
         end
-        #if diffE <= tol_ebands*Nstates
-        #    IS_CONVERGED = true
-        #    if verbose || verbose_last
-        #        @printf("Convergence is achieved based on tol_ebands*Nstates\n")
-        #    end
-        #    break
-        #end
 
-        g_old = copy(g)
         d_old = copy(d)
-        Kg_old = copy(Kg)
+        g_old = copy(g)
+        gKg_old = gKg
         Ebands_old = Ebands
 
-        if verbose flush(stdout) end
+        verbose && flush(stdout)
 
     end
 
@@ -145,7 +135,7 @@ function diag_Emin_PCG!( Ham, X::Array{Float64,2}, prec;
     end
 
     ortho_sqrt!(X)
-    Hr = Symmetric( X' * (Ham*X) )
+    Hr = Hermitian( X' * (Ham*X) )
     evals, evecs = eigen(Hr)
     X[:,:] = X*evecs
 

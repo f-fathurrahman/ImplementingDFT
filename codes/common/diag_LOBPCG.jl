@@ -1,6 +1,9 @@
-function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
-                       tol=1e-5, NiterMax=100, verbose=false,
-                       verbose_last=false, Nstates_conv=0 )
+function diag_LOBPCG!(
+    Ham, X::Array{Float64,2}, prec;
+    tol=1e-5, NiterMax=100, verbose=false,
+    verbose_last=false, Nstates_conv=0,
+    conv_info=[0,0]
+)
 
     Nbasis = size(X)[1]
     Nstates = size(X)[2]
@@ -26,11 +29,11 @@ function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
     SMALL = 10.0*eps()
 
     IS_CONVERGED = false
-    
+
     for iter = 1:NiterMax
 
         # Rayleigh quotient
-        XHX = Symmetric(X'*HX)
+        XHX = Hermitian(X'*HX)
         evals = eigvals(XHX)
 
         devals = abs.( evals - evals_old )
@@ -61,6 +64,8 @@ function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
         # Check for convergence
         if nconv >= Nstates_conv
             IS_CONVERGED = true
+            conv_info[1] = nconv # no of converged eigevalues
+            conv_info[2] = iter  # no of iterations to converge
             if verbose || verbose_last
                 @printf("LOBPCG convergence: nconv = %d in %d iterations\n", nconv, iter)
             end
@@ -100,21 +105,21 @@ function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
             HW = HW - Xlock*(Xlock'*HW)
             #
             C = W[:,iact]'*W[:,iact] #C = (C+C')/2;
-            R = (cholesky(Symmetric(C))).U
+            R = (cholesky(Hermitian(C))).U
             W[:,iact] = W[:,iact]/R
             HW = HW/R
             #
             Q  = [X[:,iact] W[:,iact]]
             HQ = [HX[:,iact] HW]
 
-            T = Symmetric(Q'*(HQ))
-            G = Symmetric(Q'*Q)
+            T = Hermitian(Q'*(HQ))
+            G = Hermitian(Q'*Q)
             sd, S = eigen( T, G ) # evals, evecs
 
             U = S[:,1:Nact]
             Xact = Q*U;
             X[:,:] = [Xlock Xact]
-            T = Symmetric( X'* (Ham*X) ) #; T = (T+T')/2;
+            T = Hermitian( X'* (Ham*X) ) #; T = (T+T')/2;
             evalT, evecsT = eigen(T);
 
             X[:,:] = X*evecsT
@@ -127,7 +132,7 @@ function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
             C  = W'*W
             #C = 0.5*( C + C' )
             #
-            R  = (cholesky(Symmetric(C))).U
+            R  = (cholesky(Hermitian(C))).U
             W  = W/R
             HW = HW/R
             #
@@ -138,8 +143,8 @@ function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
                 HQ = [HQ HP]
             end
 
-            T = Symmetric(Q'*(HQ))
-            G = Symmetric(Q'*Q)
+            T = Hermitian(Q'*(HQ))
+            G = Hermitian(Q'*Q)
             sd, S = eigen(T, G) # evals, evecs
             #
             U = S[:,1:Nstates]
@@ -152,7 +157,7 @@ function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
                 HP = HW*U[set2,:] + HP*U[set3,:]
                 C = P'*P
                 #C = 0.5*(C + C')
-                R = (cholesky(Symmetric(C))).U
+                R = (cholesky(Hermitian(C))).U
                 P = P/R
                 HP = HP/R
             else
@@ -173,7 +178,7 @@ function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
     end
 
     S = X'*HX
-    S = Symmetric(0.5*(S+S'))
+    S = Hermitian(0.5*(S+S'))
     evals, Q = eigen(S)
     X[:,:] = X[:,:]*Q
     if verbose_last || verbose

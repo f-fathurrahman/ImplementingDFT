@@ -2,9 +2,12 @@
 Assumption:
 dot(X,X) = 1
 """
-function diag_davidson!( Ham, X::Array{Float64,2}, prec;
-                         tol=1e-5, NiterMax=100, verbose=false,
-                         verbose_last=false, Nstates_conv=0 )
+function diag_davidson!(
+    Ham, X::Array{Float64,2}, prec;
+    tol=1e-5, NiterMax=100, verbose=false,
+    verbose_last=false, Nstates_conv=0,
+    conv_info=[0,0]
+)
 
 
     # get size info
@@ -124,6 +127,8 @@ function diag_davidson!( Ham, X::Array{Float64,2}, prec;
         end
         if nconv >= Nstates_conv
             IS_CONVERGED = true
+            conv_info[1] = nconv # no of converged eigevalues
+            conv_info[2] = iter  # no of iterations to converge
             if verbose || verbose_last
                 @printf("Davidson convergence: Nstates_conv in iter = %d\n", iter)
             end
