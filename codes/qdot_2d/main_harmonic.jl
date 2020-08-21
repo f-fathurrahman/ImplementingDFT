@@ -27,8 +27,8 @@ function main()
     BB = [ 25.0,  25.0]
     NN = [81, 81]
 
-    #grid = FD2dGrid( NN, AA, BB )
-    grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
+    grid = FD2dGrid( NN, AA, BB )
+    #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
 
     ∇2 = build_nabla2_matrix( grid )
 
@@ -60,11 +60,14 @@ function main()
         end
     end
 
-    evals = diag_Emin_PCG!( Ham, X, prec, verbose=true )
-    #evals = diag_LOBPCG!( Ham, X, prec, verbose=true, tol=1e-10 )
-
+    conv_info = [0,0]
+    #@time evals = diag_Emin_PCG!( Ham, X, prec, verbose=true, tol=1e-10, conv_info=conv_info )
+    @time evals = diag_LOBPCG!( Ham, X, prec, verbose=true, tol=1e-10, conv_info=conv_info )
     X = X/sqrt(grid.dVol) # renormalize
 
+    #evals, NiterDiagConv = diag_davidson!( Ham, X, prec, verbose=true )
+    #X = X*sqrt(dVol) # renormalize for diag_davidson
+    println("conv_info = ", conv_info)
     println("Check normalization")
     for i in 1:Nstates
         @printf("dot: %18.10f\n", dot(X[:,i],X[:,i])*dVol)

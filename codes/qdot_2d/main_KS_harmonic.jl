@@ -56,7 +56,7 @@ function main()
     dEtot = 0.0
     betamix = 0.5
     dRhoe = 0.0
-    NiterMax = 1
+    NiterMax = 200
     etot_conv_thr = 1e-6
     Nconverges = 1
 
@@ -65,6 +65,9 @@ function main()
         #evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
         evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=false )
         psi = psi/sqrt(dVol) # renormalize
+
+        #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
+        #psi = psi*sqrt(dVol) # renormalize for diag_davidson
 
         calc_rhoe!( Ham, psi, Rhoe_new )
         Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
