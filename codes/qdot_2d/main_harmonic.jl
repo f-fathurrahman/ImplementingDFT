@@ -6,6 +6,10 @@ using SparseArrays
 using Random
 using Gnuplot
 
+import PyPlot
+const plt = PyPlot
+plt.rc("text", usetex=true)
+
 using MyModule
 
 function pot_harmonic( grid; ω=1.0, A=0.0 )
@@ -23,9 +27,9 @@ function main()
 
     Random.seed!(1234)
 
-    AA = [-25.0, -25.0]
-    BB = [ 25.0,  25.0]
-    NN = [81, 81]
+    AA = [-15.0, -15.0]
+    BB = [ 15.0,  15.0]
+    NN = [80, 80]
 
     grid = FD2dGrid( NN, AA, BB )
     #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
@@ -42,7 +46,7 @@ function main()
     @printf("sizeof prec = %18.10f MiB\n", Base.summarysize(prec)/1024/1024)
 
     dVol = grid.dVol
-    Nstates = 5
+    Nstates = 10
     Npoints = grid.Npoints
     X = rand(Float64, Npoints, Nstates)
     ortho_sqrt!(X, dVol)
@@ -86,17 +90,46 @@ function main()
         @printf("%5d %18.10f\n", i, evals[i])
     end
 
+    plot_pyplot(grid, X)
+
+end
+
+function plot_gnuplot(grid, X)
+    Nx = grid.Nx
+    Ny = grid.Ny
+    Nstates = size(X,2)
     for ist in 1:Nstates
         filesave = "IMG_X_"*string(ist)*".pdf"
         @gp "set term pdfcairo size 12cm,13cm fontscale 0.5" :-
         @gp :- "set output '$filesave'" :-
         @gp :- "set view 70, 40" :-
-        @gsp :- grid.x grid.y reshape(X[:,ist],NN[1],NN[2]) "w pm3d notitle" palette(:viridis)
+        @gsp :- grid.x grid.y reshape(X[:,ist], Ny, Nx) "w pm3d notitle" palette(:viridis)
         @gsp :- "set xrange [-9:9]" :-
         @gsp :- "set yrange [-9:9]"
     end
+end
 
-
+function plot_pyplot(grid, X)
+    @printf("Plotting wave functions and slice of rhoe:\n")
+    Nx = grid.Nx
+    Ny = grid.Ny
+    Nstates = size(X,2)
+    for ist in 1:Nstates
+        #
+        plt.clf()
+        plt.surf(grid.x, grid.y, reshape(X[:,ist], grid.Nx, grid.Ny), cmap=:jet)
+        plt.tight_layout()
+        plt.savefig("IMG_harmonic_psi_"*string(ist)*".pdf")
+        #
+        ρ = X[:,ist].*X[:,ist]
+        plt.clf()
+        plt.contourf(grid.x, grid.y, reshape(ρ, grid.Nx, grid.Ny), cmap=:jet)
+        plt.axis("equal")
+        plt.tight_layout()
+        plt.savefig("IMG_harmonic_rho_"*string(ist)*".png", dpi=150)
+        #
+        @printf("State %d done\n", ist)
+    end
 end
 
 main()
