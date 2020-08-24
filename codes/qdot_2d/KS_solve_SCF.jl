@@ -54,9 +54,9 @@ function KS_solve_SCF!(
         evals = diag_func( Ham, psi, Ham.precKin, tol=ethr,
                            Nstates_conv=Ham.electrons.Nstates_occ )
         if diag_func == diag_davidson!
-            psi = psi*sqrt(dVol) # for diag_davidson
+            psi[:] = psi[:]*sqrt(dVol) # for diag_davidson
         else
-            psi = psi/sqrt(dVol) # renormalize
+            psi[:] = psi[:]/sqrt(dVol) # renormalize
         end
 
         if use_smearing
