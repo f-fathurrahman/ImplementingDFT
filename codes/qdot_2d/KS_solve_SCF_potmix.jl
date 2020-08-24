@@ -59,9 +59,9 @@ function KS_solve_SCF_potmix!(
         evals = diag_func( Ham, psi, Ham.precKin, tol=ethr,
                            Nstates_conv=Ham.electrons.Nstates_occ )
         if diag_func == diag_davidson!
-            psi = psi*sqrt(dVol) # for diag_davidson
+            psi[:] = psi[:]*sqrt(dVol) # for diag_davidson
         else
-            psi = psi/sqrt(dVol) # renormalize
+            psi[:] = psi[:]/sqrt(dVol) # renormalize
         end
 
         if use_smearing
@@ -125,6 +125,12 @@ function KS_solve_SCF_potmix!(
     end
     println(Ham.energies)
     println("CONVERGED = ", CONVERGED)
+
+    println("Check orthogonal in KS_solve_SCF_potmix")
+    ist = 1
+    for i in 1:Nstates
+        @printf("%3d %3d: dot %18.10f\n", i, ist, dot(psi[:,i],psi[:,ist])*dVol)
+    end
 
 
     return
