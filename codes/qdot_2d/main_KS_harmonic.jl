@@ -22,9 +22,9 @@ function main()
 
     Random.seed!(1234)
 
-    AA = [-25.0, -25.0]
-    BB = [ 25.0,  25.0]
-    NN = [81, 81]
+    AA = [-15.0, -15.0]
+    BB = [ 15.0,  15.0]
+    NN = [80, 80]
 
     grid = FD2dGrid( NN, AA, BB )
     #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
@@ -34,7 +34,7 @@ function main()
 
     V_ext = pot_harmonic( grid, ω=0.22, A=1.0 )
     
-    Nstates = 1
+    Nstates = 10
     Nelectrons = 2*Nstates
     Ham = Hamiltonian( grid, V_ext, Nelectrons=Nelectrons )
 
