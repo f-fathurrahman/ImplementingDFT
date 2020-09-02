@@ -154,6 +154,82 @@ V_{\mathrm{Ha}}(\mathbf{G}) = 4\pi \frac{\rho(\mathbf{G})}{\mathbf{G}^{2}}
 Note that, we must exclude the term $\mathbf{G}=\mathbf{0}$ in the Equation
 \ref{eq:V_Ha_G}.
 
+TODO: Move discussion about GVectors to Chapter about 3d Sch equation?
+(periodic system)
+
+The $\mathbf{G}$-vectors are defined as
+\begin{equation}
+\mathbf{G} = n_{1}\mathbf{b}_{1} + n_{2}\mathbf{b}_{2} + n_{3}\mathbf{b}_{3}
+\end{equation}
+where $b_{i} = \frac{2\pi}{a_{i}}$.
+
+Initializing GVectors:
+\begin{juliacode}
+function GVectors( grid )
+  Npoints = grid.Npoints
+  Nx = grid.Nx; Ny = grid.Ny; Nz = grid.Nz
+  Lx = grid.Lx; Ly = grid.Ly; Lz = grid.Lz
+  RecVecs = zeros(3,3)
+  RecVecs[1,1] = 2.0*pi/Lx
+  RecVecs[2,2] = 2.0*pi/Ly
+  RecVecs[3,3] = 2.0*pi/Lz
+  Δ = max(grid.hx, grid.hy, grid.hz)
+  ecutrho = (pi/Δ)^2
+  Ns = (Nx,Ny,Nz)
+  Ng = calc_Ng( Ns, RecVecs, ecutrho )
+  G  = zeros(Float64,3,Ng)
+  G2 = zeros(Float64,Ng)
+  idx_g2r = zeros(Int64,Ng)
+  ig = 0
+  ip = 0
+  for k in 0:Ns[3]-1, j in 0:Ns[2]-1, i in 0:Ns[1]-1
+      ip = ip + 1
+      gi = _flip_fft( i, Ns[1] )
+      gj = _flip_fft( j, Ns[2] )
+      gk = _flip_fft( k, Ns[3] )
+      Gx = RecVecs[1,1]*gi + RecVecs[1,2]*gj + RecVecs[1,3]*gk
+      Gy = RecVecs[2,1]*gi + RecVecs[2,2]*gj + RecVecs[2,3]*gk
+      Gz = RecVecs[3,1]*gi + RecVecs[3,2]*gj + RecVecs[3,3]*gk
+      G2_temp = Gx^2 + Gy^2 + Gz^2
+      if 0.5*G2_temp <= ecutrho
+          ig = ig + 1
+          G[1,ig] = Gx
+          G[2,ig] = Gy
+          G[3,ig] = Gz
+          G2[ig] = G2_temp
+          idx_g2r[ig] = ip
+      end
+  end
+  idx_sorted = sortperm(G2)
+  G = G[:,idx_sorted]
+  G2 = G2[idx_sorted]
+  idx_g2r = idx_g2r[idx_sorted]
+  G2_shells, idx_g2shells = init_Gshells( G2 )
+  return GVectors(Ng, G, G2, idx_g2r, G2_shells, idx_g2shells)
+end
+\end{juliacode}
+
+Implementation:
+\begin{juliacode}
+function Poisson_solve_fft( grid, gvec::GVectors, rho::Vector{Float64} )
+  Npoints = grid.Npoints
+  Nx = grid.Nx; Ny = grid.Ny; Nz = grid.Nz
+  ctmp = zeros(ComplexF64,Nx,Ny,Nz)
+  ctmp[:] = rho[:]
+  # to reciprocal space
+  fft!(ctmp)
+  ctmp[1] = 0.0 + im*0.0
+  for ig in 2:gvec.Ng
+      ip = gvec.idx_g2r[ig]
+      ctmp[ip] = 4.0*pi*ctmp[ip]/gvec.G2[ig]
+  end
+  # to real space
+  ifft!(ctmp)
+  return reshape(real(ctmp),Npoints)
+end
+\end{juliacode}
+
+
 
 \section{Direct integration}
 
@@ -171,7 +247,7 @@ V(\mathbf{r}_{1}) = \int_{-\infty}^{+\infty}
 
 The Coulomb operator, $\frac{1}{r}$ can we written as the integral
 \begin{equation}
-\frac{1}{r} = \frac{2}{\sqrt{pi}} \int_{0}^{\infty} e^{-r^2 t^2}\,\mathrm{d}t
+\frac{1}{r} = \frac{2}{\sqrt{\pi}} \int_{0}^{\infty} e^{-r^2 t^2}\,\mathrm{d}t
 \end{equation}
 Using this identity, the Hartree potential is written as
 \begin{equation}
@@ -189,7 +265,7 @@ By expanding the electron density in the following form
 \end{equation}
 the Hartree potential can be written as
 \begin{multline}
-V_{0}(x_{1},y_{1},z_{1}) = \frac{2}{\sqrt{pi}}\sum_{\alpha_t} \omega_{\alpha_t}
+V_{0}(x_{1},y_{1},z_{1}) = \frac{2}{\sqrt{\pi}}\sum_{\alpha_t} \omega_{\alpha_t}
 \sum_{\alpha\beta\gamma} d_{\alpha\beta\gamma}
 \int_{-\infty}^{\infty} e^{-t^2_{\alpha_t}(z_{1} - z_{2}) } \chi_{\gamma}(z_2)\mathrm{d}z_2
 \times \int_{-\infty}^{\infty} e^{-t^2_{\alpha_t}(y_{1} - y_{2}) } \chi_{\beta}(y_2)\mathrm{d}y_2 \\
