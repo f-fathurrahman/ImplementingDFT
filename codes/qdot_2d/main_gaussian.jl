@@ -9,6 +9,7 @@ using Gnuplot
 import PyPlot
 const plt = PyPlot
 plt.rc("text", usetex=true)
+plt.rc("font", size=16)
 
 using MyModule
 
@@ -33,7 +34,7 @@ function main()
 
     AA = [-5.0, -5.0]
     BB = [ 5.0,  5.0]
-    NN = [80, 80]
+    NN = [50, 50]
 
     grid = FD2dGrid( NN, AA, BB )
     #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
@@ -119,19 +120,14 @@ function plot_pyplot(grid, X)
     Ny = grid.Ny
     Nstates = size(X,2)
     for ist in 1:Nstates
-        #
-        plt.clf()
-        plt.surf(grid.x, grid.y, reshape(X[:,ist], grid.Nx, grid.Ny), cmap=:jet)
-        plt.tight_layout()
-        plt.savefig("IMG_gaussian_psi_"*string(ist)*".pdf")
-        #
         ρ = X[:,ist].*X[:,ist]
         plt.clf()
-        plt.contourf(grid.x, grid.y, reshape(ρ, grid.Nx, grid.Ny), cmap=:jet)
-        plt.axis("equal")
+        plt.contour(grid.x, grid.y, reshape(ρ, grid.Nx, grid.Ny))
+        plt.axis("square")
+        plt.xticks([]); plt.yticks([])
+        plt.text(-4.5, 4.5, "State "*string(ist))
         plt.tight_layout()
-        plt.savefig("IMG_gaussian_rho_"*string(ist)*".png", dpi=150)
-        #
+        plt.savefig("IMG_gaussian_rho_"*string(ist)*".pdf", dpi=150)
         @printf("State %d done\n", ist)
     end
 end
