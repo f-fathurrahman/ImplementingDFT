@@ -215,4 +215,10 @@ function Poisson_solve_DAGE( psolver::PoissonSolverDAGE, grid, Rhoe::Vector{Floa
 
 end
 
+# Spin polarized Rhoe, use Rhoe_tot
+function Poisson_solve_DAGE( psolver::PoissonSolverDAGE, grid, Rhoe::Array{Float64,2} )
+    Rhoe_tot = dropdims(sum(Rhoe,dims=2),dims=2)
+    return Poisson_solve_DAGE( psolver, grid, Rhoe_tot )
+end
+
 Poisson_solve( psolver::PoissonSolverDAGE, grid, Rhoe ) = Poisson_solve_DAGE(psolver, grid, Rhoe)

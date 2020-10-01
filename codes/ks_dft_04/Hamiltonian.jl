@@ -5,12 +5,12 @@ mutable struct Hamiltonian
     Laplacian::SparseMatrixCSC{Float64,Int64}
     V_Ps_loc::Vector{Float64}
     V_Hartree::Vector{Float64}
-    V_XC::Vector{Float64}
+    V_XC::Array{Float64,2}
     pspots::Array{PsPot_GTH}
     pspotNL::PsPotNL
     electrons::Electrons
     atoms::Atoms
-    rhoe::Vector{Float64}
+    rhoe::Array{Float64,2}
     precKin::Union{AMG_PREC_TYPE,ILU0Preconditioner}
     psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
     energies::Energies
@@ -159,11 +159,12 @@ function Hamiltonian(
     verbose && println("sum V_Ps_loc = ", sum(V_Ps_loc))
     pspotNL = PsPotNL( atoms, pspots, grid )
 
-    V_Hartree = zeros(Float64, Npoints)
-    V_XC = zeros(Float64, Npoints)
-    rhoe = zeros(Float64, Npoints)
+    V_Hartree = zeros(Float64,Npoints)
+    V_XC = zeros(Float64,Npoints,Nspin)
+    rhoe = zeros(Float64,Npoints,Nspin)
 
-    electrons = Electrons( atoms, pspots, Nstates_empty=Nstates_extra )
+    electrons = Electrons( atoms, pspots,
+        Nstates_extra=Nstates_extra, Nspin=Nspin )
 
     energies = Energies()
 
@@ -244,10 +245,25 @@ end
 
 import Base: *
 function *(Ham, psi)
-    return op_H(Ham,psi)
+    return op_H( Ham, psi )
+end
+
+function op_H( Ham::Hamiltonian, psis::Vector{Matrix{Float64}} )
+    Nspin = size(psis,1)
+    Hpsis = Vector{Matrix{Float64}}(undef,Nspin)
+    for i in 1:Nspin
+        Hpsis[i] = op_H( Ham, psis[i] )
+    end
 end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
+    Ham.rhoe[:] = Rhoe[:]
+    Ham.V_Hartree = Poisson_solve( Ham.psolver, Ham.grid, Rhoe )
+    Ham.V_XC = calc_Vxc_VWN( Ham.xc_calc, Rhoe )
+    return
+end
+
+function update!( Ham::Hamiltonian, Rhoe::Array{Float64,2} )
     Ham.rhoe[:] = Rhoe[:]
     Ham.V_Hartree = Poisson_solve( Ham.psolver, Ham.grid, Rhoe )
     Ham.V_XC = calc_Vxc_VWN( Ham.xc_calc, Rhoe )
