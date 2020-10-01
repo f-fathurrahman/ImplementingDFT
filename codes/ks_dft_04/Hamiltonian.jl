@@ -219,8 +219,8 @@ function op_V_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
     return Vpsi
 end
 
-import Base: *
-function *( Ham::Hamiltonian, psi::Matrix{Float64} )
+
+function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
     Hpsi = zeros(Float64,Nbasis,Nstates)
@@ -242,8 +242,9 @@ function *( Ham::Hamiltonian, psi::Matrix{Float64} )
     return Hpsi
 end
 
-function op_H(Ham, psi)
-    return Ham*psi
+import Base: *
+function *(Ham, psi)
+    return op_H(Ham,psi)
 end
 
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
