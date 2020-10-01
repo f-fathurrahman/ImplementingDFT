@@ -1,3 +1,4 @@
+using Printf
 using LinearAlgebra
 using SparseArrays
 using BenchmarkTools
@@ -7,6 +8,11 @@ include("build_nabla2_matrix.jl")
 include("../common/supporting_functions.jl")
 
 function test_multiplication()
+
+    println()
+    println("Benchmarking sparse matrix multiplication")
+    println()
+
     Nx = 50
     Ny = 50
     Nz = 50
@@ -25,12 +31,12 @@ function test_multiplication()
     psi1 = rand( grid.Nx, grid.Ny, grid.Nz )
     psi2 = rand( grid.Npoints )
 
-    println("Using views:")
+    println("3d array, using views:")
     @btime begin
        @views res1 = $∇2*$psi1[:]
     end
 
-    println("Not using views:")
+    println("3d array, not using views:")
     @btime begin
        res1 = $∇2*$psi1[:]
     end
