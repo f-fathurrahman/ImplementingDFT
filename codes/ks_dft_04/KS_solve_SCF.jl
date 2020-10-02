@@ -1,5 +1,5 @@
 function KS_solve_SCF!(
-    Ham::Hamiltonian, psi::Array{Float64,2};
+    Ham::Hamiltonian, psis::Vector{Array{Float64,2}};
     NiterMax=200, betamix=0.5,
     etot_conv_thr=1e-6,
     diag_func=diag_LOBPCG!,
@@ -12,15 +12,18 @@ function KS_solve_SCF!(
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     dVol = Ham.grid.dVol
+    Nspin = Ham.Nspin
 
-    Rhoe = zeros(Float64,Npoints)
-    Rhoe_new = zeros(Float64,Npoints)
+    Rhoe = zeros(Float64,Npoints,Nspin)
+    Rhoe_new = zeros(Float64,Npoints,Nspin)
     
     if guess_density == :random
-        calc_rhoe!( Ham, psi, Rhoe )
+        calc_rhoe!( Ham, psis, Rhoe )
         update!( Ham, Rhoe )
-        evals = zeros(Float64,Nstates)
+        evals = zeros(Float64, Nstates, Nspin)
+        println("Integ Rhoe = ", sum(Rhoe)*dVol)
     else
+        error("Not supported yet")
         gen_gaussian_density!( Ham.grid, Ham.atoms, Ham.pspots, Rhoe )
         update!( Ham, Rhoe )
         #
@@ -52,7 +55,7 @@ function KS_solve_SCF!(
 
     Nconverges = 0
 
-    for iterSCF in 1:NiterMax
+    for iterSCF in 1:10
 
         # determine convergence criteria for diagonalization
         if iterSCF == 1
@@ -64,12 +67,16 @@ function KS_solve_SCF!(
             ethr = max( ethr, ethr_evals_last )
         end
 
-        evals = diag_func( Ham, psi, Ham.precKin, tol=ethr,
-                           Nstates_conv=Ham.electrons.Nstates_occ )
-        if diag_func == diag_davidson!
-            psi = psi*sqrt(dVol) # for diag_davidson
-        else
-            psi = psi/sqrt(dVol) # renormalize
+        for ispin in 1:Nspin
+            Ham.ispin = ispin
+            evals[:,ispin] = diag_func( Ham, psis[ispin], Ham.precKin, tol=ethr,
+                                        Nstates_conv=Ham.electrons.Nstates_occ,
+                                        verbose_last=true )
+            if diag_func == diag_davidson!
+                psis[ispin] = psis[ispin]*sqrt(dVol) # for diag_davidson
+            else
+                psis[ispin] = psis[ispin]/sqrt(dVol) # renormalize
+            end
         end
 
         if use_smearing
@@ -78,13 +85,13 @@ function KS_solve_SCF!(
                       evals, Float64(Ham.electrons.Nelectrons), kT )
             @printf("Fermi energy = %18.10f\n", E_f)
         end
-        #println("Nelectrons = ", Ham.electrons.Nelectrons)
+        println("Nelectrons = ", Ham.electrons.Nelectrons)
         #println("Focc = ", Ham.electrons.Focc)
         #println("sum(Focc) = ", sum(Ham.electrons.Focc))
 
-        calc_rhoe!( Ham, psi, Rhoe_new )
-        #integ_rho = sum(Rhoe_new)*dVol
-        #println("integ_rho (before renormalized) = ", integ_rho)
+        calc_rhoe!( Ham, psis, Rhoe_new )
+        integ_rho = sum(Rhoe_new)*dVol
+        println("integ_rho (before renormalized) = ", integ_rho)
         #for ip in 1:length(Rhoe_new)
         #    Rhoe_new[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe_new[ip]
         #end
@@ -102,7 +109,7 @@ function KS_solve_SCF!(
 
         update!( Ham, Rhoe )
 
-        calc_energies!( Ham, psi )
+        calc_energies!( Ham, psis )
         Etot = sum( Ham.energies )
 
         dRhoe = sum(abs.(Rhoe - Rhoe_new))/Npoints # MAE

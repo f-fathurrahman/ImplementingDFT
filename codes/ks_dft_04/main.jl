@@ -31,11 +31,16 @@ function main( Ham::Hamiltonian; use_smearing=false )
     Nstates = Ham.electrons.Nstates
     dVol = Ham.grid.dVol
 
-    psi = rand(Float64,Nbasis,Nstates)
-    ortho_sqrt!(psi,dVol)
+    Nspin = Ham.Nspin
+    psis = Vector{Matrix{Float64}}(undef,Nspin)
+    for i in 1:Nspin
+        psis[i] = rand(Float64, Nbasis, Nstates)
+        ortho_sqrt!(psis[i], dVol)
+    end
 
-    KS_solve_SCF!(Ham, psi, betamix=0.25, use_smearing=use_smearing,
+    KS_solve_SCF!(Ham, psis, betamix=0.25, use_smearing=use_smearing,
         guess_density=:random)
 end
 
-@time main( create_Ham_O2(40, grid_type=:FD, Nstates_extra=2), use_smearing=true )
+#@time main( create_Ham_O2(40, grid_type=:FD, Nstates_extra=2), use_smearing=true )
+@time main( create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=4), use_smearing=true )

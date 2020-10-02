@@ -24,7 +24,7 @@ function update_Focc!(
     end
   
     mTS = 0.0
-    for ispin in 1:Nstates
+    for ispin in 1:Nspin
         for ist in 1:Nstates
             mTS = mTS - w*kT*smear_func_entropy( evals[ist,ispin], E_f, kT )
         end
@@ -35,7 +35,7 @@ end
 
 function sum_Focc(
     smear_func,
-    evals::Array{Float64,1},
+    evals::Array{Float64,2},
     ene::Float64,
     kT::Float64
 )
@@ -57,7 +57,7 @@ end
 
 function find_E_fermi(
     smear_func,
-    evals::Array{Float64,1},
+    evals::Array{Float64,2},
     Nelectrons::Float64,
     kT::Float64;
     NiterMax=300, verbose=false
@@ -67,7 +67,7 @@ function find_E_fermi(
     Nspin = size(evals,2)
 
     # determine lower and upper bound for bisection
-    Elw = mininum(evals[1,:]) # minimum for all spin
+    Elw = minimum(evals[1,:]) # minimum for all spin
     Eup = maximum(evals[Nstates,:]) # maximum for all spin
 
     Elw = Elw - 2*kT

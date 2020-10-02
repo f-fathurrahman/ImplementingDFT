@@ -16,6 +16,7 @@ mutable struct Hamiltonian
     energies::Energies
     gvec::Union{Nothing,GVectors}
     Nspin::Int64
+    ispin::Int64
     xc_calc::XCCalculator
 end
 
@@ -175,9 +176,9 @@ function Hamiltonian(
     end
 
     xc_calc = XCCalculator()
-
+    ispin = 1
     return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, pspots, pspotNL, electrons, atoms,
-                        rhoe, precKin, psolver, energies, gvec, Nspin, xc_calc )
+                        rhoe, precKin, psolver, energies, gvec, Nspin, ispin, xc_calc )
 end
 
 
@@ -228,16 +229,18 @@ function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
     #
     Hpsi = -0.5*Ham.Laplacian * psi
     #
+    ispin = Ham.ispin # !!! Need to get active spin index
+    #
     if Ham.pspotNL.NbetaNL > 0
         Vnlpsi = op_V_Ps_nloc(Ham, psi)
         for ist in 1:Nstates, ip in 1:Nbasis
             Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
-                Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist] + Vnlpsi[ip,ist]
+                Ham.V_Hartree[ip] + Ham.V_XC[ip,ispin] ) * psi[ip,ist] + Vnlpsi[ip,ist]
         end
     else
         for ist in 1:Nstates, ip in 1:Nbasis
             Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
-                Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
+                Ham.V_Hartree[ip] + Ham.V_XC[ip,ispin] ) * psi[ip,ist]
         end
     end
     return Hpsi
@@ -245,13 +248,14 @@ end
 
 import Base: *
 function *(Ham, psi)
-    return op_H( Ham, psi )
+    return op_H(Ham, psi)
 end
 
 function op_H( Ham::Hamiltonian, psis::Vector{Matrix{Float64}} )
     Nspin = size(psis,1)
     Hpsis = Vector{Matrix{Float64}}(undef,Nspin)
     for i in 1:Nspin
+        Ham.ispin = i
         Hpsis[i] = op_H( Ham, psis[i] )
     end
 end
