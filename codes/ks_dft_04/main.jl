@@ -38,9 +38,9 @@ function main( Ham::Hamiltonian; use_smearing=false )
         ortho_sqrt!(psis[i], dVol)
     end
 
-    KS_solve_SCF!(Ham, psis, betamix=0.25, use_smearing=use_smearing,
+    KS_solve_SCF!(Ham, psis, betamix=0.1, use_smearing=use_smearing,
         guess_density=:random)
 end
 
-#@time main( create_Ham_O2(40, grid_type=:FD, Nstates_extra=2), use_smearing=true )
-@time main( create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=4), use_smearing=true )
+@time main( create_Ham_O2(40, grid_type=:FD, Nstates_extra=2), use_smearing=true )
+#@time main( create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=4), use_smearing=true )

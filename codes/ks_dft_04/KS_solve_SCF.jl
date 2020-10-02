@@ -17,6 +17,11 @@ function KS_solve_SCF!(
     Rhoe = zeros(Float64,Npoints,Nspin)
     Rhoe_new = zeros(Float64,Npoints,Nspin)
     
+    Rhoe_tot = zeros(Float64,Npoints)
+    Rhoe_new_tot = zeros(Float64,Npoints)
+    magn_new = zeros(Float64,Npoints)
+    magn = zeros(Float64,Npoints)
+    
     if guess_density == :random
         calc_rhoe!( Ham, psis, Rhoe )
         update!( Ham, Rhoe )
@@ -48,14 +53,14 @@ function KS_solve_SCF!(
     ethr = 0.1
 
     # Mixing arrays
-    betav = betamix*ones(Float64, Npoints)
-    df = zeros(Float64, Npoints)
+    betav = betamix*ones(Float64, Npoints*Nspin)
+    df = zeros(Float64, Npoints*Nspin)
 
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
     Nconverges = 0
 
-    for iterSCF in 1:10
+    for iterSCF in 1:NiterMax
 
         # determine convergence criteria for diagonalization
         if iterSCF == 1
@@ -70,8 +75,7 @@ function KS_solve_SCF!(
         for ispin in 1:Nspin
             Ham.ispin = ispin
             evals[:,ispin] = diag_func( Ham, psis[ispin], Ham.precKin, tol=ethr,
-                                        Nstates_conv=Ham.electrons.Nstates_occ,
-                                        verbose_last=true )
+                                        Nstates_conv=Ham.electrons.Nstates_occ)
             if diag_func == diag_davidson!
                 psis[ispin] = psis[ispin]*sqrt(dVol) # for diag_davidson
             else
@@ -83,6 +87,13 @@ function KS_solve_SCF!(
             E_f, Ham.energies.mTS =
             update_Focc!( Ham.electrons.Focc, smear_func, smear_func_entropy,
                       evals, Float64(Ham.electrons.Nelectrons), kT )
+            @printf("\nOccupations and eigenvalues:\n")
+            for ispin in 1:Nspin
+                @printf("ispin = %d\n", ispin)
+                for ist in 1:Nstates
+                    @printf("%3d %8.5f %18.10f\n", ist, Ham.electrons.Focc[ist,ispin], evals[ist,ispin])
+                end
+            end
             @printf("Fermi energy = %18.10f\n", E_f)
         end
         println("Nelectrons = ", Ham.electrons.Nelectrons)
@@ -90,22 +101,41 @@ function KS_solve_SCF!(
         #println("sum(Focc) = ", sum(Ham.electrons.Focc))
 
         calc_rhoe!( Ham, psis, Rhoe_new )
-        integ_rho = sum(Rhoe_new)*dVol
-        println("integ_rho (before renormalized) = ", integ_rho)
+        #integ_rho = sum(Rhoe_new)*dVol
+        #println("integ_rho (before renormalized) = ", integ_rho)
         #for ip in 1:length(Rhoe_new)
         #    Rhoe_new[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe_new[ip]
         #end
         #println("integ Rhoe before mix = ", sum(Rhoe_new)*dVol)
 
-        Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-        #mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+        #Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+
+        #if Nspin == 2
+        #    Rhoe_tot[:] = dropdims(sum(Rhoe,dims=2),dims=2)
+        #    Rhoe_new_tot[:] = dropdims(sum(Rhoe_new,dims=2),dims=2)
+        #    #
+        #    magn[:] = Rhoe[:,1] -Rhoe[:,2]
+        #    magn_new[:] = Rhoe_new[:,1] - Rhoe_new[:,2]
+        #    #
+        #    # Mix
+        #    Rhoe_tot = betamix*Rhoe_new_tot + (1-betamix)*Rhoe_tot
+        #    magn = betamix*magn_new + (1-betamix)*magn
+        #    #
+        #    Rhoe[:,1] = 0.5*(Rhoe_tot + magn)
+        #    Rhoe[:,2] = 0.5*(Rhoe_tot - magn)
+        #end
         
-        #integ_rho = sum(Rhoe)*dVol
-        #println("integ Rhoe after mix (before renormalized) = ", integ_rho)
+        integ_rho = sum(Rhoe)*dVol
+        println("integ Rhoe after mix (before renormalized) = ", integ_rho)
         #for ip in 1:length(Rhoe)
         #    Rhoe[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe[ip]
         #end
         #println("integ Rhoe after mix (after renormalized) = ", sum(Rhoe)*dVol)
+        if Nspin == 2
+            @views smagn = sum(Rhoe[:,1] .- Rhoe[:,2])*dVol
+            println("Integ magn = ", smagn)
+        end
 
         update!( Ham, Rhoe )
 

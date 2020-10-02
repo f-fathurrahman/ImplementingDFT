@@ -29,5 +29,6 @@ function create_Ham_O2( N::Int64; grid_type=:FD, Nstates_extra=0 )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    Ham = Hamiltonian( atoms, pspfiles, grid, Nstates_extra=Nstates_extra )
+    Ham = Hamiltonian( atoms, pspfiles, grid,
+        Nstates_extra=Nstates_extra, Nspin=2 )
 end
