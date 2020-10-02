@@ -1,22 +1,33 @@
 function update_Focc!(
-    Focc::Array{Float64,1},
+    Focc::Array{Float64,2},
     smear_func, smear_func_entropy,
-    evals::Array{Float64,1},
+    evals::Array{Float64,2},
     Nelectrons::Float64,
-    kT::Float64,
+    kT::Float64
 )
 
     E_f = find_E_fermi( smear_func, evals, Nelectrons, kT )
 
     Nstates = size(evals,1)
-    w = 2.0 # weight factor
-    for ist in 1:Nstates
-        Focc[ist] = w*smear_func( evals[ist], E_f, kT )
+    Nspin = size(evals,2)
+    
+    if Nspin == 1
+        w = 2.0 # weight factor
+    else
+        w = 1.0
+    end
+
+    for ispin in 1:Nspin
+        for ist in 1:Nstates
+            Focc[ist,ispin] = w*smear_func( evals[ist,ispin], E_f, kT )
+        end
     end
   
     mTS = 0.0
-    for ist = 1:Nstates
-        mTS = mTS - w*kT*smear_func_entropy( evals[ist], E_f, kT )
+    for ispin in 1:Nstates
+        for ist in 1:Nstates
+            mTS = mTS - w*kT*smear_func_entropy( evals[ist,ispin], E_f, kT )
+        end
     end
     return E_f, mTS  
 end
@@ -26,14 +37,21 @@ function sum_Focc(
     smear_func,
     evals::Array{Float64,1},
     ene::Float64,
-    kT::Float64,
+    kT::Float64
 )
     Nstates = size(evals,1)
+    Nspin = size(evals,2)
     ss = 0.0
-    for ist = 1:Nstates
-        ss = ss + smear_func( evals[ist], ene, kT )
+    for ispin in 1:Nspin
+        for ist in 1:Nstates
+            ss = ss + smear_func( evals[ist,ispin], ene, kT )
+        end
     end
-    return 2.0*ss # weight=2.0 (Nspin=1, assuming doubly occupied)
+    if Nspin == 1
+        return 2.0*ss
+    else
+        return ss
+    end
 end
 
 
@@ -46,10 +64,12 @@ function find_E_fermi(
 )
 
     Nstates = size(evals,1)
+    Nspin = size(evals,2)
 
     # determine lower and upper bound for bisection
-    Elw = evals[1]
-    Eup = evals[Nstates]
+    Elw = mininum(evals[1,:]) # minimum for all spin
+    Eup = maximum(evals[Nstates,:]) # maximum for all spin
+
     Elw = Elw - 2*kT
     Eup = Eup + 2*kT
 
