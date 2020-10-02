@@ -52,6 +52,9 @@ function Electrons(
         end
         if is_odd
             Focc[Nstates_occ,1] = 1.0
+        else
+            Focc[Nstates_occ,1] = 1.0
+            Focc[Nstates_occ,2] = 1.0
         end
     end
 
