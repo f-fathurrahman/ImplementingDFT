@@ -115,10 +115,11 @@ function KS_solve_SCF!(
         #@printf("integ Rhoe before mix = %18.10f\n", sum(Rhoe_new)*dVol)
 
 
-        println("Linear mixing: betamix = ", betamix)
-        Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        #println("Linear mixing: betamix = ", betamix)
+        #Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
         
-        #mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+        println("Adaptive mixing: betamix = ", betamix)
+        mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
 
         #if Nspin == 2
         #    Rhoe_tot[:] = dropdims(sum(Rhoe,dims=2),dims=2)

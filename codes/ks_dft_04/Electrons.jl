@@ -68,6 +68,46 @@ function Electrons(
     return Electrons( Nspin, Nelectrons, Nstates, Nstates_occ, Focc, eorbs )
 end
 
+
+function Electrons(
+    atoms::Atoms, pspots::Array{PsPot_GTH,1}, Focc::Array{Float64,2};
+    Nstates=nothing, Nstates_extra=0, Nspin=1
+)
+
+    @assert Nspin <= 2
+
+    Nelectrons = get_Nelectrons(atoms, pspots)
+
+    # If Nstates is not specified and Nstates_extra == 0, we calculate
+    # Nstates manually from Nelectrons
+    if (Nstates == nothing)
+        Nstates = round( Int64, Nelectrons/2 )
+        if Nstates*2 < Nelectrons
+            Nstates = Nstates + 1
+        end
+        if Nstates_extra > 0
+            Nstates = Nstates + Nstates_extra
+        end
+    end
+
+    eorbs = zeros(Float64,Nstates,Nspin)
+    
+    Nstates_occ = Nstates - Nstates_extra
+
+    sFocc = sum(Focc)
+    # Check if the generated Focc is consistent
+    if abs( sFocc - Nelectrons ) > eps()
+        @printf("sum Focc = %f, Nelectrons = %f\n", sFocc, Nelectrons)
+        error(@sprintf("ERROR: diff sum(Focc) and Nelectrons is not small\n"))
+    end
+
+    return Electrons( Nspin, Nelectrons, Nstates, Nstates_occ, Focc, eorbs )
+
+end
+
+
+
+
 import Base: show
 function show( io::IO, electrons::Electrons; header=true, all_states=false )
 
