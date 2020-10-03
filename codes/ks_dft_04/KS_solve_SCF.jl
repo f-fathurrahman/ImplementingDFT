@@ -62,6 +62,9 @@ function KS_solve_SCF!(
 
     for iterSCF in 1:NiterMax
 
+        println("\nBegin SCF iter: ", iterSCF)
+        println("----------------------------")
+
         # determine convergence criteria for diagonalization
         if iterSCF == 1
             ethr = 0.1
@@ -87,29 +90,35 @@ function KS_solve_SCF!(
             E_f, Ham.energies.mTS =
             update_Focc!( Ham.electrons.Focc, smear_func, smear_func_entropy,
                       evals, Float64(Ham.electrons.Nelectrons), kT )
-            @printf("\nOccupations and eigenvalues:\n")
-            for ispin in 1:Nspin
-                @printf("ispin = %d\n", ispin)
-                for ist in 1:Nstates
-                    @printf("%3d %8.5f %18.10f\n", ist, Ham.electrons.Focc[ist,ispin], evals[ist,ispin])
-                end
-            end
             @printf("Fermi energy = %18.10f\n", E_f)
         end
-        println("Nelectrons = ", Ham.electrons.Nelectrons)
-        #println("Focc = ", Ham.electrons.Focc)
-        #println("sum(Focc) = ", sum(Ham.electrons.Focc))
+        @printf("Nelectrons = %d\n", Ham.electrons.Nelectrons)
+        @printf("sum(Focc)  = %18.10f\n", sum(Ham.electrons.Focc))
+
+        @printf("\nOccupations and eigenvalues:\n")
+        for ist in 1:Nstates
+            @printf("%3d | %8.5f %18.10f", ist, Ham.electrons.Focc[ist,1], evals[ist,1])
+            if Nspin == 2
+                @printf(" | %8.5f %18.10f\n", Ham.electrons.Focc[ist,2], evals[ist,2])
+            else
+                @printf("\n")
+            end
+        end
 
         calc_rhoe!( Ham, psis, Rhoe_new )
+        
         #integ_rho = sum(Rhoe_new)*dVol
-        #println("integ_rho (before renormalized) = ", integ_rho)
+        #@printf("integ_rho (before renormalized) = %18.10f\n", integ_rho)
         #for ip in 1:length(Rhoe_new)
         #    Rhoe_new[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe_new[ip]
         #end
-        #println("integ Rhoe before mix = ", sum(Rhoe_new)*dVol)
+        #@printf("integ Rhoe before mix = %18.10f\n", sum(Rhoe_new)*dVol)
 
-        #Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
-        mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+
+        println("Linear mixing: betamix = ", betamix)
+        Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
+        
+        #mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
 
         #if Nspin == 2
         #    Rhoe_tot[:] = dropdims(sum(Rhoe,dims=2),dims=2)
@@ -126,12 +135,14 @@ function KS_solve_SCF!(
         #    Rhoe[:,2] = 0.5*(Rhoe_tot - magn)
         #end
         
-        integ_rho = sum(Rhoe)*dVol
-        println("integ Rhoe after mix (before renormalized) = ", integ_rho)
+        #integ_rho = sum(Rhoe)*dVol
+        #@printf("integ Rhoe after mix (before renormalized) = %18.10f\n", integ_rho)
         #for ip in 1:length(Rhoe)
         #    Rhoe[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe[ip]
         #end
-        #println("integ Rhoe after mix (after renormalized) = ", sum(Rhoe)*dVol)
+        #integ_rho = sum(Rhoe)*dVol
+        #@printf("integ Rhoe after mix (after renormalized)  = %18.10f\n", integ_rho)
+        
         if Nspin == 2
             @views smagn = sum(Rhoe[:,1] .- Rhoe[:,2])*dVol
             println("Integ magn = ", smagn)
@@ -155,10 +166,6 @@ function KS_solve_SCF!(
 
         if Nconverges >= 2
             @printf("\nSCF is converged in iter: %d\n", iterSCF)
-            @printf("\nOccupations and eigenvalues:\n")
-            for i in 1:Nstates
-                @printf("%3d %8.5f %18.10f\n", i, Ham.electrons.Focc[i], evals[i])
-            end
             break
         end
 
