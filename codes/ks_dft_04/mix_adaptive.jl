@@ -1,17 +1,23 @@
-mutable struct LinearAdaptiveMixer
+mutable struct AdaptiveLinearMixer
     betamix::Float64
     betamax::Float64
     v::Array{Float64,1}
     df::Array{Float64,1}
 end
 
-function LinearAdaptiveMixer(betamix::Float64, betamax::Float64)
-    betav = betamix*ones(Float64, Npoints*Nspin)
+# Constructor
+function AdaptiveLinearMixer(
+    Npoints::Int64,
+    betamix::Float64, betamax::Float64;
+    Nspin=1
+)
+    v = betamix*ones(Float64, Npoints*Nspin)
     df = zeros(Float64, Npoints*Nspin)
-    return LinearAdaptiveMixer(betamix, betamax, v, df)
+    return AdaptiveLinearMixer(betamix, betamax, v, df)
 end
 
-function do_mix!(mixer::LinearAdaptiveMixer, v, v_new)
+# Result is put in v
+function do_mix!(mixer::AdaptiveLinearMixer, v, v_new)
     mix_adaptive!( v, v_new,
         mixer.betamix, mixer.v, mixer.df, betamax=mixer.betamax
     )

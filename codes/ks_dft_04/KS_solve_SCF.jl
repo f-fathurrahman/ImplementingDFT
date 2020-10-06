@@ -53,8 +53,9 @@ function KS_solve_SCF!(
     ethr = 0.1
 
     # Mixing arrays
-    betav = betamix*ones(Float64, Npoints*Nspin)
-    df = zeros(Float64, Npoints*Nspin)
+    #betav = betamix*ones(Float64, Npoints*Nspin)
+    #df = zeros(Float64, Npoints*Nspin)
+    mixer = AdaptiveLinearMixer(Npoints, betamix, 0.8, Nspin=Nspin)
 
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
@@ -119,7 +120,8 @@ function KS_solve_SCF!(
         #Rhoe = betamix*Rhoe_new + (1-betamix)*Rhoe
         
         println("Adaptive mixing: betamix = ", betamix)
-        mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+        #mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+        do_mix!(mixer, Rhoe, Rhoe_new)
 
         #if Nspin == 2
         #    Rhoe_tot[:] = dropdims(sum(Rhoe,dims=2),dims=2)
