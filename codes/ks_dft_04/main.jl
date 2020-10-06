@@ -14,6 +14,7 @@ include("smearing.jl")
 include("occupations.jl")
 include("create_Ham.jl")
 include("mix_adaptive.jl")
+include("mix_linear.jl")
 include("gen_gaussian_density.jl")
 include("KS_solve_SCF.jl")
 
