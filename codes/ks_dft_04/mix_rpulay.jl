@@ -1,3 +1,35 @@
+mutable struct RPulayMixer
+    betamix::Float64
+    mixdim::Int64
+    XX::Array{Float64,2}
+    FF::Array{Float64,2}
+    x_old::Array{Float64,2}
+    f_old::Array{Float64,2}
+    iter::Int64
+end
+
+function RPulayMixer(
+    Npoints::Int64, mixdim::Int64, betamix::Float64; Nspin=1
+)
+    XX = zeros(Float64,Npoints*Nspin, mixdim)
+    FF = zeros(Float64,Npoints*Nspin, mixdim)
+    x_old = zeros(Float64,Npoints,Nspin)
+    f_old = zeros(Float64,Npoints,Nspin)
+    return RPulayMixer(betamix, mixdim, XX, FF, x_old, f_old, 0)
+end
+
+function do_mix!(mixer::RPulayMixer, Rhoe, Rhoe_new)
+    mix_rpulay!(
+        Rhoe, Rhoe_new,
+        mixer.betamix,
+        mixer.XX, mixer.FF,
+        mixer.iter, mixer.mixdim,
+        mixer.x_old, mixer.f_old
+    )
+    return
+end
+
+
 """
 An implementation of restarted Pulay mixing as described in
 
@@ -5,9 +37,9 @@ An implementation of restarted Pulay mixing as described in
   Restarted Pulay mixing for efficient and robust acceleration of
   fixed-point iterations.
   Chemical Physics Letters 635 (2015) 69–74.
-"""
 
-# Result (new density) will be written in x
+Result or the new density will be written in x.
+"""
 function mix_rpulay!( x, gx, beta, X, F, iter, MIXDIM, x_old, f_old )
 
     Npts = length(x)

@@ -15,6 +15,7 @@ include("occupations.jl")
 include("create_Ham.jl")
 include("mix_adaptive.jl")
 include("mix_linear.jl")
+include("mix_rpulay.jl")
 include("gen_gaussian_density.jl")
 include("KS_solve_SCF.jl")
 
@@ -39,7 +40,7 @@ function main( Ham::Hamiltonian; use_smearing=false )
         ortho_sqrt!(psis[i], dVol)
     end
 
-    KS_solve_SCF!(Ham, psis, betamix=0.8, use_smearing=use_smearing,
+    KS_solve_SCF!(Ham, psis, betamix=0.01, use_smearing=use_smearing,
         guess_density=:random)
 end
 

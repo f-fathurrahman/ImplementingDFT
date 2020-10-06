@@ -53,12 +53,15 @@ function KS_solve_SCF!(
     ethr = 0.1
 
     # Mixer
-    mixer = LinearMixer(betamix)
-    #mixer = AdaptiveLinearMixer(Npoints, betamix, 0.8, Nspin=Nspin)
+    #mixer = LinearMixer(betamix)
+    #mixer = RPulayMixer( Npoints, 4, betamix; Nspin=Nspin)
+    mixer = AdaptiveLinearMixer(Npoints, betamix, 0.8, Nspin=Nspin)
 
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
     Nconverges = 0
+
+    SMALL = eps()
 
     for iterSCF in 1:NiterMax
 
@@ -120,6 +123,8 @@ function KS_solve_SCF!(
         
         #println("Adaptive mixing: betamix = ", betamix)
         #mix_adaptive!( Rhoe, Rhoe_new, betamix, betav, df )
+        
+        mixer.iter = iterSCF
         do_mix!(mixer, Rhoe, Rhoe_new)
 
         #if Nspin == 2
@@ -136,15 +141,23 @@ function KS_solve_SCF!(
         #    Rhoe[:,1] = 0.5*(Rhoe_tot + magn)
         #    Rhoe[:,2] = 0.5*(Rhoe_tot - magn)
         #end
-        
+
+        #for ip in 1:Npoints*Nspin
+        #    if Rhoe[ip] < SMALL
+        #        #println("Negative Rhoe is detected. Setting to SMALL")
+        #        Rhoe[ip] = SMALL
+        #    end
+        #end
+
         #integ_rho = sum(Rhoe)*dVol
         #@printf("integ Rhoe after mix (before renormalized) = %18.10f\n", integ_rho)
+        #println("diff old and after mix: ", sum(Rhoe - Rhoe_new))
         #for ip in 1:length(Rhoe)
         #    Rhoe[ip] = Ham.electrons.Nelectrons/integ_rho * Rhoe[ip]
         #end
         #integ_rho = sum(Rhoe)*dVol
         #@printf("integ Rhoe after mix (after renormalized)  = %18.10f\n", integ_rho)
-        
+
         if Nspin == 2
             @views smagn = sum(Rhoe[:,1] .- Rhoe[:,2])*dVol
             println("Integ magn = ", smagn)

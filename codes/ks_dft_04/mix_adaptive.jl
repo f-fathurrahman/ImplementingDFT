@@ -3,6 +3,7 @@ mutable struct AdaptiveLinearMixer
     betamax::Float64
     v::Array{Float64,1}
     df::Array{Float64,1}
+    iter::Int64 # needed for compatibility with other mixer
 end
 
 # Constructor
@@ -13,7 +14,7 @@ function AdaptiveLinearMixer(
 )
     v = betamix*ones(Float64, Npoints*Nspin)
     df = zeros(Float64, Npoints*Nspin)
-    return AdaptiveLinearMixer(betamix, betamax, v, df)
+    return AdaptiveLinearMixer(betamix, betamax, v, df, 0)
 end
 
 # Result is put in v
