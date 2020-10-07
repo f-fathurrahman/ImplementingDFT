@@ -18,6 +18,7 @@ include("mix_linear.jl")
 include("mix_rpulay.jl")
 include("gen_gaussian_density.jl")
 include("KS_solve_SCF.jl")
+include("KS_solve_SCF_potmix.jl")
 
 function main( Ham::Hamiltonian; use_smearing=false, kT=1.e-3 )
     
@@ -40,7 +41,9 @@ function main( Ham::Hamiltonian; use_smearing=false, kT=1.e-3 )
         ortho_sqrt!(psis[i], dVol)
     end
 
-    KS_solve_SCF!(Ham, psis, betamix=0.5, use_smearing=use_smearing,
+    #KS_solve_SCF!(Ham, psis, betamix=0.5, use_smearing=use_smearing,
+    #    guess_density=:random, kT=kT)
+    KS_solve_SCF_potmix!(Ham, psis, betamix=0.5, use_smearing=use_smearing,
         guess_density=:random, kT=kT)
 end
 
@@ -51,10 +54,10 @@ end
 #    use_smearing=false
 #)
 
-#@time main(
-#    create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=0),
-#    use_smearing=false
-#)
+@time main(
+    create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=0),
+    use_smearing=false
+)
 
 #@time main(
 #    create_Ham_Al2(40, grid_type=:FD, Nstates_extra=0),
@@ -71,7 +74,7 @@ end
 #    use_smearing=true, manual_Focc=true
 #)
 
-@time main(
-    create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=4),
-    use_smearing=true
-)
+#@time main(
+#    create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=4),
+#    use_smearing=true
+#)
