@@ -19,7 +19,7 @@ include("mix_rpulay.jl")
 include("gen_gaussian_density.jl")
 include("KS_solve_SCF.jl")
 
-function main( Ham::Hamiltonian; use_smearing=false )
+function main( Ham::Hamiltonian; use_smearing=false, kT=1.e-3 )
     
     Random.seed!(1234)
 
@@ -41,7 +41,7 @@ function main( Ham::Hamiltonian; use_smearing=false )
     end
 
     KS_solve_SCF!(Ham, psis, betamix=0.5, use_smearing=use_smearing,
-        guess_density=:random)
+        guess_density=:random, kT=kT)
 end
 
 #@time main( create_Ham_O2(40, grid_type=:FD, Nstates_extra=2), use_smearing=true )
@@ -56,10 +56,10 @@ end
 #    use_smearing=false
 #)
 
-@time main(
-    create_Ham_Al2(40, grid_type=:FD, Nstates_extra=0),
-    use_smearing=false
-)
+#@time main(
+#    create_Ham_Al2(40, grid_type=:FD, Nstates_extra=0),
+#    use_smearing=false
+#)
 
 #@time main(
 #    create_Ham_C_atom(40, grid_type=:FD, Nstates_extra=0),
@@ -70,3 +70,8 @@ end
 #    create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=4),
 #    use_smearing=true, manual_Focc=true
 #)
+
+@time main(
+    create_Ham_Al_atom(40, grid_type=:FD, Nstates_extra=4),
+    use_smearing=true
+)
