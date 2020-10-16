@@ -112,7 +112,7 @@ NelectronsSpin = (Nel_up, Nel_dn)
 function Electrons(
     atoms::Atoms, Pspots::Array{PsPot_GTH,1},
     NelectronsSpin::Tuple{Int64,Int64};
-    Nkpt=1, Nstates_extra=0
+    Nstates_extra=0
 )
     Nspin = 2
     Nelectrons = get_Nelectrons(atoms,Pspots)
@@ -121,21 +121,17 @@ function Electrons(
     Nstates_occ = maximum(NelectronsSpin)
     Nstates = Nstates_occ + Nstates_extra
 
-    Focc = zeros(Float64,Nstates,Nkpt*Nspin)
-    eorbs = zeros(Float64,Nstates,Nkpt*Nspin)
-    
-    Nstates
+    Focc = zeros(Float64,Nstates,Nspin)
+    eorbs = zeros(Float64,Nstates,Nspin)
 
-    for ik in 1:Nkpt
-        for i in 1:NelectronsSpin[1]
-            Focc[i,ik] = 1.0
-        end
-        for i in 1:NelectronsSpin[2]
-            Focc[i,Nkpt+ik] = 1.0
-        end
+    for i in 1:NelectronsSpin[1]
+        Focc[i,1] = 1.0
+    end
+    for i in 1:NelectronsSpin[2]
+        Focc[i,2] = 1.0
     end
 
-    sFocc = sum(Focc)/Nkpt
+    sFocc = sum(Focc)
     # Check if the generated Focc is consistent
     if abs( sFocc - Nelectrons ) > eps()
         @printf("sum Focc = %f, Nelectrons = %f\n", sFocc, Nelectrons)
