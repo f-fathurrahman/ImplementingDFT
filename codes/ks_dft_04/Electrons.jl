@@ -138,7 +138,67 @@ function Electrons(
         error(@sprintf("ERROR: diff sum(Focc) and Nelectrons is not small\n"))
     end
 
-    return Electrons( Nelectrons, Nstates, Nstates_occ, Focc, eorbs, Nspin )
+    return Electrons( Nspin, Nelectrons, Nstates, Nstates_occ, Focc, eorbs )
+end
+
+
+function Electrons(
+    atoms::Atoms,
+    pspots::Array{PsPot_GTH,1},
+    N_unpaired::Int64;
+    Nstates_extra=0, Nspin=1
+)
+    @assert N_unpaired >= 0
+    @assert Nspin <= 2
+
+    if N_unpaired==0
+        return Electrons(atoms, pspots)
+    end
+
+    Nelectrons = get_Nelectrons(atoms, pspots)
+    is_odd = round(Int64,Nelectrons)%2 == 1
+
+    if is_odd && (N_unpaired==1)
+        return Electrons(atoms, pspots)
+    end
+
+    NdoublyOccupied = round( Int64, (Nelectrons - N_unpaired)/2 ) # or Npaired
+    Nstates = NdoublyOccupied + N_unpaired + Nstates_extra
+
+    Focc = zeros(Nstates,Nspin)
+    eorbs = zeros(Nstates,Nspin)
+    Nstates_occ = 0
+
+    if Nspin == 1
+        for i in 1:NdoublyOccupied
+            Focc[i,1] = 2.0
+        end
+        for i in (NdoublyOccupied+1):(NdoublyOccupied+N_unpaired)
+            Focc[i,1] = 1.0
+        end
+    elseif Nspin == 2
+        for i in 1:NdoublyOccupied
+            Focc[i,1] = 1.0
+            Focc[i,2] = 1.0
+        end
+        for i in (NdoublyOccupied+1):(NdoublyOccupied+N_unpaired)
+            Focc[i,1] = 1.0
+        end
+    end
+
+    Nstates_occ = NdoublyOccupied + N_unpaired
+    @assert Nstates_occ > 0
+
+    sFocc = sum(Focc)
+    # Check if the generated Focc is consistent
+    if abs( sFocc - Nelectrons ) > eps()
+        @printf("sum Focc = %f, Nelectrons = %f\n", sFocc, Nelectrons)
+        @printf("Please check if N_unpaired = %d makes sense for your system\n", N_unpaired)
+        error(@sprintf("ERROR: diff sum(Focc) and Nelectrons is not small\n"))
+    end
+
+    return Electrons( Nspin, Nelectrons, Nstates, Nstates_occ, Focc, eorbs )
+
 end
 
 
@@ -207,7 +267,7 @@ function show( io::IO, electrons::Electrons; header=true, all_states=false )
         #
         for ist in Nstates-3:Nstates
             @printf(io, "state #%4d = ", ist)
-            for ispin in 1:Nkspin
+            for ispin in 1:Nspin
                 @printf(io, "%8.5f ", Focc[ist,ispin])
                 if (ispin % Nk_per_line) == 0
                     @printf(io, "\n")
