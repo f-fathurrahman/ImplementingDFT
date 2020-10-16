@@ -10,8 +10,16 @@ end
 
 function Electrons(
     atoms::Atoms, pspots::Array{PsPot_GTH,1};
-    Nstates=nothing, Nstates_extra=0, Nspin=1
+    Nstates=nothing, Nstates_extra=0, Nspin=1,
+    N_unpaired=0
 )
+
+    # Number of unpaired electrons is given.
+    # Call special constructor for this purpose
+    if N_unpaired > 0
+        return Electrons(atoms, pspots, N_unpaired,
+            Nstates_extra=Nstates_extra, Nspin=Nspin)
+    end
 
     @assert Nspin <= 2
 
@@ -148,19 +156,11 @@ function Electrons(
     N_unpaired::Int64;
     Nstates_extra=0, Nspin=1
 )
-    @assert N_unpaired >= 0
+    @assert N_unpaired > 0
     @assert Nspin <= 2
-
-    if N_unpaired==0
-        return Electrons(atoms, pspots)
-    end
 
     Nelectrons = get_Nelectrons(atoms, pspots)
     is_odd = round(Int64,Nelectrons)%2 == 1
-
-    if is_odd && (N_unpaired==1)
-        return Electrons(atoms, pspots)
-    end
 
     NdoublyOccupied = round( Int64, (Nelectrons - N_unpaired)/2 ) # or Npaired
     Nstates = NdoublyOccupied + N_unpaired + Nstates_extra
