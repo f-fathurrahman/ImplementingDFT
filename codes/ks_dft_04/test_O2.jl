@@ -35,7 +35,12 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=1 )
+    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=1 )
+    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=1 )
+    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=2 )
+    Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=2 )
+    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nstates_extra=1, Nspin=1 )
+    #Ham = Hamiltonian( atoms, pspfiles, grid, Nstates_extra=2, Nspin=1 )
 
     println(Ham.atoms)
     println(Ham.grid)
@@ -55,6 +60,9 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
     end
 
     KS_solve_Emin_PCG!(Ham, psis)
+    #KS_solve_SCF!(Ham, psis, use_smearing=true, kT=1e-3, betamix=0.2)
+    #KS_solve_SCF!(Ham, psis, betamix=0.1)
+    #KS_solve_SCF_potmix!(Ham, psis)
 
 end
 

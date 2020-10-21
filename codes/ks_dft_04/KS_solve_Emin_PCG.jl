@@ -306,10 +306,11 @@ function KS_solve_Emin_PCG!(
     @printf("Final Kohn-Sham eigenvalues:\n")
     @printf("----------------------------\n")
     @printf("\n")
+    Focc = Ham.electrons.Focc
     for i in 1:Nspin
         @printf("ispin = %d\n", i)
         for ist in 1:Nstates
-            @printf("%3d %18.10f\n", ist, evals[ist,i])
+            @printf("%3d %18.10f %18.10f\n", ist, Focc[ist,i], evals[ist,i])
         end
     end
 
