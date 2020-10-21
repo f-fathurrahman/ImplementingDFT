@@ -81,12 +81,19 @@ function calc_grad!(
     return
 end
 
-function calc_energies_grad!( Ham, psis, Rhoe, g, Kg, Hsub )
+function calc_energies_grad!(
+    Ham::Hamiltonian,
+    psis::Vector{Array{Float64,2}},
+    Rhoe::Array{Float64,2},
+    g::Vector{Array{Float64,2}},
+    Kg::Vector{Array{Float64,2}},
+    Hsub::Vector{Matrix{Float64}}
+)
     calc_rhoe!( Ham, psis, Rhoe )
     update!( Ham, Rhoe )
     calc_energies!( Ham, psis )
 
-    Nstates = size(psi,2)
+    Nstates = size(psis[1],2)
     Nspin = Ham.electrons.Nspin
 
     for i in 1:Nspin
@@ -102,28 +109,43 @@ function calc_energies_grad!( Ham, psis, Rhoe, g, Kg, Hsub )
 end
 
 
-function calc_energies_only!( Ham, psi, Rhoe )
-    calc_rhoe!( Ham, psi, Rhoe )
+function calc_energies_only!( Ham, psis, Rhoe )
+    calc_rhoe!( Ham, psis, Rhoe )
     update!( Ham, Rhoe )
-    calc_energies!( Ham, psi )
+    calc_energies!( Ham, psis )
     return sum( Ham.energies )
 end
 
 
-function linmin_grad!( Ham, psi, g, d, Rhoe, psic, gt; αt = 3e-5 )
+function linmin_grad!(
+    Ham::Hamiltonian,
+    psis::Vector{Array{Float64,2}},
+    g::Vector{Array{Float64,2}},
+    d::Vector{Array{Float64,2}},
+    Rhoe::Array{Float64,2},
+    psisc::Vector{Array{Float64,2}},
+    gt::Vector{Array{Float64,2}};
+    αt=3e-5
+)
 
-    Nbasis = size(psi,1)
-    Nstates = size(psi,2)
+    Nspin = Ham.electrons.Nspin
+    Nbasis = size(psis[1], 1)
+    Nstates = size(psis[1], 2)
     
     dVol= Ham.grid.dVol
 
-    psic[:] = psi + αt*d
-    ortho_sqrt!(psic)
-    psic[:] = psic[:]/sqrt(dVol)
+    for i in 1:Nspin
+        psisc[i][:] = psis[i] + αt*d[i]
+        ortho_sqrt!(psisc[i])
+        psisc[i][:] = psisc[i][:]/sqrt(dVol)
+    end
 
-    calc_rhoe!( Ham, psic, Rhoe )
+    calc_rhoe!( Ham, psisc, Rhoe )
     update!( Ham, Rhoe )
-    calc_grad!( Ham, psic, gt )
+    for i in 1:Nspin
+        Ham.ispin = i
+        calc_grad!( Ham, psisc[i], gt[i] )
+    end
 
     denum = dot(g - gt, d)*dVol
 
@@ -132,6 +154,7 @@ function linmin_grad!( Ham, psi, g, d, Rhoe, psic, gt; αt = 3e-5 )
     else
         α = 0.0
     end
+    println("α in linmin_grad = ", α)
     return α
 end
 
@@ -141,33 +164,43 @@ function constrain_search_dir!( d, psi, dVol )
 end
 
 function KS_solve_Emin_PCG!(
-    Ham::Hamiltonian, psi::Array{Float64,2};
+    Ham::Hamiltonian, psis::Vector{Array{Float64,2}};
     α_t=3e-5, NiterMax=200,
     etot_conv_thr=1e-6
 )
-    Nbasis = size(psi,1)
-    Nstates = size(psi,2)
+    Nspin = size(psis, 1)
+    Nbasis = size(psis[1], 1)
+    Nstates = size(psis[1], 2)
 
     dVol = Ham.grid.dVol
 
-    g = zeros(Float64,Nbasis,Nstates)
-    Kg = zeros(Float64,Nbasis,Nstates)
-    gPrev = zeros(Float64,Nbasis,Nstates)
-    d = zeros(Float64,Nbasis,Nstates)
+    g = Vector{Array{Float64,2}}(undef,Nspin)
+    for i in 1:Nspin
+        g[i] = zeros(Float64,Nbasis,Nstates)
+    end
 
-    psic = zeros(Float64,Nbasis,Nstates)
-    gt = zeros(Float64,Nbasis,Nstates)
+    Kg = deepcopy(g)
+    gPrev = deepcopy(g)
+    d = deepcopy(g)
+    psisc = deepcopy(g)
+    gt = deepcopy(g)
 
-    Rhoe = zeros(Float64,Nbasis)
-    Hsub = zeros(Nstates,Nstates)
+    Hsub = Vector{Array{Float64,2}}(undef,Nspin)
+    for i in 1:Nspin
+        Hsub[i] = zeros(Float64,Nstates,Nstates)
+    end
+
+    Rhoe = zeros(Float64,Nbasis,Nspin)
 
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
-    Etot = calc_energies_grad!( Ham, psi, Rhoe, g, Kg, Hsub )
+    Etot = calc_energies_grad!( Ham, psis, Rhoe, g, Kg, Hsub )
 
-    d[:,:] = -Kg[:,:]
+    for i in 1:Nspin
+        d[i][:,:] = -Kg[i][:,:]
+    end
 
-    constrain_search_dir!( d, psi, dVol )
+    #constrain_search_dir!( d, psi, dVol )
 
     gPrevUsed = true
 
@@ -207,30 +240,38 @@ function KS_solve_Emin_PCG!(
             β = 0.0
         end
 
+        println("β = ", β)
+
         force_grad_dir = false
         
         if gPrevUsed
-            gPrev[:] = g[:]
+            for i in 1:Nspin
+                gPrev[i][:] = g[i][:]
+            end
         end
         gKnormPrev = gKnorm
 
         # Update search direction
-        @views d[:] = -Kg[:] + β*d[:]
+        for i in 1:Nspin
+            @views d[i][:] = -Kg[i][:] + β*d[i][:]
+        end
 
-        constrain_search_dir!( d, psi, dVol )
+        #constrain_search_dir!( d, psi, dVol )
 
-        α = linmin_grad!( Ham, psi, g, d, Rhoe, psic, gt )
+        α = linmin_grad!( Ham, psis, g, d, Rhoe, psisc, gt )
 
         # Update psi
-        @views psi[:] = psi[:] + α*d[:]
-        ortho_sqrt!(psi)
-        psi = psi/sqrt(dVol)
+        for i in 1:Nspin
+            @views psis[i][:] = psis[i][:] + α*d[i][:]
+            ortho_sqrt!(psis[i])
+            psis[i] = psis[i]/sqrt(dVol)
+        end
 
-        calc_rhoe!(Ham, psi, Rhoe)
+        calc_rhoe!(Ham, psis, Rhoe)
         update!(Ham, Rhoe)
 
         # Calc new Etot and gradient
-        Etot = calc_energies_grad!( Ham, psi, Rhoe, g, Kg, Hsub )
+        Etot = calc_energies_grad!( Ham, psis, Rhoe, g, Kg, Hsub )
         
         diffE = Etot_old - Etot
         @printf("Emin_PCG step %8d = %18.10f  %12.7e\n", iter, Etot, diffE)
@@ -253,17 +294,23 @@ function KS_solve_Emin_PCG!(
 
     end
 
+    evals = zeros(Float64,Nstates,Nspin)
     # Calculate eigenvalues
-    evals, evecs = eigen(Hermitian(Hsub))
-    psi = psi*evecs
+    for i in 1:Nspin
+        evals[:,i], evecs = eigen(Hermitian(Hsub[i]))
+        psis[i] = psis[i]*evecs
+    end
 
     @printf("\n")
     @printf("----------------------------\n")
     @printf("Final Kohn-Sham eigenvalues:\n")
     @printf("----------------------------\n")
     @printf("\n")
-    for i in 1:Nstates
-        @printf("%3d %18.10f\n", i, evals[i])
+    for i in 1:Nspin
+        @printf("ispin = %d\n", i)
+        for ist in 1:Nstates
+            @printf("%3d %18.10f\n", ist, evals[ist,i])
+        end
     end
 
     @printf("\n")
