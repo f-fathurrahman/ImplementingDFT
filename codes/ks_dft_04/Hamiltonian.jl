@@ -114,7 +114,8 @@ function Hamiltonian(
     verbose=false,
     stencil_order=9,
     prec_type=:ILU0,
-    Nspin=1
+    Nspin=1,
+    N_unpaired=0
 )
 
     # Need better mechanism for this
@@ -165,7 +166,9 @@ function Hamiltonian(
     rhoe = zeros(Float64,Npoints,Nspin)
 
     electrons = Electrons( atoms, pspots,
-        Nstates_extra=Nstates_extra, Nspin=Nspin )
+        N_unpaired=N_unpaired, Nstates_extra=Nstates_extra,
+        Nspin=Nspin
+    )
 
     energies = Energies()
 
