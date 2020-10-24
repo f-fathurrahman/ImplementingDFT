@@ -25,8 +25,19 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
 
     Random.seed!(1234)
 
-    atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"O2.xyz") )
-    pspfiles = [ joinpath(DIR_PSP,"O-q6.gth") ]
+    #atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"O2.xyz") )
+    #pspfiles = [ joinpath(DIR_PSP,"O-q6.gth") ]
+
+    atoms = Atoms( xyz_string=
+        """
+        2
+
+        C   0.575  0.0  0.0
+        O  -0.575  0.0  0.0
+        """) # coordinates are in angstrom
+    pspfiles = [ joinpath(DIR_PSP,"C-q4.gth"),
+                 joinpath(DIR_PSP,"O-q6.gth") ]
+
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
@@ -37,8 +48,11 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
     end
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=1 )
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=1 )
-    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=2 )
-    Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=2 )
+    Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=2 )
+
+    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=2, Nstates_extra=2 )
+
+    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=2 )
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nstates_extra=1, Nspin=1 )
     #Ham = Hamiltonian( atoms, pspfiles, grid, Nstates_extra=2, Nspin=1 )
 
@@ -62,7 +76,7 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
     KS_solve_Emin_PCG!(Ham, psis)
     #KS_solve_SCF!(Ham, psis, use_smearing=true, kT=1e-3, betamix=0.2)
     #KS_solve_SCF!(Ham, psis, betamix=0.1)
-    #KS_solve_SCF_potmix!(Ham, psis)
+    #KS_solve_SCF_potmix!(Ham, psis, use_smearing=true, kT=1e-3, betamix=0.2)
 
 end
 
