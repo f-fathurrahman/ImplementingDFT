@@ -21,7 +21,6 @@ function calc_grad!(
     else
         need_correction = !all(Focc .== 1)
     end
-
     println("need_correction = ", need_correction, " ispin = ", ispin)
     if !need_correction
         # immediate return
@@ -46,6 +45,7 @@ function calc_grad!(
     ψ::Array{Float64,2},
     g::Array{Float64,2}
 )
+
     ispin = Ham.ispin
     Nstates = size(ψ,2)
     Nspin = Ham.electrons.Nspin
@@ -63,7 +63,6 @@ function calc_grad!(
     else
         need_correction = !all(Focc .== 1)
     end
-
     #println("need_correction = ", need_correction)
     if !need_correction
         # immediate return

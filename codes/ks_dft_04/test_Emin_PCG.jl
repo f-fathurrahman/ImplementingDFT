@@ -19,8 +19,8 @@ include("mix_rpulay.jl")
 include("gen_gaussian_density.jl")
 include("KS_solve_SCF.jl")
 include("KS_solve_SCF_potmix.jl")
-include("KS_solve_Emin_PCG.jl")
-#include("KS_solve_Emin_PCG_v2.jl")
+#include("KS_solve_Emin_PCG.jl")
+include("KS_solve_Emin_PCG_v2.jl")
 
 function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
 
@@ -48,12 +48,12 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
         grid = FD3dGrid( NN, AA, BB )
     end
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=1 )
-    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=1 )
+    Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=1 )
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=2 )
 
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=2, Nstates_extra=2 )
 
-    Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=2 )
+    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=2 )
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nstates_extra=1, Nspin=1 )
     #Ham = Hamiltonian( atoms, pspfiles, grid, Nstates_extra=2, Nspin=1 )
 

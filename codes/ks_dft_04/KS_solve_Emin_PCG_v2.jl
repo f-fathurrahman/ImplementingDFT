@@ -21,7 +21,9 @@ function calc_grad!(
     else
         need_correction = !all(Focc .== 1)
     end
-
+    
+    #need_correction = false # HACK to disable
+    
     println("need_correction = ", need_correction, " ispin = ", ispin)
     if !need_correction
         # immediate return
@@ -46,38 +48,9 @@ function calc_grad!(
     ψ::Array{Float64,2},
     g::Array{Float64,2}
 )
-    ispin = Ham.ispin
     Nstates = size(ψ,2)
-    Nspin = Ham.electrons.Nspin
-
-    @views Focc = Ham.electrons.Focc[:,ispin]
-    Hψ = op_H( Ham, ψ )
-    Hsub = ψ' * Hψ * Ham.grid.dVol
-    Hψ = Hψ - ψ*Hsub
-    for ist in 1:Nstates
-        @views g[:,ist] = Focc[ist] * Hψ[:,ist]
-    end
-
-    if Nspin == 1
-        need_correction = !all(Focc .== 2)
-    else
-        need_correction = !all(Focc .== 1)
-    end
-
-    #println("need_correction = ", need_correction)
-    if !need_correction
-        # immediate return
-        return
-    end
-
-    F = Diagonal(Focc)
-    HFH = Hsub*F - F*Hsub
-    #println("HFH = "); display(HFH); println()
-    if Ham.electrons.Nspin == 1
-        g[:,:] = g[:,:] + 0.5*ψ*HFH
-    else
-        g[:,:] = g[:,:] + ψ*HFH
-    end
+    Hsub = zeros(Float64,Nstates,Nstates)
+    calc_grad!(Ham, ψ, g, Hsub)
     return
 end
 
