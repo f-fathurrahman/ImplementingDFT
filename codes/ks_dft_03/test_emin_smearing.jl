@@ -47,7 +47,7 @@ function main( Ham::Hamiltonian; use_smearing=false )
     #Ham.electrons.eorbs[:] = evars.Hsub_eigs[:]
     Ham.electrons.eorbs[:] = [-3.0, -1.0, -1.0, -1.0, -0.5, -0.5]
 
-    KS_solve_Emin_SD_Haux!(Ham, evars, NiterMax=200)
+    KS_solve_Emin_SD_Haux!(Ham, evars, NiterMax=100)
     
     # Comparison with SCF
     #KS_solve_SCF!( Ham, psi, betamix=0.25, use_smearing=use_smearing)

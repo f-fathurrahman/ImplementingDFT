@@ -93,7 +93,9 @@ function calc_energies_grad!(
     println("fprimeNum  = ", fprimeNum)
     println("dmuContrib = ", dmuContrib)
     if isnan(dmuContrib)
-        exit()
+        println("dmuContrib is NaN, stopping")
+        println("Setting it to zero")
+        dmuContrib = 0.0
     end
 
 

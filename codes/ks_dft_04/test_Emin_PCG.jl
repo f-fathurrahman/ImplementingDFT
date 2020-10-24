@@ -26,8 +26,8 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
 
     Random.seed!(1234)
 
-    atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"O2.xyz") )
-    pspfiles = [ joinpath(DIR_PSP,"O-q6.gth") ]
+    #atoms = Atoms( xyz_file=joinpath(DIR_STRUCTURES,"O2.xyz") )
+    #pspfiles = [ joinpath(DIR_PSP,"O-q6.gth") ]
 
     #atoms = Atoms( xyz_string=
     #    """
@@ -39,6 +39,14 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
     #pspfiles = [ joinpath(DIR_PSP,"C-q4.gth"),
     #             joinpath(DIR_PSP,"O-q6.gth") ]
 
+    atoms = Atoms( xyz_string=
+        """
+        1
+
+        C   0.0  0.0  0.0
+        """) # coordinates are in angstrom
+    pspfiles = [ joinpath(DIR_PSP,"C-q4.gth") ]
+
     AA = -8.0*ones(3)
     BB =  8.0*ones(3)
     NN = [N,N,N]
@@ -47,8 +55,8 @@ function main( N::Int64; grid_type=:FD, use_smearing=false, kT=1.e-3 )
     else
         grid = FD3dGrid( NN, AA, BB )
     end
-    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=1 )
-    Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=1 )
+    Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=1 )
+    #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=2, Nspin=1 )
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=2 )
 
     #Ham = Hamiltonian( atoms, pspfiles, grid, N_unpaired=0, Nspin=2, Nstates_extra=2 )
