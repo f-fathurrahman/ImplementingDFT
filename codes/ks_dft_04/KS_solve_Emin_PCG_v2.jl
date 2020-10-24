@@ -131,33 +131,27 @@ function linmin_grad!(
     αt=3e-5
 )
     Nspin = Ham.electrons.Nspin
-    i = Ham.ispin
     Nbasis = size(psis[1], 1)
     Nstates = size(psis[1], 2)
     
     dVol= Ham.grid.dVol
 
-    psisc[i][:] = psis[i] + αt*d[i]
-    ortho_sqrt!(psisc[i])
-    psisc[i][:] = psisc[i][:]/sqrt(dVol)
-
-    if Nspin == 2
-        if i == 1
-            psisc[2][:] = psis[2][:]
-        end
-        if i == 2
-            psisc[1][:] = psis[1][:]
-        end
+    for i in 1:Nspin
+        psisc[i][:] = psis[i] + αt*d[i]
+        ortho_sqrt!(psisc[i])
+        psisc[i][:] = psisc[i][:]/sqrt(dVol)
     end
 
     calc_rhoe!( Ham, psisc, Rhoe )
     update!( Ham, Rhoe )
-    calc_grad!( Ham, psisc[i], gt[i] )
-
-    denum = dot(g[i] - gt[i], d[i])*dVol
+    for i in 1:Nspin
+        Ham.ispin = i
+        calc_grad!( Ham, psisc[i], gt[i] )
+    end
+    denum = dot(g - gt, d)*dVol
 
     if denum != 0.0
-        α = abs( αt * dot(g[i], d[i])*dVol/denum )
+        α = abs( αt * dot(g, d)*dVol/denum )
     else
         α = 0.0
     end
@@ -210,10 +204,10 @@ function KS_solve_Emin_PCG!(
 
     gPrevUsed = true
 
-    α = zeros(Nspin)
-    β = zeros(Nspin) #0.0
-    gKnorm = zeros(Nspin) #0.0
-    gKnormPrev = zeros(Nspin) #0.0
+    α = 0.0
+    β = 0.0
+    gKnorm = 0.0
+    gKnormPrev = 0.0
     force_grad_dir = true
 
     Etot_old = Etot
@@ -230,21 +224,21 @@ function KS_solve_Emin_PCG!(
 
     for iter in 1:NiterMax
 
-        for i in 1:Nspin
-            gKnorm[i] = dot(g[i], Kg[i])*dVol
-            if !force_grad_dir
-                #dotgd = dot(g[i], d[i])*dVol
-                if gPrevUsed
-                    dotgPrevKg = dot(gPrev[i], Kg[i])*dVol
-                else
-                    dotgPrevKg = 0.0
-                end
-                β[i] = (gKnorm[i] - dotgPrevKg)/gKnormPrev[i] # Polak-Ribiere
+        gKnorm = dot(g, Kg)*dVol
+        if !force_grad_dir
+            dotgd = dot(g, d)*dVol
+            println("dotgd = ", dotgd)
+            if gPrevUsed
+                dotgPrevKg = dot(gPrev, Kg)*dVol
+            else
+                dotgPrevKg = 0.0
             end
-            if β[i] < 0.0
-                println("β reset for i = ", i, " because β = ", β[i])
-                β[i] = 0.0
-            end
+            β = (gKnorm - dotgPrevKg)/gKnormPrev # Polak-Ribiere
+        end
+        
+        if β < 0.0
+            println("Reset β because β = ", β)
+            β = 0.0
         end
 
         println("β = ", β)
@@ -260,20 +254,17 @@ function KS_solve_Emin_PCG!(
 
         # Update search direction
         for i in 1:Nspin
-            @views d[i][:] = -Kg[i][:] + β[i]*d[i][:]
+            @views d[i][:] = -Kg[i][:] + β*d[i][:]
         end
 
         #constrain_search_dir!( d, psi, dVol )
 
-        for i in 1:Nspin
-            Ham.ispin = i
-            α[i] = linmin_grad!( Ham, psis, g, d, Rhoe, psisc, gt )
-        end
+        α = linmin_grad!( Ham, psis, g, d, Rhoe, psisc, gt )
         println("α = ", α)
 
         # Update psi
         for i in 1:Nspin
-            @views psis[i][:] = psis[i][:] + α[i]*d[i][:]
+            @views psis[i][:] = psis[i][:] + α*d[i][:]
             ortho_sqrt!(psis[i])
             psis[i] = psis[i]/sqrt(dVol)
         end
