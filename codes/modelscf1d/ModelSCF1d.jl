@@ -1,19 +1,25 @@
 module ModelSCF1d
 
-#export Hamiltonian, Atoms, andersonMixOptions
-#export eigOptions, scfOptions, init_pot!, scf!, get_force!
-#export hartree_pot_bc, time_evolution, velocity_verlet, update_pot!
-
 include("Atoms.jl")
 export Atoms
 
-#include("scfOptions.jl")
-#include("anderson_mix.jl")
-#include("kerker_mix.jl")
-#include("Ham.jl")
-#include("hartree_pot_bc.jl")
-#include("pseudocharge.jl")
-#include("getocc.jl")
+include("scfOptions.jl")
+export EigensolverOptions, SCFOptions
+
+include("anderson_mix.jl")
+export AndersonMixOptions
+
+include("kerker_mix.jl")
+
+include("pseudocharge.jl")
+include("Hamiltonian.jl")
+include("hartree_pot_bc.jl")
+
+export Hamiltonian, init_pot!, scf_potmix!
+
+include("getocc.jl")
+
+
 #include("Integrators.jl")
 
 end

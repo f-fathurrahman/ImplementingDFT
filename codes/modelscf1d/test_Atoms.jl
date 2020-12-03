@@ -1,5 +1,6 @@
 push!(LOAD_PATH, "./")
 
+using Printf
 using ModelSCF1d
 
 function main()
@@ -8,7 +9,7 @@ function main()
     Nunit = 8   # number of units
     Lat = 10     # size of the lattice
     Ls = Nunit*Lat
-    Ns = round(Integer, Ls / dx) # number of discretization points
+    Ns = round(Integer, Ls/dx) # number of discretization points
 
     Ndist = 1
     Natoms = round(Integer, Nunit / Ndist)
@@ -22,11 +23,14 @@ function main()
     
     # defining the position of the nuclei
     R = reshape([ (j-0.5)*Lat*Ndist+dx for j=1:Natoms ], Natoms, 1)
+    for ia in 1:Natoms
+        @printf("%d %18.10f\n", ia, R[ia])
+    end
     
     # creating an atom structure
     atoms = Atoms(Natoms, R, sigma, omega, Eqdist, mass, Z, nocc)
 
-    println(atoms)
+
 end
 
 main()
