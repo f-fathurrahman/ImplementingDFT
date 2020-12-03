@@ -23,7 +23,7 @@ function pseudocharge(gridpos, Ls, atoms, YukawaK, epsil0)
     for j in 1:Natoms
         d = R[j] .- gridpos
         d = d - round.(Integer, d/Ls)*Ls
-        drhoa[:,j1] = drhoa[:,j] - Z[j] ./sqrt(2*pi*sigma[j]^2)./sigma[j]^2 .* (exp.(-0.5*(d./sigma[j]).^2)).*d
+        drhoa[:,j] = drhoa[:,j] - Z[j] ./sqrt(2*pi*sigma[j]^2)./sigma[j]^2 .* (exp.(-0.5*(d./sigma[j]).^2)).*d
     end
     return rhoa, drhoa
 end
