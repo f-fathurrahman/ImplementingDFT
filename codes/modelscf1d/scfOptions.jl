@@ -36,7 +36,7 @@ end
 function AndersonMixOptions(Ns, betamix, mixdim)
     ymat = zeros(Ns, mixdim)
     smat = zeros(Ns, mixdim)
-    return AndersonMixOptions(ymat,smat,betamix[1], mixdim, 1)
+    return AndersonMixOptions(ymat, smat, betamix[1], mixdim, 1)
 end
 
 mutable struct AndersonPrecMixOptions <: MixingOptions

@@ -5,10 +5,9 @@ export Atoms
 
 include("scfOptions.jl")
 export EigensolverOptions, SCFOptions
+export AndersonMixOptions, SimpleMixOptions
 
 include("anderson_mix.jl")
-export AndersonMixOptions
-
 include("kerker_mix.jl")
 
 include("pseudocharge.jl")

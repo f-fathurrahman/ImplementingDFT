@@ -31,22 +31,22 @@ function main()
     nocc   = ones(Natoms,1)*2          # number of electrons per atom
     Z      = nocc
 
-    x0 = zeros(Natoms); # this is defined as an 2D array
-    for j = 1:Natoms
-        x0[j] = (j-0.5)*Lat*Ndist+dx;
+    x0 = zeros(Natoms) # this is defined as an 2D array
+    for j in 1:Natoms
+        x0[j] = (j - 0.5)*Lat*Ndist + dx
     end
 
     R = reshape(x0, length(x0), 1) # we need to make it a two dimensional array
     # creating an atom structure
     atoms = Atoms(Natoms, R, sigma,  omega,  Eqdist, mass, Z, nocc)
     # allocating a Hamiltonian
-    Ham = Hamiltonian(Lat, Nunit, n_extra, dx, atoms,YukawaK, epsil0, Tbeta)
+    Ham = Hamiltonian(Lat, Nunit, n_extra, dx, atoms, YukawaK, epsil0, Tbeta)
 
     # total number of occupied orbitals
-    Nocc = round(Integer, sum(atoms.nocc) / Ham.nspin);
+    Nocc = round(Integer, sum(atoms.nocc) / Ham.nspin)
 
     # setting the options for the scf iteration
-    KerkerB = 0.5;
+    KerkerB = 0.5
     mixOpts = AndersonMixOptions(Ham.Ns, betamix, mixdim)
     eigOpts = EigensolverOptions(1.e-8, 1000, "eigs")
     scfOpts = SCFOptions(1.e-7, 100, eigOpts, mixOpts)
