@@ -1,5 +1,6 @@
 clean_mem_cov.sh
 create_zip.sh
+__pycache__
 
 .ipynb_checkpoints
 *.data
