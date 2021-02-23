@@ -40,13 +40,13 @@ end
 
 function dot_ElecGradient( v1::ElecGradient, v2::ElecGradient, dVol )
     #ss = 2.0*real( dot(v1.psi, v2.psi) )
-    ss = dot(v1.psi, v2.psi)*dVol # ??
+    ss = 2*dot(v1.psi, v2.psi)*dVol # ??
     ss = ss + dot(v1.Haux, v2.Haux) # no factor of 2
     return ss
 end
 
 function dot_ElecGradient_v2( v1::ElecGradient, v2::ElecGradient, dVol )
-    ss1 = dot(v1.psi, v2.psi)*dVol # ??
+    ss1 = 2*dot(v1.psi, v2.psi)*dVol # ??
     ss2 = dot(v1.Haux, v2.Haux) # no factor of 2
     return ss1, ss2
 end

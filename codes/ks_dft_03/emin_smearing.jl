@@ -93,7 +93,7 @@ function calc_energies_grad!(
     println("fprimeNum  = ", fprimeNum)
     println("dmuContrib = ", dmuContrib)
     if isnan(dmuContrib)
-        println("dmuContrib is NaN, stopping")
+        println("dmuContrib is NaN")
         println("Setting it to zero")
         dmuContrib = 0.0
     end
@@ -176,7 +176,7 @@ function do_step!(
     rotPrevC = subrot.prevC
     rotPrevCinv = subrot.prevCinv
 
-    evars.psi = evars.psi + α*d.psi*rotPrevC
+    evars.psi[:,:] = evars.psi[:,:] + α*d.psi*rotPrevC
 
     # Haux fillings:
     Haux = diagm( 0 => Ham.electrons.eorbs )
@@ -187,7 +187,7 @@ function do_step!(
     println("rotPrev = ")
     display(rotPrev); println()
 
-    Haux = Haux + α_Haux*( rotPrev' * d.Haux * rotPrev )
+    Haux[:,:] = Haux[:,:] + α_Haux*( rotPrev' * d.Haux * rotPrev )
 
     println("Haux + d.Haux: ")
     display(Haux); println()

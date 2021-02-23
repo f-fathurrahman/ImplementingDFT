@@ -64,9 +64,10 @@ function KS_solve_Emin_SD_Haux!(
 
         #constrain_search_dir!( d, evars, dVol )
 
-        #α = linmin_grad_v1!( Ham, evars, g, d, kT, subrot )
-        #α_Haux = α
-        α, α_Haux = linmin_grad_v2!( Ham, evars, g, d, kT, subrot )
+        α = linmin_grad_v1!( Ham, evars, g, d, kT, subrot )
+        α_Haux = α
+        
+        #α, α_Haux = linmin_grad_v2!( Ham, evars, g, d, kT, subrot )
         #α = 0.1
         #α_Haux = 0.1
         println("α      = ", α)
