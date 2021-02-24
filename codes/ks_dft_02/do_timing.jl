@@ -47,3 +47,4 @@ function timing_op_H(Ham_func, N, grid_type)
 
 end
 timing_op_H(create_Ham_Al2, 40, :FD)
+timing_op_H(create_Ham_Al2, 40, :LF)
