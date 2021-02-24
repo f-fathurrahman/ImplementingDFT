@@ -22,29 +22,35 @@ function main(Ham_func, N, grid_type)
 
     Ham = Ham_func(N, grid_type=grid_type)
 
-    #println(Ham.atoms)
-    #println(Ham.grid)
-    #check_betaNL_norm(Ham.grid, Ham.pspotNL)
+    #for isp in 1:Ham.atoms.Nspecies
+    #    println(Ham.pspots[isp])
+    #end
 
     @printf("\nsizeof Ham  = %18.10f MiB\n", Base.summarysize(Ham)/1024/1024)
 
     Nbasis = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     dVol = Ham.grid.dVol
-
     psi = rand(Float64,Nbasis,Nstates)
     ortho_sqrt!(psi,dVol)
 
-    #KS_solve_Emin_PCG!(Ham, psi)
-    #KS_solve_SCF!(Ham, psi, betamix=0.25)
-    KS_solve_SCF_potmix!(Ham, psi, betamix=0.25)
-    #KS_solve_TRDCM!(Ham, psi)
+    println("Some psi")
+    println(psi[1,1])
+    println(psi[2,1])
+    println(psi[3,1])
+
+    Vpsnl = op_V_Ps_nloc(Ham, psi)
+    println("dot psi,Vpsnl = ", dot(psi,Vpsnl))
+
+    @time Epsnl = calc_E_Ps_nloc(Ham, psi)
+    @time Epsnl = calc_E_Ps_nloc(Ham, psi)
+    println("Epsnl = ", Epsnl)
 end
 
 #@time main(create_Ham_CO, 40, :FD)
 #@time main(create_Ham_H2O, 40, :FD)
-#@time main(create_Ham_LiH, 40, :FD)
+@time main(create_Ham_LiH, 40, :FD)
 #@time main(create_Ham_NH3, 40, :FD)
 #@time main(create_Ham_CH4, 40, :FD)
-@time main(create_Ham_Al2, 40, :FD)
+#@time main(create_Ham_Al2, 40, :FD)
 #@time main(create_Ham_Ni2, 40, :FD)

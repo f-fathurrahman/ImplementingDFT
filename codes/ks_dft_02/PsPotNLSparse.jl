@@ -89,11 +89,11 @@ function setup_betaNL( atoms, grid, pspots, NbetaNL )
             betatmp[idxsmall] .= 0.0
             betaNL[ibeta] = SparseVector(betatmp)
             NNZ = length(betaNL[ibeta].nzval)
-            @printf("Npoints = %d, NNZ = %d, sparsity = %f%%\n", Npoints, NNZ, NNZ/Npoints*100)
+            #@printf("Npoints = %d, NNZ = %d, sparsity = %f%%\n", Npoints, NNZ, NNZ/Npoints*100)
         end
         end
     end
-    @printf("\nsizeof betaNL  = %18.10f MiB\n", Base.summarysize(betaNL)/1024/1024)
+    #@printf("\nsizeof betaNL  = %18.10f MiB\n", Base.summarysize(betaNL)/1024/1024)
     return betaNL
 end
 

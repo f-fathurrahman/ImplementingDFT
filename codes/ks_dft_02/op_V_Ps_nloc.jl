@@ -49,7 +49,9 @@ function op_V_Ps_nloc( Ham::Hamiltonian, psi )
 
     dVol = Ham.grid.dVol
     betaNL_psi = psi' * Ham.pspotNL.betaNL *dVol
-    
+    #println("betaNL_psi = ")
+    #display(betaNL_psi); println()
+
     Npoints = Ham.grid.Npoints
     Vpsi = zeros(Float64,Npoints,Nstates)
 
