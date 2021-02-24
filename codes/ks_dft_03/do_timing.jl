@@ -11,7 +11,7 @@ using MyModule
 const DIR_PSP = "../pseudopotentials/pade_gth/"
 const DIR_STRUCTURES = "../structures"
 
-include("create_Ham.jl")
+include("../ks_dft_02/create_Ham.jl") # for testing only
 
 function timing_create_Ham(Ham_func, N, grid_type)
     @time Ham = Ham_func(N, grid_type=grid_type)
@@ -30,19 +30,18 @@ function timing_op_H(Ham_func, N, grid_type)
     ortho_sqrt!(psi,dVol)
 
     println("\nop_H")
-    @btime Hpsi = op_H($Ham, $psi)
+    @time Hpsi = op_H(Ham, psi)
+    @time Hpsi = op_H(Ham, psi)
 
     println("\nop_K")
-    @btime Hpsi = -0.5*$Ham.Laplacian * $psi
+    @time Hpsi = -0.5*Ham.Laplacian * psi
+    @time Hpsi = -0.5*Ham.Laplacian * psi
 
     println("\nop_V_Ps_nloc")
     @btime Vnlpsi = op_V_Ps_nloc($Ham, $psi)
 
-    #Vnlpsi = zeros(Float64,Nbasis,Nstates)
-    #@btime op_V_Ps_nloc!($Ham, $psi, $Vnlpsi)    
-
     #println("\nbetaNL psi")
-    #@btime betaNL_psi = $psi' * $Ham.pspotNL.betaNL *$dVol
+    #@time betaNL_psi = psi' * Ham.pspotNL.betaNL *dVol
     #@time betaNL_psi = psi' * Ham.pspotNL.betaNL *dVol
 
 end
