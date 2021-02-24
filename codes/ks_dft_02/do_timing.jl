@@ -4,6 +4,7 @@ using Printf
 using Random
 using LinearAlgebra
 using SpecialFunctions
+using BenchmarkTools
 
 using MyModule
 
@@ -29,20 +30,20 @@ function timing_op_H(Ham_func, N, grid_type)
     ortho_sqrt!(psi,dVol)
 
     println("\nop_H")
-    @time Hpsi = op_H(Ham, psi)
-    @time Hpsi = op_H(Ham, psi)
+    @btime Hpsi = op_H($Ham, $psi)
 
     println("\nop_K")
-    @time Hpsi = -0.5*Ham.Laplacian * psi
-    @time Hpsi = -0.5*Ham.Laplacian * psi
+    @btime Hpsi = -0.5*$Ham.Laplacian * $psi
 
     println("\nop_V_Ps_nloc")
-    @time Vnlpsi = op_V_Ps_nloc(Ham, psi)
-    @time Vnlpsi = op_V_Ps_nloc(Ham, psi)
+    @btime Vnlpsi = op_V_Ps_nloc($Ham, $psi)
+
+    Vnlpsi = zeros(Float64,Nbasis,Nstates)
+    @btime op_V_Ps_nloc!($Ham, $psi, $Vnlpsi)    
 
     println("\nbetaNL psi")
-    @time betaNL_psi = psi' * Ham.pspotNL.betaNL *dVol
-    @time betaNL_psi = psi' * Ham.pspotNL.betaNL *dVol
+    @btime betaNL_psi = $psi' * $Ham.pspotNL.betaNL *$dVol
+    #@time betaNL_psi = psi' * Ham.pspotNL.betaNL *dVol
 
 end
 timing_op_H(create_Ham_Al2, 40, :FD)
