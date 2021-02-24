@@ -174,12 +174,6 @@ function Hamiltonian(
                         rhoe, precKin, psolver, energies, gvec )
 end
 
-
-include("op_V_Ps_nloc.jl")
-include("op_V_loc.jl")
-include("op_K.jl")
-include("op_H.jl")
-
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
     Ham.rhoe[:] = Rhoe[:]
     Ham.V_Hartree = Poisson_solve( Ham.psolver, Ham.grid, Rhoe )

@@ -43,8 +43,8 @@ end
 
 #@time main(create_Ham_CO, 40, :FD)
 #@time main(create_Ham_H2O, 40, :FD)
-#@time main(create_Ham_LiH, 40, :FD)
+@time main(create_Ham_LiH, 40, :FD)
 #@time main(create_Ham_NH3, 40, :FD)
 #@time main(create_Ham_CH4, 40, :FD)
-@time main(create_Ham_Al2, 40, :FD)
+#@time main(create_Ham_Al2, 40, :FD)
 #@time main(create_Ham_Ni2, 40, :FD)

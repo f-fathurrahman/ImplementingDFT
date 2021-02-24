@@ -73,8 +73,8 @@ export Energies
 include("../common/PsPot_GTH.jl")
 export PsPot_GTH, PsPot_GTH_octopus, eval_Vloc_R, eval_proj_R
 
-#include("PsPotNL.jl")
-include("PsPotNLSparse.jl")
+include("PsPotNL.jl")
+#include("PsPotNLSparse.jl")
 export PsPotNL, check_betaNL_norm
 
 include("Electrons.jl")
@@ -82,6 +82,11 @@ export Electrons
 
 include("Hamiltonian.jl")
 export Hamiltonian, update!
+
+include("op_V_Ps_nloc.jl")
+include("op_V_loc.jl")
+include("op_K.jl")
+include("op_H.jl")
 export op_H, op_V_Ps_nloc, op_K, op_V_Ps_loc, op_V_loc
 export op_V_Ps_nloc!
 
@@ -92,6 +97,9 @@ include("../common/LDA_VWN.jl")
 export excVWN, excpVWN
 
 include("../common/calc_E_NN_ewald.jl")
+include("calc_E_NN.jl")
+include("calc_E_kin.jl")
+include("calc_E_Ps_nloc.jl")
 include("calc_energies.jl")
 export calc_E_NN, calc_energies!
 
