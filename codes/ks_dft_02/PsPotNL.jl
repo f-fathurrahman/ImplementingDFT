@@ -36,7 +36,7 @@ function setup_betaNL!( atoms, grid, pspots, betaNL )
         end
         end
     end
-
+    @printf("\nsizeof betaNL  = %18.10f MiB\n", Base.summarysize(betaNL)/1024/1024)
     return
 end
 
