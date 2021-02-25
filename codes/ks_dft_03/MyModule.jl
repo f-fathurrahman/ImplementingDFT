@@ -74,14 +74,23 @@ include("../common/PsPot_GTH.jl")
 export PsPot_GTH, PsPot_GTH_octopus, eval_Vloc_R, eval_proj_R
 export get_Zvals
 
-include("PsPotNL.jl")
+#include("PsPotNL.jl")
+include("PsPotNL_sparse.jl")
 export PsPotNL, check_betaNL_norm
 
 include("Electrons.jl")
 export Electrons
 
 include("Hamiltonian.jl")
-export Hamiltonian, update!, op_H
+export Hamiltonian, update!
+
+#include("op_V_Ps_nloc.jl")
+include("op_V_Ps_nloc_sparse.jl")
+include("op_V_loc.jl")
+include("op_K.jl")
+include("op_H.jl")
+export op_H, op_V_Ps_nloc, op_K, op_V_Ps_loc, op_V_loc
+export op_V_Ps_nloc!
 
 include("calc_rhoe.jl")
 export calc_rhoe, calc_rhoe!
@@ -90,7 +99,11 @@ include("../common/LDA_VWN.jl")
 export excVWN, excpVWN
 
 include("../common/calc_E_NN_ewald.jl")
+include("calc_E_NN.jl")
+include("calc_E_kin.jl")
+#include("calc_E_Ps_nloc.jl")
+include("calc_E_Ps_nloc_sparse.jl")
 include("calc_energies.jl")
-export calc_E_NN, calc_energies!
+export calc_E_NN, calc_E_Ps_nloc, calc_energies!
 
 end
