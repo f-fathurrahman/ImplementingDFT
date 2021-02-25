@@ -52,9 +52,9 @@ function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid )
     end
 
     if grid.pbc == (true,true,true)
-        betaNL = setup_betaNL_periodic( atoms, grid, pspots, NbetaNL )
+        betaNL = _setup_betaNL_periodic( atoms, grid, pspots, NbetaNL )
     else
-        betaNL = setup_betaNL( atoms, grid, pspots, NbetaNL )
+        betaNL = _setup_betaNL( atoms, grid, pspots, NbetaNL )
     end
 
     return PsPotNL( NbetaNL, prj2beta, betaNL )
@@ -62,7 +62,7 @@ function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid )
 end
 
 
-function setup_betaNL( atoms, grid, pspots, NbetaNL )
+function _setup_betaNL( atoms, grid, pspots, NbetaNL )
     
     Natoms = atoms.Natoms
     Npoints = grid.Npoints
@@ -88,7 +88,7 @@ function setup_betaNL( atoms, grid, pspots, NbetaNL )
             idxsmall = abs.(betatmp) .<= 1e-10
             betatmp[idxsmall] .= 0.0
             betaNL[ibeta] = SparseVector(betatmp)
-            NNZ = length(betaNL[ibeta].nzval)
+            #NNZ = length(betaNL[ibeta].nzval)
             #@printf("Npoints = %d, NNZ = %d, sparsity = %f%%\n", Npoints, NNZ, NNZ/Npoints*100)
         end
         end
@@ -109,14 +109,17 @@ function check_betaNL_norm( grid, pspotNL::PsPotNL )
     return
 end
 
-function setup_betaNL_periodic( atoms, grid, pspots, NbetaNL )
+function _setup_betaNL_periodic( atoms, grid, pspots, NbetaNL )
     
     Natoms = atoms.Natoms
     Npoints = grid.Npoints
     atm2species = atoms.atm2species
+    
     LL = [grid.Lx, grid.Ly, grid.Lz]
+    betaNL = Array{SparseVector{Float64,Int64},1}(undef,NbetaNL)
     ibeta = 0
     dr = zeros(3)
+    betatmp = zeros(Float64,Npoints)    
     for ia = 1:Natoms
         isp = atm2species[ia]
         psp = pspots[isp]
@@ -127,8 +130,11 @@ function setup_betaNL_periodic( atoms, grid, pspots, NbetaNL )
             for ip in 1:Npoints
                 @views calc_dr_periodic!( LL, grid.r[:,ip], atoms.positions[:,ia], dr )
                 drm = sqrt( dr[1]^2 + dr[2]^2 + dr[3]^2 )
-                betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
+                betatmp[ip] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
             end
+            idxsmall = abs.(betatmp) .<= 1e-10
+            betatmp[idxsmall] .= 0.0
+            betaNL[ibeta] = SparseVector(betatmp)
         end
         end
         end
