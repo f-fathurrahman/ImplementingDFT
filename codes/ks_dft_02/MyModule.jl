@@ -103,6 +103,6 @@ include("calc_E_kin.jl")
 #include("calc_E_Ps_nloc.jl")
 include("calc_E_Ps_nloc_sparse.jl")
 include("calc_energies.jl")
-export calc_E_NN, calc_E_Ps_nloc, calc_energies!
+export calc_E_NN, calc_E_Ps_nloc, calc_E_kin, calc_energies!
 
 end
