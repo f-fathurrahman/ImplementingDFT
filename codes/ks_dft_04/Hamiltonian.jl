@@ -204,6 +204,3 @@ function calc_rhoe_update!( Ham::Hamiltonian, psi::Array{Float64,2} )
     Ham.V_XC = calc_Vxc_VWN( Ham.xc_calc, Rhoe )
     return
 end
-
-include("op_V_Ps_nloc.jl")
-include("op_H.jl")
