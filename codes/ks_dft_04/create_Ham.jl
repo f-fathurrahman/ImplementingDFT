@@ -82,4 +82,8 @@ function create_Ham_O2( N::Int64; grid_type=:FD, Nstates_extra=0 )
     end
     Ham = Hamiltonian( atoms, pspfiles, grid,
         Nstates_extra=Nstates_extra, Nspin=2 )
+    # HACK, not yet found a good API to set this
+    Ham.electrons.Focc[6,1] = 0.0
+    Ham.electrons.Focc[7,2] = 1.0
+    return Ham
 end

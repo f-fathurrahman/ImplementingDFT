@@ -23,6 +23,17 @@ function KS_solve_SCF!(
     magn = zeros(Float64,Npoints)
     
     if guess_density == :random
+
+        @printf("\nInitial occupations\n")
+        for ist in 1:Nstates
+            @printf("%3d | %8.5f", ist, Ham.electrons.Focc[ist,1])
+            if Nspin == 2
+                @printf(" | %8.5f\n", Ham.electrons.Focc[ist,2])
+            else
+                @printf("\n")
+            end
+        end
+
         calc_rhoe!( Ham, psis, Rhoe )
         update!( Ham, Rhoe )
         evals = zeros(Float64, Nstates, Nspin)
