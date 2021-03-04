@@ -10,11 +10,11 @@
 %\usepackage[charter]{mathdesign}
 %\usepackage[varg]{txfonts}
 
-\usepackage{geometry}
-\geometry{verbose,tmargin=1.5cm,bmargin=1.5cm,lmargin=1.5cm,rmargin=1.5cm}
-
 %\usepackage{geometry}
-%\geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
+%\geometry{verbose,tmargin=1.5cm,bmargin=1.5cm,lmargin=1.5cm,rmargin=1.5cm}
+
+\usepackage{geometry}
+\geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
 
 % DRAFT SETTINGS: easier to read in dark mode
 %\usepackage{cmbright}
@@ -45,14 +45,14 @@
 \usepackage{minted}
 % using DejaVu Sans Mono, we need to scale the font to smaller size to match
 % the main font.
-\newminted{julia}{breaklines,fontsize=\footnotesize}
-\newminted{bash}{breaklines,fontsize=\footnotesize}
-\newminted{text}{breaklines,fontsize=\footnotesize}
+\newminted{julia}{breaklines,fontsize=\scriptsize}
+\newminted{bash}{breaklines,fontsize=\scriptsize}
+\newminted{text}{breaklines,fontsize=\scriptsize}
 
-\newcommand{\txtinline}[1]{\mintinline[fontsize=\footnotesize]{text}{#1}}
-\newcommand{\jlinline}[1]{\mintinline[fontsize=\footnotesize]{julia}{#1}}
+\newcommand{\txtinline}[1]{\mintinline[fontsize=\scriptsize]{text}{#1}}
+\newcommand{\jlinline}[1]{\mintinline[fontsize=\scriptsize]{julia}{#1}}
 
-\newmintedfile[juliafile]{julia}{breaklines,fontsize=\footnotesize}
+\newmintedfile[juliafile]{julia}{breaklines,fontsize=\scriptsize}
 
 \usepackage{float}
 \newfloat{mintedfloat}{h}{lop}
