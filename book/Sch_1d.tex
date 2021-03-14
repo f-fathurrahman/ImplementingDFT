@@ -582,4 +582,40 @@ Potential well
 
 Gaussian potential
 
-Periodic boundary condition
+
+\textbf{Periodic boundary condition}
+
+Let the potential $V(x)$ be a periodic function:
+\begin{equation}
+V(x) = V(x + jL)
+\end{equation}
+where $j = 0, 1, 2, \ldots$ and $L$ is the periodicity of the potential.
+Using Bloch theorem, the solution $\psi_{k}(x)$ of the Schroedinger equation
+can be written as
+\begin{equation}
+\psi_{k}(x) = e^{\imath k x} \phi_{k}(x)
+\end{equation}
+where $\phi_{k}$ dan its first derivative have the same periodicity as $V(x)$.
+Show that in terms of $\phi_{k}$ the Schroedinger equation can be written as:
+\begin{equation}
+\left[
+-\frac{\hbar}{2m}\left( \frac{\mathrm{d}^2}{\mathrm{d}x^2} +
+2\imath k \frac{\mathrm{d}}{\mathrm{d}x} - k^2
+\right) + V(x) \right] \phi_{k}(x) = E \phi_{k}(x)
+\end{equation}
+Solve for and plot the solution $E(k)$ (dispersion relation) for the following
+periodic potentials:
+\begin{itemize}
+\item Kronig-Penney potential:
+\begin{equation}
+V(x) = \begin{cases}
+V_{0} & x \geq L/4 \, \text{and} \, x \leq 3L/4 \\
+0 \, \text{otherwise} \\
+\end{cases}
+\end{equation}
+%
+\item Mathieu potential
+\begin{equation}
+V(x) = V_{0} \left( 1 + \cos\left(\frac{2\pi x}{L}\right) \right)
+\end{equation}
+\end{itemize}
