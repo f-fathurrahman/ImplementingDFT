@@ -10,9 +10,9 @@ include("INC_sch_1d.jl")
 
 function pot_kronig_penney( x; V0 = 1.0, L=1.0 )
     if (x >= L/4) && (x < 3*L/4)
-        return V0
-    else
         return 0.0
+    else
+        return V0
     end
 end
 
@@ -37,8 +37,8 @@ function main()
     D1 = build_D1_matrix_p_3pt(N, h)
     D2 = build_D2_matrix_p_3pt(N, h)
     # Potential
-    Vpot = pot_kronig_penney.(x, L=L, V0=0.05)
-    #Vpot = pot_mathieu.(x, L=L, V0=0.05)
+    #Vpot = pot_kronig_penney.(x, L=L, V0=0.1)
+    Vpot = pot_mathieu.(x, L=L, V0=0.1)
 
     Nk = 51
     k = range(-pi/L, pi/L, length=Nk)
