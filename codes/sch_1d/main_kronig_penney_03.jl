@@ -9,15 +9,11 @@ plt.rc("text", usetex=true)
 include("INC_sch_1d.jl")
 
 function pot_kronig_penney( x; V0 = 1.0, L=1.0 )
-    if (x >= L/4) && (x < 3*L/4)
+    if x >= L/2
         return V0
     else
         return 0.0
     end
-end
-
-function pot_mathieu(x; V0=1.0, L=1.0 )
-    return V0*( 1 + cos(2*pi*x/L) )
 end
 
 function build_Ham_matrix( D1, D2, Vpot, k::Float64 )
@@ -28,22 +24,16 @@ end
 
 function main()
     # Initialize the grid points
-    xmin =  0.0
+    xmin = 0.0
     xmax = 10.0
     L = xmax - xmin
     N = 101
     x, h = init_FD1d_p_grid(xmin, xmax, N)
     # Build derivative matrices
-    D1 = build_D1_matrix_p_3pt(N, h)
-    D2 = build_D2_matrix_p_3pt(N, h)
+    D1 = build_D1_matrix_p_11pt(N, h)
+    D2 = build_D2_matrix_p_11pt(N, h)
     # Potential
-    #Vpot = pot_kronig_penney.(x, L=L, V0=0.1)
-    Vpot = pot_mathieu.(x, L=L, V0=0.1)
-
-    plt.clf()
-    plt.plot(x, Vpot)
-    plt.grid(true)
-    plt.savefig("IMG_main_mathieu_02_pot.pdf")
+    Vpot = pot_kronig_penney.(x, L=L, V0=0.1)
 
     Nk = 51
     k = range(-pi/L, pi/L, length=Nk)
@@ -69,11 +59,13 @@ function main()
     plt.legend()
     plt.grid()
     plt.tight_layout()
-    #plt.savefig("IMG_main_kronig_02_"*string(N)*".pdf")
-    plt.savefig("IMG_main_mathieu_02_"*string(N)*".pdf")
+    plt.savefig("IMG_main_kronig_03_"*string(N)*".pdf")
 
+    println("At k = ", k[1])
     println(ebands[1,:])
-    println(ebands[25,:])
+
+    println("At k = ", k[26])
+    println(ebands[26,:])
 end
 
 main()
