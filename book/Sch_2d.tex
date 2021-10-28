@@ -226,15 +226,18 @@ of 2d Gaussian function by using finite difference is shown.
 
 \begin{figure}[h]
 {\center
-\includegraphics[width=0.45\textwidth]{../codes/FD2d/IMG_gaussian2d.pdf}\,%
-\includegraphics[width=0.45\textwidth]{../codes/FD2d/IMG_d2_gaussian2d.pdf}
+\includegraphics[width=0.6\textwidth]{../codes/FD2d/IMG_gaussian2d.pdf}
+\includegraphics[width=0.6\textwidth]{../codes/FD2d/IMG_d2_gaussian2d.pdf}
 \par}
 \caption{Two-dimensional Gaussian function and its finite difference
 approximation of second derivative}
 \label{fig:fd_gaussian_2d}
 \end{figure}
 
+
 The following program is used to produce the figure.
+
+\begin{fullwidth}
 \begin{juliacode}
 using Printf
 using LinearAlgebra
@@ -283,6 +286,7 @@ end
     
 main()    
 \end{juliacode}
+\end{fullwidth}
 
 
 \section{More about sparse matrices in Julia}
@@ -639,13 +643,26 @@ higher than 3.
 
 Despite its simplicity, the steepest descent method has several drawbacks.
 The most prominent one is that it is very slow to converge. For this particular case
-we have:
+we have the following result.
+
+\begin{fullwidth}
 \begin{textcode}
 SD step     2258 =       5.0001854888   1.1198655e-06  nconv =     2
 SD step     2259 =       5.0001843756   1.1131584e-06  nconv =     3
 Emin_SD convergence: nconv =     3 in  2259 iterations
 \end{textcode}
-The convergence is also dependent to the step length parameter \jlinline{α}.
+\end{fullwidth}
+
+Note that the convergence is also dependent to the step
+length parameter \jlinline{α}.
+
+
+\begin{fullwidth}
+\begin{juliacode}
+a_very_very_very_very_long_expr = 1 + 2 + 3 + 4 + sin(x) + cos(x) + tan(x) + exp(x)
+\end{juliacode}
+\end{fullwidth}
+
 
 \subsection{Line minimization}
 
@@ -790,7 +807,7 @@ end
 if β < 0.0 β = 0.0 end
 \end{juliacode}
 
-CG using ILU0 (Ham)
+CG using ILU$0$ (Ham)
 \begin{textcode}
 CG step       29 =       5.0000026056   2.8129344e-06  nconv =     2
 CG step       30 =       5.0000011500   1.4555620e-06  nconv =     3
@@ -814,6 +831,7 @@ X[:,:] = X*evecs
 
 The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 
+\begin{fullwidth}
 \begin{figure}[h]
 {\centering
 \includegraphics[width=0.4\textwidth]{../codes/sch_2d/IMG_harmonic_psi_1.pdf}\\
@@ -823,6 +841,7 @@ The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 \caption{Visualization of eigenstates of 2d harmonic potential}
 \label{fig:harm_2d_eigenfunctions}
 \end{figure}
+\end{fullwidth}
 
 \section{Exercises}
 

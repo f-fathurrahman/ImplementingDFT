@@ -1,7 +1,5 @@
 \chapter{Kohn-Sham equation part I}
 
-\section{Introduction}
-
 In this chapter we will put together Schroedinger and Poisson solver
 that we have built in the previous chapters to solve the Kohn-Sham equation:
 \begin{equation}
@@ -131,23 +129,25 @@ as \jlinline{Hamiltonian}.
 
 The definition of the \jlinline{Hamiltonian} struct can be seen in the following
 Julia code.
+\begin{fullwidth}
 \begin{juliacode}
 const AMG_PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
 mutable struct Hamiltonian
-  grid::Union{FD3dGrid,LF3dGrid}
-  Laplacian::SparseMatrixCSC{Float64,Int64}
-  V_Ps_loc::Vector{Float64}
-  V_Hartree::Vector{Float64}
-  electrons::Electrons
-  rhoe::Vector{Float64}
-  atoms::Atoms
-  precKin::Union{AMG_PREC_TYPE,ILU0Preconditioner}
-  psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
-  energies::Energies
-  gvec::Union{Nothing,GVectors}
+    grid::Union{FD3dGrid,LF3dGrid}
+    ∇²::SparseMatrixCSC{Float64,Int64}
+    V_Ps_loc::Vector{Float64}
+    V_Hartree::Vector{Float64}
+    electrons::Electrons
+    rhoe::Vector{Float64}
+    atoms::Atoms
+    precKin::Union{AMG_PREC_TYPE,ILU0Preconditioner}
+    psolver::Union{PoissonSolverDAGE,PoissonSolverFFT}
+    energies::Energies
+    gvec::Union{Nothing,GVectors}
 end
 \end{juliacode}
-
+\end{fullwidth}
+%
 A short explanation about the fields of \jlinline{Hamiltonian} follows.
 \begin{itemize}
 %
@@ -156,7 +156,7 @@ basis functions that is used to represent quantities such as wave functions,
 potentials, and densities. In our case, this field is an instance of
 \jlinline{FD3dGrid} or \jlinline{LF3dGrid}.
 %
-\item \jlinline{Laplacian}: the matrix representation of the Laplacian operator
+\item \jlinline{∇²}: the matrix representation of the ∇² operator
 %
 \item \jlinline{V_Ps_loc}: the local pseudopotential. It also will represent the
 any external local potential that is felt by electrons.
@@ -190,7 +190,7 @@ periodic structure.
 
 
 The following constructor can be used to initialize an instance of \jlinline{Hamiltonian}.
-
+\begin{fullwidth}
 \begin{juliacode}
 function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
   Nelectrons=2, Nstates_extra=0, stencil_order=9,
@@ -198,9 +198,9 @@ function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
 )
   # Grid
   if typeof(grid) == FD3dGrid
-      Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
+      ∇² = build_nabla2_matrix( grid, stencil_order=stencil_order )
   else
-      Laplacian = build_nabla2_matrix( grid )
+      ∇² = build_nabla2_matrix( grid )
   end
   # Initialize gvec for periodic case
   if grid.pbc == (true,true,true)
@@ -212,9 +212,9 @@ function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
   V_Hartree = zeros(Float64, Npoints)
   Rhoe = zeros(Float64, Npoints)
   if prec_type == :amg
-      precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+      precKin = aspreconditioner( ruge_stuben(-0.5*∇²) )
   else
-      precKin = ILU0Preconditioner(-0.5*Laplacian)
+      precKin = ILU0Preconditioner(-0.5*∇²)
   end
   electrons = Electrons( Nelectrons, Nstates_extra=Nstates_extra )
   if grid.pbc == (false,false,false)
@@ -223,10 +223,11 @@ function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
       psolver = PoissonSolverFFT(grid)
   end
   energies = Energies()
-  return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, electrons,
+  return Hamiltonian( grid, ∇², V_Ps_loc, V_Hartree, electrons,
                       Rhoe, atoms, precKin, psolver, energies, gvec )
 end
 \end{juliacode}
+\end{fullwidth}
 
 An important operation that must be defined for \jlinline{Hamiltonian} is the
 multiplication between Hamiltonian and wave function.
@@ -236,15 +237,15 @@ function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
   Nbasis = size(psi,1)
   Nstates = size(psi,2)
   Hpsi = zeros(Float64,Nbasis,Nstates)
-  Hpsi = -0.5 * Ham.Laplacian * psi
+  Hpsi = -0.5 * Ham.∇² * psi
   for ist in 1:Nstates, ip in 1:Nbasis
     Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] ) * psi[ip,ist]
   end
   return Hpsi
 end
 \end{juliacode}
-In the function \jlinline{o_H}, first we apply the kinetic matrix by using the
-\jlinline{Laplacian} field of \jlinline{Hamiltonian}, using sparse matrix
+In the function \jlinline{op_H}, first we apply the kinetic matrix by using the
+\jlinline{∇²} field of \jlinline{Hamiltonian}, using sparse matrix
 multiplication. This step is the followed by application of potential operator
 which now consists of \jlinline{V_Ps_loc} and \jlinline{V_Hartree}.
 
@@ -253,7 +254,7 @@ multiplication operator to carry out the action of Hamiltonian to wave function
 \begin{juliacode}
 import Base: *
 function *( Ham::Hamiltonian, psi::Matrix{Float64} )
-  return op_H(Ham, psi)
+    return op_H(Ham, psi)
 end
 \end{juliacode}
 
@@ -338,7 +339,7 @@ function calc_E_kin( Ham::Hamiltonian, psi::Array{Float64,2} )
   nabla2psi = zeros(Float64,Nbasis)
   dVol = Ham.grid.dVol
   for ist in 1:Nstates
-    @views nabla2psi = -0.5*Ham.Laplacian*psi[:,ist]
+    @views nabla2psi = -0.5*Ham.∇²*psi[:,ist]
     @views E_kin = E_kin + Ham.electrons.Focc[ist]*dot( psi[:,ist], nabla2psi[:] )*dVol
   end
   return E_kin
@@ -558,9 +559,11 @@ Total   =      -0.2562602740
 \end{textcode}
 
 
-\begin{center}
-\includegraphics[scale=1.0]{../codes/hartree_scf/LOG_files/IMG_H.pdf}
-\end{center}
+{\center
+\includegraphics[width=\textwidth]{../codes/hartree_scf/LOG_files/IMG_H.pdf}
+\par}
+
+
 
 
 \subsection{$\ce{H2}$ molecule}
@@ -606,9 +609,13 @@ NN      =       0.6666666667
 Total   =      -0.5972197417
 \end{textcode}
 
+\begin{figure*}[h]
 \begin{center}
-\includegraphics[scale=1.0]{../codes/hartree_scf/LOG_files/IMG_H2.pdf}
+\includegraphics[width=\textwidth]{../codes/hartree_scf/LOG_files/IMG_H2.pdf}
 \end{center}
+\end{figure*}
+
+
 
 
 \section{Kohn-Sham calculations}
@@ -710,7 +717,7 @@ function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
   Nbasis = size(psi,1)
   Nstates = size(psi,2)
   Hpsi = zeros(Float64,Nbasis,Nstates)
-  Hpsi = -0.5*Ham.Laplacian * psi
+  Hpsi = -0.5*Ham.∇² * psi
   for ist in 1:Nstates, ip in 1:Nbasis
     Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] +
                    Ham.V_XC[ip] ) * psi[ip,ist]
@@ -766,6 +773,7 @@ Total   =      57.5543736562
 
 
 Result from Octopus:
+\begin{fullwidth}
 \begin{textcode}
 *********************** SCF CYCLE ITER #   17 ************************
  etot  =  5.75543034E+01 abs_ev   =  4.97E-05 rel_ev   =  6.14E-07
@@ -779,6 +787,7 @@ Converged eigenvectors:      0
       3       10.465607    2.000000   (5.9E-06)
       4       10.465608    2.000000   (7.1E-06) 
 \end{textcode}
+\end{fullwidth}
 
 Our result is similar to Octopus result.
 
@@ -806,6 +815,7 @@ Total   =      -0.4697214473
 \end{textcode}
 
 Octopus result:
+\begin{fullwidth}
 \begin{textcode}
 *********************** SCF CYCLE ITER #   12 ************************
  etot  = -4.70593023E-01 abs_ev   =  8.06E-07 rel_ev   =  3.28E-06
@@ -816,6 +826,7 @@ Converged eigenvectors:      0
  #  State  Eigenvalue [H]  Occupation    Error
        1       -0.245334    1.000000   (3.1E-06)
 \end{textcode}
+\end{fullwidth}
 
 Quite similar to Octopus.
 Difference probabably due to the Poisson solver.
@@ -823,7 +834,7 @@ Difference probabably due to the Poisson solver.
 Need to study convergence with respect to grid spacing.
 
 {\centering
-\includegraphics[scale=1.0]{../codes/ks_dft_02/LOG_files/IMG_H.pdf}
+\includegraphics[width=\textwidth]{../codes/ks_dft_02/LOG_files/IMG_H.pdf}
 }
 
 \subsection{$\ce{H2}$ molecule}
@@ -849,6 +860,7 @@ Total   =      -1.1975850469
 \end{textcode}
 
 Octopus result:
+\begin{fullwidth}
 \begin{textcode}
 ********************** SCF CYCLE ITER #   12 ************************
  etot  = -1.19927504E+00 abs_ev   =  1.50E-06 rel_ev   =  1.95E-06
@@ -859,11 +871,12 @@ Converged eigenvectors:      1
 #  State  Eigenvalue [H]  Occupation    Error
       1       -0.383095    2.000000   (6.0E-07) 
 \end{textcode}
+\end{fullwidth}
 
 Similar observation as H atom.
 
 {\centering
-\includegraphics[scale=1.0]{../codes/ks_dft_02/LOG_files/IMG_H2.pdf}
+\includegraphics[width=\textwidth]{../codes/ks_dft_02/LOG_files/IMG_H2.pdf}
 }
 
 \section{Exercise}

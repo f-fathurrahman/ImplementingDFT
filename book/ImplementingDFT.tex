@@ -3,20 +3,19 @@
 
 % nobib: not putting citation at the margin note
 
-\setlength{\parskip}{\smallskipamount}
-\setlength{\parindent}{0pt}
-
 \usepackage{fontspec}
 \setmonofont{JuliaMono-Regular}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
-\usepackage{float}
 
 \usepackage{framed}
 \usepackage{braket}
 \usepackage{mhchem}
+
+\setlength{\parskip}{\smallskipamount}
+\setlength{\parindent}{0pt}
 
 \usepackage{minted}
 % using DejaVu Sans Mono, we need to scale the font to smaller size to match
@@ -30,25 +29,33 @@
 
 \newmintedfile[juliafile]{julia}{breaklines,fontsize=\footnotesize}
 
-\usepackage{float}
-\newfloat{mintedfloat}{h}{lop}
-\floatname{mintedfloat}{Listing}
 
 % Using background color for minted environment
 \usepackage{xcolor}
 \definecolor{mintedbg}{rgb}{0.95,0.95,0.95}
 \usepackage{mdframed}
 \BeforeBeginEnvironment{minted}{
-    \begin{mdframed}[backgroundcolor=mintedbg,%
+    \begin{mdframed}[ %backgroundcolor=mintedbg,%
         topline=false,bottomline=false,%
         leftline=false,rightline=false]
 }
 \AfterEndEnvironment{minted}{\end{mdframed}}
 
+
 \renewcommand{\imath}{\textrm{i}}
 
-\usepackage{hyperref}
+% Chapter and Equation numbering
+% https://tex.stackexchange.com/questions/522494/all-of-my-figures-equations-are-0-x-how-to-increment-properly-between-chapter
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\Hy@org@chapter}% <cmd>
+  {\ifnum}% <search>
+  {\refstepcounter{chapter}\ifnum}% <replace>
+  {}{}% <success><failure>
+\makeatother
 
+
+\usepackage{hyperref}
 \usepackage{multicol}
 
 \usepackage{makeidx}
@@ -87,7 +94,7 @@
 \include{Poisson}
 \include{KS_part1}
 \include{KS_part2}
-%\include{Epilogue}
+\include{Epilogue}
 
 \appendix
 \include{JuliaProg}
