@@ -42,14 +42,18 @@ h = \frac{ x_{\mathrm{max}} - x_{\mathrm{min}} }{N-1}
 
 The following Julia function can be used to initialize the grid points.
 \begin{juliacode}
-function init_FD1d_grid( x_min::Float64, x_max::Float64, N::Int64 )
-  L = x_max - x_min
-  h = L/(N-1) # spacing
-  x = zeros(Float64,N) # the grid points
-  for i = 1:N
-    x[i] = x_min + (i-1)*h
-  end
-  return x, h
+function init_FD1d_grid(
+    x_min::Float64,
+    x_max::Float64,
+    N::Int64
+)
+    L = x_max - x_min
+    h = L/(N-1) # spacing
+    x = zeros(Float64,N) # the grid points
+    for i = 1:N
+        x[i] = x_min + (i-1)*h
+    end
+    return x, h
 end
 \end{juliacode}
 The function \jlinline{init_FD1d_grid} takes three arguments:
@@ -77,7 +81,7 @@ The Gaussian function defined in \eqref{eq:gauss_func1} can be implemented
 as the following function.
 \begin{juliacode}
 function my_gaussian(x::Float64; α=1.0)
-  return exp( -α*x^2 )
+    return exp( -α*x^2 )
 end
 \end{juliacode}
 Note that we have set the default value of parameter $\alpha$ to 1.
@@ -95,27 +99,29 @@ plt.rc("text", usetex=true)
 include("init_FD1d_grid.jl")
 
 function my_gaussian(x::Float64; α=1.0)
-  return exp( -α*x^2 )
+    return exp( -α*x^2 )
 end
 
 function main()
-  A = -5.0
-  B =  5.0
-  Npoints = 8
-  x, h = init_FD1d_grid( A, B, Npoints )
-  @printf("Grid spacing = %f\n", h)
-  @printf("\nGrid points:\n")
-  for i in 1:Npoints
-    @printf("%3d %18.10f\n", i, x[i])
-  end
-  NptsPlot = 200
-  x_dense = range(A, stop=5, length=NptsPlot)
-  plt.clf()
-  plt.plot(x_dense, my_gaussian.(x_dense), label=L"f(x)")
-  plt.plot(x, my_gaussian.(x), label=L"Sampled $f(x)$", marker="o")
-  plt.legend()
-  plt.tight_layout()
-  plt.savefig("IMG_gaussian_1d_8pt.pdf")
+    A = -5.0
+    B =  5.0
+    Npoints = 8
+    x, h = init_FD1d_grid(A, B, Npoints)
+    @printf("Grid spacing = %f\n", h)
+    @printf("\nGrid points:\n")
+    for i in 1:Npoints
+        @printf("%3d %18.10f\n", i, x[i])
+    end
+    NptsPlot = 200
+    x_dense = range(A, stop=5, length=NptsPlot)
+    plt.clf()
+    plt.plot(x_dense, my_gaussian.(x_dense),
+        label=L"f(x)")
+    plt.plot(x, my_gaussian.(x),
+        label=L"Sampled $f(x)$", marker="o")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("IMG_gaussian_1d_8pt.pdf")
 end
 main()
 \end{juliacode}
@@ -126,8 +132,8 @@ You may try to experiment by changing the value of \jlinline{N} and compare the 
 The resulting plots for \jlinline{N=8} and \jlinline{N=21} are shown in Figure XXX.
 \begin{figure}[h]
 {\center
-\includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_gaussian_1d_8pt.pdf}
-\includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_gaussian_1d_21pt.pdf}
+\includegraphics[width=\textwidth]{../codes/FD1d/IMG_gaussian_1d_8pt.pdf}
+\includegraphics[width=\textwidth]{../codes/FD1d/IMG_gaussian_1d_21pt.pdf}
 \par}
 \caption{Sampling a Gaussian function defined in \eqref{eq:gauss_func1}, $\alpha=1$,
 two different number of grid points: $N=8$ (upper) and $N=21$ (lower). The sampled
@@ -207,14 +213,14 @@ where $\mathbb{D}^{(2)}$ is the second derivative matrix operator:
 The following Julia function can be used to initialize the matrix $\mathbb{D}^{(2)}$.
 \begin{juliacode}
 function build_D2_matrix_3pt( N::Int64, h::Float64 )
-  mat = zeros(Float64,N,N)1
-  for i = 1:N-1
-    mat[i,i] = -2.0
-    mat[i,i+1] = 1.0
-    mat[i+1,i] = mat[i,i+1]
-  end
-  mat[N,N] = -2.0
-  return mat/h^2
+    mat = zeros(Float64,N,N)1
+    for i = 1:N-1
+        mat[i,i] = -2.0
+        mat[i,i+1] = 1.0
+        mat[i+1,i] = mat[i,i+1]
+    end
+    mat[N,N] = -2.0
+    return mat/h^2
 end
 \end{juliacode}
 The function \jlinline{build_D2_matrix_3pt} takes two arguments:
@@ -254,35 +260,35 @@ include("init_FD1d_grid.jl")
 include("build_D2_matrix_3pt.jl")
 
 function my_gaussian(x, α=1.0)
-  return exp(-α*x^2)
+    return exp(-α*x^2)
 end
 
 function d2_my_gaussian(x, α=1.0)
-  return (-2*α + 4*α^2 * x^2) * exp(-α*x^2)
+    return (-2*α + 4*α^2 * x^2) * exp(-α*x^2)
 end
 
 function main(N::Int64)
-  x_min = -5.0
-  x_max =  5.0
-  x, h = init_FD1d_grid( x_min, x_max, N )
-  fx = my_gaussian.(x)
+    x_min = -5.0
+    x_max =  5.0
+    x, h = init_FD1d_grid(x_min, x_max, N)
+    fx = my_gaussian.(x)
 
-  Ndense = 200
-  x_dense = range(A, stop=B, length=Ndense)
-  fx_dense = my_gaussian.(x_dense)
-  d2_fx_dense = d2_my_gaussian.(x_dense)
+    Ndense = 200
+    x_dense = range(A, stop=B, length=Ndense)
+    fx_dense = my_gaussian.(x_dense)
+    d2_fx_dense = d2_my_gaussian.(x_dense)
 
-  D2 = build_D2_matrix_3pt(N, h)
-  d2_fx_3pt = D2*fx
+    D2 = build_D2_matrix_3pt(N, h)
+    d2_fx_3pt = D2*fx
 
-  plt.clf()
-  plt.plot(x, fx, marker="o", label=L"Sampled $f(x)$")
-  plt.plot(x_dense, fx_dense, label=L"f(x)")
-  plt.plot(x, d2_fx_3pt, marker="o", label=L"Approx $f''(x)$")
-  plt.plot(x_dense, d2_fx_dense, label=L"f''(x)")
-  plt.legend()
-  plt.grid()
-  plt.savefig("IMG_gaussian_"*string(N)*".pdf")
+    plt.clf()
+    plt.plot(x, fx, marker="o", label=L"Sampled $f(x)$")
+    plt.plot(x_dense, fx_dense, label=L"f(x)")
+    plt.plot(x, d2_fx_3pt, marker="o",
+        label=L"Approx $f''(x)$")
+    plt.plot(x_dense, d2_fx_dense, label=L"f''(x)")
+    plt.legend()
+    plt.grid()
 end
 main(15)
 main(51)
@@ -302,7 +308,7 @@ which are shown in Figure XXX.
 
 \begin{figure}[h]
 {\center
-\includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_gaussian_15.pdf}
+\includegraphics[width=\textwidth]{../codes/FD1d/IMG_gaussian_15.pdf}
 \par}
 \caption{Finite difference approximation to a Gaussian function and its second derivative with
 number of grid points $N=15$}
@@ -310,7 +316,7 @@ number of grid points $N=15$}
 
 \begin{figure}[h]
 {\center
-\includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_gaussian_51.pdf}
+\includegraphics[width=\textwidth]{../codes/FD1d/IMG_gaussian_51.pdf}
 \par}
 \caption{Finite difference approximation to a Gaussian function and its second derivative with
 number of grid points $N=51$}
@@ -343,16 +349,23 @@ V(x) = \frac{1}{2}\omega^2 x^2
 
 In Julia, we can the process of building the Hamiltonian matrix is very simple
 \begin{juliacode}
-x, h = init_FD1d_grid(xmin, xmax, N) # grid points
-D2 = build_D2_matrix_3pt(N, h)       # Build 2nd derivative matrix
-Vpot = pot_harmonic.(x)              # Potential
-Ham = -0.5*D2 + diagm( 0 => Vpot )   # Hamiltonian matrix
+# grid points
+x, h = init_FD1d_grid(xmin, xmax, N)
+
+# Build 2nd derivative matrix
+D2 = build_D2_matrix_3pt(N, h)
+
+# Potential
+Vpot = pot_harmonic.(x)
+
+# Hamiltonian matrix
+Ham = -0.5*D2 + diagm( 0 => Vpot )
 \end{juliacode}
 
 The function \jlinline{pot_harmonic} is a function that calculate the harmonic potential
 \begin{juliacode}
 function pot_harmonic( x; ω=1.0 )
-  return 0.5 * ω^2 * x^2
+    return 0.5 * ω^2 * x^2
 end
 \end{juliacode}
 
@@ -382,44 +395,47 @@ include("init_FD1d_grid.jl")
 include("build_D2_matrix_3pt.jl")
   
 function pot_harmonic( x; ω=1.0 )
-  return 0.5 * ω^2 * x^2
+    return 0.5 * ω^2 * x^2
 end
   
 function main()
-  xmin = -5.0
-  xmax =  5.0
-  N = 51
-  x, h = init_FD1d_grid(xmin, xmax, N)
-  D2 = build_D2_matrix_3pt(N, h)
-  Vpot = pot_harmonic.(x)
-  Ham = -0.5*D2 + diagm( 0 => Vpot )
-  evals, evecs = eigen( Ham )
-  # We will show the 5 lowest eigenvalues
-  Nstates = 5
-  @printf("Eigenvalues\n")
-  ω = 1.0
-  hbar = 1.0
-  @printf(" State         Approx              Exact          Difference\n")
-  for i in 1:Nstates
-    E_ana = (2*i - 1)*ω*hbar/2
-    @printf("%5d %18.10f %18.10f %18.10e\n", i, evals[i], E_ana, abs(evals[i]-E_ana))
-  end
+    xmin = -5.0
+    xmax =  5.0
+    N = 51
+    x, h = init_FD1d_grid(xmin, xmax, N)
+    D2 = build_D2_matrix_3pt(N, h)
+    Vpot = pot_harmonic.(x)
+    Ham = -0.5*D2 + diagm( 0 => Vpot )
+    evals, evecs = eigen( Ham )
+    # We will show the 5 lowest eigenvalues
+    Nstates = 5
+    @printf("Eigenvalues\n")
+    ω = 1.0
+    hbar = 1.0
+    for i in 1:Nstates
+        E_ana = (2*i - 1)*ω*hbar/2
+        @printf("%5d %18.10f %18.10f %18.10e\n",
+          i, evals[i], E_ana, abs(evals[i]-E_ana))
+    end
   
-  # normalize the first three eigenstates
-  for i in 1:3
-    ss = dot(evecs[:,i], evecs[:,i])*h
-    evecs[:,i] = evecs[:,i]/sqrt(ss)
-  end
+    # normalize the first three eigenstates
+    for i in 1:3
+        ss = dot(evecs[:,i], evecs[:,i])*h
+        evecs[:,i] = evecs[:,i]/sqrt(ss)
+    end
   
-  # Plot up to 3rd eigenstate
-  plot_title = "N="*string(N)
-  plt.plot(x, evecs[:,1], label="1st eigenstate", marker="o")
-  plt.plot(x, evecs[:,2], label="2nd eigenstate", marker="o")
-  plt.plot(x, evecs[:,3], label="3rd eigenstate", marker="o")
-  plt.legend()
-  plt.grid()
-  plt.tight_layout()
-  plt.savefig("IMG_main_harmonic_01_"*string(N)*".pdf")
+    # Plot up to 3rd eigenstate
+    plot_title = "N="*string(N)
+    plt.plot(x, evecs[:,1],
+      label="1st eigenstate", marker="o")
+    plt.plot(x, evecs[:,2],
+      label="2nd eigenstate", marker="o")
+    plt.plot(x, evecs[:,3],
+      label="3rd eigenstate", marker="o")
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+    plt.savefig("IMG_main_harmonic_01_"*string(N)*".pdf")
 end
 
 main()
@@ -427,6 +443,7 @@ main()
 
 The program shows five lowest approximate eigenvalues and their comparison with analytical or
 exact eigenvalues. A sample output from running the program is as follows.
+\begin{fullwidth}
 \begin{textcode}
 Eigenvalues
 State         Approx              Exact          Difference
@@ -436,13 +453,14 @@ State         Approx              Exact          Difference
    4       3.4684589732       3.5000000000   3.1541026791e-02
    5       4.4481438504       4.5000000000   5.1856149551e-02 
 \end{textcode}
+\end{fullwidth}
 
 The program will also plot three lowest resulting eigenvectors (wave functions) to a file.
 An example plot is show in Figure \ref{fig:wfn_harm_01_51}.
 
 \begin{figure}[h]
 {\center
-\includegraphics[scale=0.65]{../codes/sch_1d/IMG_main_harmonic_01_51.pdf}
+\includegraphics[width=\textwidth]{../codes/sch_1d/IMG_main_harmonic_01_51.pdf}
 \par}
 \caption{Eigenstates of harmonic oscillator}
 \label{fig:wfn_harm_01_51}
@@ -450,6 +468,7 @@ An example plot is show in Figure \ref{fig:wfn_harm_01_51}.
 
 You can get more accurate values of eigenvalues by using higher value for grid points.
 This is the result if we use $N=81$.
+\begin{fullwidth}
 \begin{textcode}
 Eigenvalues
 State         Approx              Exact          Difference
@@ -459,7 +478,7 @@ State         Approx              Exact          Difference
    4       3.4877496130       3.5000000000   1.2250387024e-02
    5       4.4798939398       4.5000000000   2.0106060206e-02 
 \end{textcode}
-
+\end{fullwidth}
 
 \section{Higher order finite difference}
 
@@ -475,21 +494,21 @@ The corresponding second derivative matrix can be built using the following
 function.
 \begin{juliacode}
 function build_D2_matrix_5pt( N::Int64, h::Float64 )
-  mat = zeros(Float64,N,N)
-  for i = 1:N-2
-    mat[i,i] = -30.0
-    mat[i,i+1] = 16.0
-    mat[i,i+2] = -1.0
-    mat[i+1,i] = mat[i,i+1]
-    mat[i+2,i] = mat[i,i+2]
-  end
-  #
-  mat[N-1,N-1] = -30.0
-  mat[N-1,N] = 16.0
-  mat[N,N-1] = mat[N-2,N-1]
-  mat[N,N] = -30.0
-  #
-  return mat/(12*h^2)
+    mat = zeros(Float64,N,N)
+    for i = 1:N-2
+        mat[i,i] = -30.0
+        mat[i,i+1] = 16.0
+        mat[i,i+2] = -1.0
+        mat[i+1,i] = mat[i,i+1]
+        mat[i+2,i] = mat[i,i+2]
+    end
+    #
+    mat[N-1,N-1] = -30.0
+    mat[N-1,N] = 16.0
+    mat[N,N-1] = mat[N-2,N-1]
+    mat[N,N] = -30.0
+    #
+    return mat/(12*h^2)
 end
 \end{juliacode}
 
@@ -512,7 +531,7 @@ We can readily see that the errors for each point are decreasing with increasing
 order.
 \begin{figure}[h]
 {\center
-\includegraphics[width=0.65\textwidth]{../codes/FD1d/IMG_compare_d2_gaussian_error_15.pdf}
+\includegraphics[width=\textwidth]{../codes/FD1d/IMG_compare_d2_gaussian_error_15.pdf}
 \par}
 \caption{Error of 2nd derivative approx}
 \label{fig:fd_2nd_compare_N15}
@@ -527,37 +546,41 @@ first eigenvalue of Schroedinger equation with harmonic potential.
 
 \begin{juliacode}
 function solve_eigvals(N::Int64, D2_func)
-  # Initialize the grid points
-  x_min = -5.0
-  x_max =  5.0
-  x, h = init_FD1d_grid(x_min, x_max, N)
-  # Build 2nd derivative matrix
-  D2 = D2_func(N, h)
-  # Potential
-  Vpot = pot_harmonic.(x)
-  # Hamiltonian
-  Ham = -0.5*D2 + diagm( 0 => Vpot )
-  # Solve for the eigenvalues only
-  evals = eigvals( Ham )
-  #
-  return evals
+    # Initialize the grid points
+    x_min = -5.0
+    x_max =  5.0
+    x, h = init_FD1d_grid(x_min, x_max, N)
+    # Build 2nd derivative matrix
+    D2 = D2_func(N, h)
+    # Potential
+    Vpot = pot_harmonic.(x)
+    # Hamiltonian
+    Ham = -0.5*D2 + diagm( 0 => Vpot )
+    # Solve for the eigenvalues only
+    evals = eigvals( Ham )
+    #
+    return evals
 end
 
 function main()
-  Npoints = 20
-  funcs = [build_D2_matrix_3pt, build_D2_matrix_5pt, build_D2_matrix_7pt,
-           build_D2_matrix_9pt, build_D2_matrix_11pt]
+    Npoints = 20
+    funcs = [
+      build_D2_matrix_3pt, build_D2_matrix_5pt,
+      build_D2_matrix_7pt, build_D2_matrix_9pt,
+      build_D2_matrix_11pt
+    ]
 
-  ω = 1.0
-  hbar = 1.0
-  ist = 1
-  E_ana = (2*ist - 1)*ω*hbar/2
+    ω = 1.0
+    hbar = 1.0
+    ist = 1
+    E_ana = (2*ist - 1)*ω*hbar/2
 
-  for f in funcs
-      evals = solve_eigvals(Npoints, f)
-      dE = abs(evals[ist]-E_ana) # absolute error
-      @printf("%20s: %18.10f %18.10e\n", string(f), evals[ist], dE)
-  end
+    for f in funcs
+        evals = solve_eigvals(Npoints, f)
+        dE = abs(evals[ist]-E_ana) # absolute error
+        @printf("%20s: %18.10f %18.10e\n",
+          string(f), evals[ist], dE)
+    end
 end
 
 main()
@@ -567,55 +590,58 @@ The results for fixed point ($N=20$) and different stencil order are given below
 The second colum is the first eigenvalue and the third colum in the difference with
 exact value (0.5 Hartree). The results clearly shows that the error decreases with
 with increasing stencil order.
-
 \begin{textcode}
-  build_D2_matrix_3pt:       0.4911851752   8.8148248058e-03
-  build_D2_matrix_5pt:       0.4992583463   7.4165366457e-04
-  build_D2_matrix_7pt:       0.4998965249   1.0347512122e-04
-  build_D2_matrix_9pt:       0.4999802170   1.9782954165e-05
- build_D2_matrix_11pt:       0.4999952673   4.7326636594e-06
+  3pt:       0.4911851752   8.8148248058e-03
+  5pt:       0.4992583463   7.4165366457e-04
+  7pt:       0.4998965249   1.0347512122e-04
+  9pt:       0.4999802170   1.9782954165e-05
+ 11pt:       0.4999952673   4.7326636594e-06
 \end{textcode}
+
+
 
 \section{Exercises}
 
-Potential well
 
-Gaussian potential
-
-
-\textbf{Periodic boundary condition}
-
-Let the potential $V(x)$ be a periodic function:
-\begin{equation}
-V(x) = V(x + jL)
-\end{equation}
-where $j = 0, 1, 2, \ldots$ and $L$ is the periodicity of the potential.
-Using Bloch theorem, the solution $\psi_{k}(x)$ of the Schroedinger equation
-can be written as
-\begin{equation}
-\psi_{k}(x) = e^{\imath k x} \phi_{k}(x)
-\end{equation}
-where $\phi_{k}$ dan its first derivative have the same periodicity as $V(x)$.
-Show that in terms of $\phi_{k}$ the Schroedinger equation can be written as:
-\begin{equation}
-\left[
--\frac{\hbar^2}{2m}\left( \frac{\mathrm{d}^2}{\mathrm{d}x^2} +
-2\imath k \frac{\mathrm{d}}{\mathrm{d}x} - k^2
-\right) + V(x) \right] \phi_{k}(x) = E \phi_{k}(x)
-\end{equation}
-Solve for and plot the solution $E(k)$ (dispersion relation) for the following
-periodic potentials:
-\begin{itemize}
-\item Kronig-Penney potential:
-\begin{equation}
-V(x) = \begin{cases}
-V_{0} & x \geq L/4 \, \text{and} \, x \leq 3L/4 \\
-0 \, \text{otherwise} \\
-\end{cases}
-\end{equation}
+\begin{enumerate}
 %
-\item Mathieu potential
-\begin{equation}
-V(x) = V_{0} \left( 1 + \cos\left(\frac{2\pi x}{L}\right) \right)
-\end{equation}
-\end{itemize}
+\item Potential well
+%
+\item Gaussian potential
+%
+\item {\sffamily\textbf{Periodic boundary condition}}
+  Let the potential $V(x)$ be a periodic function:
+  \begin{equation}
+  V(x) = V(x + jL)
+  \end{equation}
+  where $j = 0, 1, 2, \ldots$ and $L$ is the periodicity of the potential.
+  Using Bloch theorem, the solution $\psi_{k}(x)$ of the Schroedinger equation
+  can be written as
+  \begin{equation}
+  \psi_{k}(x) = e^{\imath k x} \phi_{k}(x)
+  \end{equation}
+  where $\phi_{k}$ dan its first derivative have the same periodicity as $V(x)$.
+  Show that in terms of $\phi_{k}$ the Schroedinger equation can be written as:
+  \begin{equation}
+  \left[
+  -\frac{\hbar^2}{2m}\left( \frac{\mathrm{d}^2}{\mathrm{d}x^2} +
+  2\imath k \frac{\mathrm{d}}{\mathrm{d}x} - k^2
+  \right) + V(x) \right] \phi_{k}(x) = E \phi_{k}(x)
+  \end{equation}
+  Solve for and plot the solution $E(k)$ (dispersion relation) for the following
+  periodic potentials:
+  \begin{itemize}
+  \item Kronig-Penney potential:
+  \begin{equation}
+  V(x) = \begin{cases}
+  V_{0} & x \geq L/4 \, \text{and} \, x \leq 3L/4 \\
+  0 \, \text{otherwise} \\
+  \end{cases}
+  \end{equation}
+  %
+  \item Mathieu potential
+  \begin{equation}
+  V(x) = V_{0} \left( 1 + \cos\left(\frac{2\pi x}{L}\right) \right)
+  \end{equation}
+  \end{itemize}
+\end{enumerate}
