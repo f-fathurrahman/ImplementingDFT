@@ -1,58 +1,34 @@
-%\documentclass[graybox,envcountchap,sectrefs,default]{svmono}
-\documentclass[a4paper,11pt]{extbook}
+\RequirePackage{luatex85} % tuftebook not yet compatible with recent luatex
+\documentclass[a4paper,twoside,nobib]{tufte-book}
+
+% nobib: not putting citation at the margin note
+
+\setlength{\parskip}{\smallskipamount}
+\setlength{\parindent}{0pt}
+
+\usepackage{fontspec}
+\setmonofont{JuliaMono-Regular}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{float}
 
-%\usepackage[T1]{fontenc}
-%\usepackage[charter]{mathdesign}
-%\usepackage[varg]{txfonts}
-
-%\usepackage{geometry}
-%\geometry{verbose,tmargin=1.5cm,bmargin=1.5cm,lmargin=1.5cm,rmargin=1.5cm}
-
-\usepackage{geometry}
-\geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
-
-% DRAFT SETTINGS: easier to read in dark mode
-%\usepackage{cmbright}
-%\renewcommand{\familydefault}{\sfdefault}
-
-\usepackage[libertine]{newtxmath}
-\usepackage[no-math]{fontspec}
-\setmainfont{Linux Libertine O}
-
-%\usepackage{fontspec}
-%\setmainfont{FreeSerif}
-%\setmonofont{FreeMono}
-%\setmonofont{DejaVu Sans Mono}
-\setmonofont{JuliaMono-Regular}
-
 \usepackage{framed}
-
 \usepackage{braket}
 \usepackage{mhchem}
-
-\setcounter{secnumdepth}{3}
-\setcounter{tocdepth}{3}
-\setlength{\parskip}{\smallskipamount}
-\setlength{\parindent}{0pt}
-\usepackage{setspace}
-\onehalfspacing
 
 \usepackage{minted}
 % using DejaVu Sans Mono, we need to scale the font to smaller size to match
 % the main font.
-\newminted{julia}{breaklines,fontsize=\scriptsize}
-\newminted{bash}{breaklines,fontsize=\scriptsize}
-\newminted{text}{breaklines,fontsize=\scriptsize}
+\newminted{julia}{breaklines,fontsize=\footnotesize}
+\newminted{bash}{breaklines,fontsize=\footnotesize}
+\newminted{text}{breaklines,fontsize=\footnotesize}
 
-\newcommand{\txtinline}[1]{\mintinline[fontsize=\scriptsize]{text}{#1}}
-\newcommand{\jlinline}[1]{\mintinline[fontsize=\scriptsize]{julia}{#1}}
+\newcommand{\txtinline}[1]{\mintinline[fontsize=\footnotesize]{text}{#1}}
+\newcommand{\jlinline}[1]{\mintinline[fontsize=\footnotesize]{julia}{#1}}
 
-\newmintedfile[juliafile]{julia}{breaklines,fontsize=\scriptsize}
+\newmintedfile[juliafile]{julia}{breaklines,fontsize=\footnotesize}
 
 \usepackage{float}
 \newfloat{mintedfloat}{h}{lop}
@@ -60,7 +36,7 @@
 
 % Using background color for minted environment
 \usepackage{xcolor}
-\definecolor{mintedbg}{rgb}{0.9,0.9,0.9}
+\definecolor{mintedbg}{rgb}{0.95,0.95,0.95}
 \usepackage{mdframed}
 \BeforeBeginEnvironment{minted}{
     \begin{mdframed}[backgroundcolor=mintedbg,%
@@ -78,11 +54,19 @@
 \usepackage{makeidx}
 \makeindex
 
+
+\title{Implementing \\
+  \noindent{Density Functional Theory Calculations}
+}
+\author[ImplDFT]{\noindent{Fadjar Fathurrahman} \\[3mm]
+  \noindent{Hermawan Kresno Dipojono} \\[3mm]
+}
+\publisher{}
+
+
+% START OF DOCUMENT -----------------------------------------------------------
 \begin{document}
 
-\title{Implementing Density Functional Theory Calculations}
-\author{Fadjar Fathurrahman \\
-Hermawan Kresno Dipojono}
 \maketitle
 
 \frontmatter
@@ -103,7 +87,7 @@ Hermawan Kresno Dipojono}
 \include{Poisson}
 \include{KS_part1}
 \include{KS_part2}
-\include{Epilogue}
+%\include{Epilogue}
 
 \appendix
 \include{JuliaProg}

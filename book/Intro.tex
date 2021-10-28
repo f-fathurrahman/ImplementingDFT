@@ -46,15 +46,15 @@ interacting electrons
 under external potential $V_{\mathrm{ext}}(\mathbf{r})$. This quantity can be written
 as functional of
 a set of single-particle wave functions or Kohn-Sham orbitals $\{\psi_{i}(\mathbf{r})\}$
-\begin{equation}
+\begin{multline}
 E\left[\{\psi_{i}(\mathbf{r})\}\right] =
 -\frac{1}{2} \int \psi_{i}(\mathbf{r}) \nabla^{2} \psi_{i}(\mathbf{r})\,\mathrm{d}\mathbf{r} +
-\int \rho(\mathbf{r}) V_{\mathrm{ext}}(\mathbf{r})\,\mathrm{d}\mathbf{r} +
+\int \rho(\mathbf{r}) V_{\mathrm{ext}}(\mathbf{r})\,\mathrm{d}\mathbf{r} + \\
 \frac{1}{2}\int
 \frac{\rho(\mathbf{r}) \rho(\mathbf{r}')}{\left|\mathbf{r}-\mathbf{r}'\right|}\,
 \mathrm{d}\mathbf{r}\,\mathrm{d}\mathbf{r}' + E_{\mathrm{xc}}\left[\rho(\mathbf{r})\right]
 \label{eq:KS_energy_functional}
-\end{equation}
+\end{multline}
 %
 where single-particle electron density $\rho(\mathbf{r})$ is calculated as
 %
