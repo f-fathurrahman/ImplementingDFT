@@ -33,20 +33,20 @@ It also defines a new custom data type in Julia.
 Our struct definition looks like this.
 \begin{juliacode}
 struct FD2dGrid
-  Npoints::Int64
-  Lx::Float64
-  Ly::Float64
-  Nx::Int64
-  Ny::Int64
-  hx::Float64
-  hy::Float64
-  dA::Float64
-  x::Array{Float64,1}
-  y::Array{Float64,1}
-  r::Array{Float64,2}
-  idx_ip2xy::Array{Int64,2}
-  idx_xy2ip::Array{Int64,2}
-  pbc::Tuple{Bool,Bool}
+    Npoints::Int64
+    Lx::Float64
+    Ly::Float64
+    Nx::Int64
+    Ny::Int64
+    hx::Float64
+    hy::Float64
+    dA::Float64
+    x::Array{Float64,1}
+    y::Array{Float64,1}
+    r::Array{Float64,2}
+    idx_ip2xy::Array{Int64,2}
+    idx_xy2ip::Array{Int64,2}
+    pbc::Tuple{Bool,Bool}
 end
 \end{juliacode}
 %
@@ -54,25 +54,24 @@ An instance of \txtinline{FD2dGrid} can be initialized using the following const
 %
 \begin{juliacode}
 function FD2dGrid( x_domain, Nx, y_domain, Ny )
-  x, hx = init_FD1d_grid(x_domain, Nx)
-  y, hy = init_FD1d_grid(y_domain, Ny)
-  dA = hx*hy
-  Npoints = Nx*Ny
-  r = zeros(2,Npoints)
-  ip = 0
-  idx_ip2xy = zeros(Int64,2,Npoints)
-  idx_xy2ip = zeros(Int64,Nx,Ny)
-  for j in 1:Ny
-    for i in 1:Nx
-      ip = ip + 1
-      r[1,ip] = x[i]
-      r[2,ip] = y[j]
-      idx_ip2xy[1,ip] = i
-      idx_ip2xy[2,ip] = j
-      idx_xy2ip[i,j] = ip
+    x, hx = init_FD1d_grid(x_domain, Nx)
+    y, hy = init_FD1d_grid(y_domain, Ny)
+    dA = hx*hy
+    Npoints = Nx*Ny
+    r = zeros(2,Npoints)
+    ip = 0
+    idx_ip2xy = zeros(Int64,2,Npoints)
+    idx_xy2ip = zeros(Int64,Nx,Ny)
+    for j in 1:Ny, i in 1:Nx
+        ip = ip + 1
+        r[1,ip] = x[i]
+        r[2,ip] = y[j]
+        idx_ip2xy[1,ip] = i
+        idx_ip2xy[2,ip] = j
+        idx_xy2ip[i,j] = ip
     end
-  end
-  return FD2dGrid(Npoints, Nx, Ny, hx, hy, dA, x, y, r, idx_ip2xy, idx_xy2ip) 
+    return FD2dGrid(Npoints, Nx, Ny, hx, hy,
+      dA, x, y, r, idx_ip2xy, idx_xy2ip)
 end
 \end{juliacode}
 
@@ -148,12 +147,13 @@ The results are:
 \end{textcode}
 %
 We also can use the usual rearrange these points in the usual 2d grid rearrangement:
-%
+\begin{fullwidth}
 \begin{textcode}
 [  -5.000,  -5.000] [  -5.000,  -1.667] [  -5.000,   1.667] [  -5.000,   5.000] 
 [   0.000,  -5.000] [   0.000,  -1.667] [   0.000,   1.667] [   0.000,   5.000] 
 [   5.000,  -5.000] [   5.000,  -1.667] [   5.000,   1.667] [   5.000,   5.000]
 \end{textcode}
+\end{fullwidth}
 %
 which can be produced from the following snippet:
 %
@@ -206,12 +206,12 @@ The following function illustrates the above approach to construct matrix
 representation of the Laplacian operator.
 \begin{juliacode}
 function build_nabla2_matrix( grid::FD2dGrid )
-  Nx = grid.Nx; hx = grid.hx
-  Ny = grid.Ny; hy = grid.hy
-  D2x = build_D2_matrix_9pt(Nx, hx)
-  D2y = build_D2_matrix_9pt(Ny, hy)
-  ∇2 = kron(D2x, speye(Ny)) + kron(speye(Nx), D2y)
-  return ∇2
+    Nx = grid.Nx; hx = grid.hx
+    Ny = grid.Ny; hy = grid.hy
+    D2x = build_D2_matrix_9pt(Nx, hx)
+    D2y = build_D2_matrix_9pt(Ny, hy)
+    ∇2 = kron(D2x, speye(Ny)) + kron(speye(Nx), D2y)
+    return ∇2
 end
 \end{juliacode}
 
@@ -251,37 +251,37 @@ include("build_nabla2_matrix.jl")
 include("supporting_functions.jl")
     
 function my_gaussian( grid; α=1.0 )
-  Npoints = grid.Npoints
-  f = zeros(Npoints)
-  for i in 1:Npoints
-    x = grid.r[1,i]
-    y = grid.r[2,i]
-    r2 = x^2 + y^2
-    f[i] = exp(-α*r2)
-  end
-  return f
+    Npoints = grid.Npoints
+    f = zeros(Npoints)
+    for i in 1:Npoints
+        x = grid.r[1,i]
+        y = grid.r[2,i]
+        r2 = x^2 + y^2
+        f[i] = exp(-α*r2)
+    end
+    return f
 end
     
 function main()  
-  Nx = 75
-  Ny = 75
-  grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
+    Nx = 75
+    Ny = 75
+    grid = FD2dGrid( (-5.0,5.0), Nx, (-5.0,5.0), Ny )
     
-  ∇2 = build_nabla2_matrix( grid )
+    ∇2 = build_nabla2_matrix( grid )
     
-  fg = my_gaussian(grid, α=0.5)
-  plt.clf()
-  plt.surf(grid.x, grid.y, reshape(fg, grid.Nx, grid.Ny), cmap=:jet)
-  plt.gca(projection="3d").view_init(30,7)
-  fileplot = "IMG_gaussian2d.pdf"
-  plt.savefig(fileplot)
+    fg = my_gaussian(grid, α=0.5)
+    plt.clf()
+    plt.surf(grid.x, grid.y, reshape(fg, grid.Nx, grid.Ny), cmap=:jet)
+    plt.gca(projection="3d").view_init(30,7)
+    fileplot = "IMG_gaussian2d.pdf"
+    plt.savefig(fileplot)
     
-  d2fg = ∇2*fg    
-  plt.clf()
-  plt.surf(grid.x, grid.y, reshape(d2fg, grid.Nx, grid.Ny), cmap=:jet)
-  plt.gca(projection="3d").view_init(30,7)    
-  fileplot = "IMG_d2_gaussian2d.pdf"
-  plt.savefig(fileplot)
+    d2fg = ∇2*fg    
+    plt.clf()
+    plt.surf(grid.x, grid.y, reshape(d2fg, grid.Nx, grid.Ny), cmap=:jet)
+    plt.gca(projection="3d").view_init(30,7)    
+    fileplot = "IMG_d2_gaussian2d.pdf"
+    plt.savefig(fileplot)
 end
     
 main()    
@@ -328,15 +328,24 @@ julia> fieldnames(typeof(∇2))
 \end{textcode}
 
 From the documentation
+\begin{fullwidth}
 \begin{juliacode}
 struct SparseMatrixCSC{Tv,Ti<:Integer} <: AbstractSparseMatrix{Tv,Ti}
-  m::Int                  # Number of rows
-  n::Int                  # Number of columns
-  colptr::Vector{Ti}      # Column j is in colptr[j]:(colptr[j+1]-1)
-  rowval::Vector{Ti}      # Row indices of stored values
-  nzval::Vector{Tv}       # Stored values, typically nonzeros
+    #
+    m::Int  # Number of rows
+    #
+    n::Int  # Number of columns
+    #
+    # Column j is in colptr[j]:(colptr[j+1]-1)
+    colptr::Vector{Ti}
+    #
+    # Row indices of stored values
+    rowval::Vector{Ti}
+    # # Stored values, typically nonzeros
+    nzval::Vector{Tv}
 end
 \end{juliacode}
+\end{fullwidth}
 
 Example 1:
 \begin{equation}
@@ -440,9 +449,11 @@ need Hamiltonian, initial guess of wave function and preconditioner.
 An example of \jlinline{diag_LOBPCG} is given below.
 %
 \begin{juliacode}
-function diag_LOBPCG!( Ham, X::Array{Float64,2}, prec;
-                       tol=1e-5, NiterMax=100, verbose=false,
-                       verbose_last=false, Nstates_conv=0 )
+function diag_LOBPCG!(
+  Ham, X::Array{Float64,2}, prec;
+  tol=1e-5, NiterMax=100, verbose=false,
+  verbose_last=false, Nstates_conv=0
+)
 \end{juliacode}
 %
 The three mandatory arguments are as follow:
@@ -474,14 +485,14 @@ This potential can be implemented in the following Julia code.
 %
 \begin{juliacode}
 function pot_harmonic( grid::FD2dGrid; ω=1.0 )
-  Npoints = grid.Npoints
-  Vpot = zeros(Npoints)
-  for i in 1:Npoints
-    x = grid.r[1,i]
-    y = grid.r[2,i]
-    Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
-  end
-  return Vpot
+    Npoints = grid.Npoints
+    Vpot = zeros(Npoints)
+    for i in 1:Npoints
+        x = grid.r[1,i]
+        y = grid.r[2,i]
+        Vpot[i] = 0.5 * ω^2 *( x^2 + y^2 )
+    end
+    return Vpot
 end
 \end{juliacode}
 
@@ -528,8 +539,8 @@ the vectors. One of them that will be used here is the Lowdin orthonormalization
 which can be implemented in Julia as:
 \begin{juliacode}
 function ortho_sqrt( psi )
-  Udagger = inv(sqrt(psi'*psi))
-  return psi*Udagger
+    Udagger = inv(sqrt(psi'*psi))
+    return psi*Udagger
 end
 \end{juliacode}
 
@@ -568,11 +579,11 @@ In Julia this can be implemented using the following function:
 %
 \begin{juliacode}
 function calc_grad_evals!( Ham, ψ, g, Hsub )
-  Nstates = size(ψ,2)
-  Hψ = Ham*ψ
-  Hsub[:] = ψ' * Hψ
-  g[:,:] = Hψ - ψ*Hsub
-  return
+    Nstates = size(ψ,2)
+    Hψ = Ham*ψ
+    Hsub[:] = ψ' * Hψ
+    g[:,:] = Hψ - ψ*Hsub
+    return
 end
 \end{juliacode}
 
@@ -593,25 +604,23 @@ a fixed step length. Orthonormalize $\mathbf{X}$.
 The following Julia code implements the steepest descent algorithm for minimizing band energy.
 \begin{juliacode}
 for iter = 1:NiterMax
-  calc_grad_evals!( Ham, X, g, Hsub )
-  d[:] = -g[:]
-  # Update wavefunction
-  X[:] = X + α_t*d
-  ortho_sqrt!(X)
-  Hr = Hermitian( X' * ( Ham*X ) )
-  evals = eigvals(Hr)
-  Ebands = sum(evals)
-  devals = abs.( evals - evals_old )
-  evals_old = copy(evals)
-  nconv = length( findall( devals .< tol ) )
-  diffE = abs(Ebands-Ebands_old)
-  @printf("SD step %8d = %18.10f   %10.7e  nconv = %5d\n", iter, Ebands, diffE, nconv)
-  if nconv >= Nstates_conv
-      IS_CONVERGED = true
-      @printf("Emin_SD convergence: nconv = %5d in %5d iterations\n", nconv, iter)
-      break
-  end
-  Ebands_old = Ebands
+    calc_grad_evals!( Ham, X, g, Hsub )
+    d[:] = -g[:]
+    # Update wavefunction
+    X[:] = X + α_t*d
+    ortho_sqrt!(X)
+    Hr = Hermitian( X' * ( Ham*X ) )
+    evals = eigvals(Hr)
+    Ebands = sum(evals)
+    devals = abs.( evals - evals_old )
+    evals_old = copy(evals)
+    nconv = length( findall( devals .< tol ) )
+    diffE = abs(Ebands-Ebands_old)
+    if nconv >= Nstates_conv
+        IS_CONVERGED = true
+        break
+    end
+    Ebands_old = Ebands
 end
 \end{juliacode}
 
@@ -623,7 +632,8 @@ evals = eigvals(Hr)
 Ebands = sum(evals)
 \end{juliacode}
 
-In the file \txtinline{main_harmonic_Emin_SD.kl} we implement steepest descent algorithm
+In the file \txtinline{main_harmonic_Emin_SD.kl} we
+implement steepest descent algorithm
 to find three lowest eigenstates of 2d harmonic potential.
 Using the following parameters:
 \begin{juliacode}
@@ -656,14 +666,6 @@ Emin_SD convergence: nconv =     3 in  2259 iterations
 Note that the convergence is also dependent to the step
 length parameter \jlinline{α}.
 
-
-\begin{fullwidth}
-\begin{juliacode}
-a_very_very_very_very_long_expr = 1 + 2 + 3 + 4 + sin(x) + cos(x) + tan(x) + exp(x)
-\end{juliacode}
-\end{fullwidth}
-
-
 \subsection{Line minimization}
 
 Line minimization:
@@ -680,6 +682,7 @@ end
 
 Implemented in the program \txtinline{main_harmonic_Emin_linmin.jl}.
 Result using line minimization:
+\begin{fullwidth}
 \begin{textcode}
 linmin step      589 =       5.0000566204   1.4525395e-06  nconv =     2
 linmin step      590 =       5.0000552040   1.4164238e-06  nconv =     3
@@ -691,6 +694,7 @@ evals[  1] =       1.0000001750 devals =   3.4402208904e-07
 evals[  2] =       2.0000051631 devals =   1.0311948540e-07
 evals[  3] =       2.0000498659 devals =   9.6928218651e-07  
 \end{textcode}
+\end{fullwidth}
 
 
 \subsection{Preconditioning}
@@ -710,6 +714,7 @@ prec = ilu(-0.5*∇2)
 \end{juliacode}
 
 Result using ILU preconditioner based on kinetic operator:
+\begin{fullwidth}
 \begin{textcode}
 linmin step       55 =       5.0000009960   1.2258080e-06  nconv =     2
 linmin step       56 =       5.0000003689   6.2711750e-07  nconv =     3
@@ -721,12 +726,14 @@ evals[  1] =       0.9999999739 devals =   6.0261565960e-07
 evals[  2] =       1.9999999937 devals =   5.8729066055e-09
 evals[  3] =       2.0000004014 devals =   1.8628935727e-08  
 \end{textcode}
+\end{fullwidth}
 
 ILU preconditioner based on Hamiltonian operator:
 \begin{juliacode}
 prec = ilu(Ham)
 \end{juliacode}
 
+\begin{fullwidth}
 \begin{textcode}
 linmin step       15 =       5.0000004295   3.2233493e-06  nconv =     2
 linmin step       16 =       4.9999998058   6.2374058e-07  nconv =     3
@@ -738,13 +745,14 @@ evals[  1] =       0.9999999787 devals =   1.2492943446e-07
 evals[  2] =       1.9999998478 devals =   1.2682084205e-07
 evals[  3] =       1.9999999792 devals =   3.7199030434e-07
 \end{textcode}
-
+\end{fullwidth}
 
 Multigrid preconditioner
 \begin{juliacode}
 prec = aspreconditioner(ruge_stuben(Ham))
 \end{juliacode}
 
+\begin{fullwidth}
 \begin{textcode}
 linmin step       15 =       5.0000010097   4.8543236e-06  nconv =     2
 linmin step       16 =       4.9999999515   1.0581623e-06  nconv =     3
@@ -756,6 +764,7 @@ evals[  1] =       0.9999999796 devals =   1.0151917307e-07
 evals[  2] =       1.9999998532 devals =   1.9803365658e-07
 evals[  3] =       2.0000001187 devals =   7.5860946458e-07
 \end{textcode}
+\end{fullwidth}
 
 
 ILU0 preconditioner, in SPARSKIT.
@@ -763,6 +772,7 @@ ILU0 preconditioner, in SPARSKIT.
 prec = ILU0Preconditioner(Ham)
 \end{juliacode}
 
+\begin{fullwidth}
 \begin{textcode}
 linmin step       64 =       5.0000041335   1.4349680e-06  nconv =     2
 linmin step       65 =       5.0000030469   1.0865516e-06  nconv =     3
@@ -774,6 +784,7 @@ evals[  1] =       1.0000001632 devals =   1.3899380646e-07
 evals[  2] =       2.0000000485 devals =   6.1344835878e-08
 evals[  3] =       2.0000028351 devals =   8.8621293415e-07
 \end{textcode}
+\end{fullwidth}
 
 
 For testing purpose
@@ -802,12 +813,13 @@ d = -Kg + β * d_prev
 Polak-Ribiere formula
 \begin{juliacode}
 if iter != 1
-  β = real(sum(conj(g-g_prev).*Kg))/real(sum(conj(g_prev).*Kg_prev))
+    β = real(sum(conj(g-g_prev).*Kg))/real(sum(conj(g_prev).*Kg_prev))
 end
 if β < 0.0 β = 0.0 end
 \end{juliacode}
 
 CG using ILU$0$ (Ham)
+\begin{fullwidth}
 \begin{textcode}
 CG step       29 =       5.0000026056   2.8129344e-06  nconv =     2
 CG step       30 =       5.0000011500   1.4555620e-06  nconv =     3
@@ -819,6 +831,7 @@ evals[  1] =       1.0000001156 devals =   1.4606434040e-07
 evals[  2] =       2.0000002046 devals =   6.6796002196e-07
 evals[  3] =       2.0000008298 devals =   6.4153765811e-07  
 \end{textcode}
+\end{fullwidth}
 
 \subsection{Eigenfunctions}
 
