@@ -1,0 +1,9 @@
+[deps]
+AlgebraicMultigrid = "2169fc97-5a83-5252-b627-83903c6c433c"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+IncompleteLU = "40713840-3770-5561-ab4c-a76e7d0d7895"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
+PGFPlotsX = "8314cec4-20b6-5062-9cdb-752b83310925"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
