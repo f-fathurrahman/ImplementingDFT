@@ -11,8 +11,8 @@ include("INC_sch_3d.jl")
 
 include("../common/constants.jl")
 include("../common/Atoms.jl")
+include("../common/GVectors.jl")
 include("../common/potential_H_atom.jl")
-
 include("../common/ILU0Preconditioner.jl")
 include("../common/NoPreconditioner.jl")
 
@@ -34,7 +34,7 @@ function main()
         H  -0.75  0.0  0.0
         """, in_bohr=true)
 
-    V_Ps_loc = pot_Hps_HGH(atoms, grid)
+    V_Ps_loc = pot_Hps_GTH(atoms, grid)
 
     ∇2 = build_nabla2_matrix( grid )
 
