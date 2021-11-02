@@ -99,7 +99,14 @@ function KS_solve_Emin_PCG!(
 
     Ham.energies.NN = calc_E_NN( Ham.atoms, Ham.pspots )
 
+    println("Check ortho 1:")
+    display(psi' * psi * dVol); println()
+
     Etot = calc_energies_grad!( Ham, psi, Rhoe, g, Kg, Hsub )
+
+    println("Check ortho 2:")
+    display(psi' * psi * dVol); println()
+    println("Initial Etot = ", Etot)
 
     d[:,:] = -Kg[:,:]
 
@@ -160,7 +167,7 @@ function KS_solve_Emin_PCG!(
         # Update psi
         @views psi[:] = psi[:] + α*d[:]
         ortho_sqrt!(psi)
-        psi = psi/sqrt(dVol)
+        psi[:] = psi[:]/sqrt(dVol)
 
         calc_rhoe!(Ham, psi, Rhoe)
         update!(Ham, Rhoe)
@@ -191,7 +198,12 @@ function KS_solve_Emin_PCG!(
 
     # Calculate eigenvalues
     evals, evecs = eigen(Hermitian(Hsub))
-    psi = psi*evecs
+    println("Rotation matrix")
+    display(evecs' * evecs)
+    psi[:,:] = psi[:,:]*evecs
+    println("Check psi ortho:")
+    display(psi' * psi * dVol)
+    println()
 
     @printf("\n")
     @printf("----------------------------\n")
