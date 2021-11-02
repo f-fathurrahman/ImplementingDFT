@@ -8,7 +8,7 @@ function pot_H_coul( r::Float64 )
     return -1.0/r
 end
 
-function pot_Hps_HGH( r::Float64 )
+function pot_Hps_GTH( r::Float64 )
     # Parameters
     Zval = 1
     rloc = 0.2
@@ -24,7 +24,7 @@ function main()
     Npoints = 1000
     r = range(1e-2, stop=1.5, length=Npoints)
     V_coul = pot_H_coul.(r)
-    V_H_ps = pot_Hps_HGH.(r)
+    V_H_ps = pot_Hps_GTH.(r)
     
     #println(V_coul)
     #println(V_H_ps)

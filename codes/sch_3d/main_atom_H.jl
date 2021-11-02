@@ -22,7 +22,7 @@ function pot_H_atom( grid::FD3dGrid; r0=(0.0, 0.0, 0.0) )
     return Vpot
 end
 
-function pot_Hps_HGH( grid::FD3dGrid; r0=(0.0, 0.0, 0.0) )
+function pot_Hps_GTH( grid::FD3dGrid; r0=(0.0, 0.0, 0.0) )
     Npoints = grid.Npoints
     Vpot = zeros( Float64, Npoints )
 
@@ -62,7 +62,7 @@ function main()
     ∇2 = build_nabla2_matrix( grid, stencil_order=11 )
 
     Vpot = pot_H_atom( grid )
-    #Vpot = pot_Hps_HGH( grid )
+    #Vpot = pot_Hps_GTH( grid )
 
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 

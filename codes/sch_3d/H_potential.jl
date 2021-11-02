@@ -13,7 +13,7 @@ function pot_H_atom( grid; r0=(0.0, 0.0, 0.0) )
     return Vpot
 end
 
-function pot_Hps_HGH( grid; r0=(0.0, 0.0, 0.0) )
+function pot_Hps_GTH( grid; r0=(0.0, 0.0, 0.0) )
     Npoints = grid.Npoints
     Vpot = zeros( Float64, Npoints )
 

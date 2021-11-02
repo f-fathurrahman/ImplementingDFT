@@ -23,7 +23,7 @@ function main()
     ∇2 = build_nabla2_matrix( grid )
 
     Vpot = pot_H_atom( grid )
-    #Vpot = pot_Hps_HGH( grid )
+    #Vpot = pot_Hps_GTH( grid )
 
     Ham = -0.5*∇2 + spdiagm( 0 => Vpot )
 
