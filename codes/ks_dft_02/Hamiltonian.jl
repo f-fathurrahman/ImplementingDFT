@@ -112,7 +112,7 @@ function Hamiltonian(
     stencil_order=9,
     prec_type=:ILU0
 )
-
+    #∇²
     # Need better mechanism for this
     verbose && @printf("Building Laplacian ...")
     if typeof(grid) == FD3dGrid

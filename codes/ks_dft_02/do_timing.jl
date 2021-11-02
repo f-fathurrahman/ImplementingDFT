@@ -6,7 +6,7 @@ using LinearAlgebra
 using SpecialFunctions
 using BenchmarkTools
 
-using MyModule
+using KSDFT02Module
 
 const DIR_PSP = "../pseudopotentials/pade_gth/"
 const DIR_STRUCTURES = "../structures"

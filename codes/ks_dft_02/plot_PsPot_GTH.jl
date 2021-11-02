@@ -6,7 +6,7 @@ import PyPlot
 const plt = PyPlot
 plt.rc("text", usetex=true)
 
-using MyModule
+using KSDFT02Module
 
 function do_plot(psp::PsPot_GTH;
     NptsPlot=500, rmax=10.0, rmax_plot=5.0, filesave="IMG_psp"

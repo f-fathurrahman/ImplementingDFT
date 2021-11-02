@@ -1,4 +1,4 @@
-module MyModule
+module KSDFT02Module
 
 using Printf
 using LinearAlgebra
