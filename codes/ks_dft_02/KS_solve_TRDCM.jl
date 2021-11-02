@@ -74,13 +74,13 @@ function KS_solve_TRDCM!(
         # Project kinetic and ionic potential
         #
         if iter > 1
-            KY = -0.5*Ham.Laplacian*Y + op_V_Ps_loc(Ham, Y)
+            KY = -0.5*Ham.∇2*Y + op_V_Ps_loc(Ham, Y)
             T = Y' * KY * dVol
             B = Y' * Y * dVol
             # B = 0.5*( B + B' ) # Need this?
         else
             # only set5=1:2*Nstates is active for iter=1
-            @views KY = -0.5*Ham.Laplacian * Y[:,set5] + op_V_Ps_loc( Ham, Y[:,set5] )
+            @views KY = -0.5*Ham.∇2 * Y[:,set5] + op_V_Ps_loc( Ham, Y[:,set5] )
             @views T[set5,set5] = Y[:,set5]' * KY * dVol
             @views bb = Y[set5,set5]' * Y[set5,set5] * dVol
             @views B[set5,set5] = 0.5*( bb + bb' )

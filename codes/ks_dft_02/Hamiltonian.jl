@@ -2,7 +2,7 @@ const AMG_PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
 
 mutable struct Hamiltonian
     grid::Union{FD3dGrid,LF3dGrid}
-    Laplacian::SparseMatrixCSC{Float64,Int64}
+    ∇2::SparseMatrixCSC{Float64,Int64}
     V_Ps_loc::Vector{Float64}
     V_Hartree::Vector{Float64}
     V_XC::Vector{Float64}
@@ -114,11 +114,11 @@ function Hamiltonian(
 )
     #∇²
     # Need better mechanism for this
-    verbose && @printf("Building Laplacian ...")
+    verbose && @printf("Building ∇2 ...")
     if typeof(grid) == FD3dGrid
-        Laplacian = build_nabla2_matrix( grid, stencil_order=stencil_order )
+        ∇2 = build_nabla2_matrix( grid, stencil_order=stencil_order )
     else
-        Laplacian = build_nabla2_matrix( grid )
+        ∇2 = build_nabla2_matrix( grid )
     end
     verbose && @printf("... done\n")
 
@@ -131,9 +131,9 @@ function Hamiltonian(
 
     verbose && @printf("Building preconditioners ...")
     if prec_type == :amg
-        precKin = aspreconditioner( ruge_stuben(-0.5*Laplacian) )
+        precKin = aspreconditioner( ruge_stuben(-0.5*∇2) )
     else
-        precKin = ILU0Preconditioner(-0.5*Laplacian)
+        precKin = ILU0Preconditioner(-0.5*∇2)
     end
     verbose && @printf("... done\n")
 
@@ -170,7 +170,7 @@ function Hamiltonian(
         psolver = PoissonSolverFFT(grid)
     end
 
-    return Hamiltonian( grid, Laplacian, V_Ps_loc, V_Hartree, V_XC, pspots, pspotNL, electrons, atoms,
+    return Hamiltonian( grid, ∇2, V_Ps_loc, V_Hartree, V_XC, pspots, pspotNL, electrons, atoms,
                         rhoe, precKin, psolver, energies, gvec )
 end
 

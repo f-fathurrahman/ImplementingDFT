@@ -4,8 +4,8 @@ function op_H( Ham::Hamiltonian, psi )
     Nstates = size(psi,2)
     Hpsi = zeros(Float64,Nbasis,Nstates)
     #
-    #Hpsi = -0.5*Ham.Laplacian * psi
-    mul!(Hpsi, Ham.Laplacian, psi)
+    #Hpsi = -0.5*Ham.∇2 * psi
+    mul!(Hpsi, Ham.∇2, psi)
     lmul!(-0.5, Hpsi)
     #
     if Ham.pspotNL.NbetaNL > 0

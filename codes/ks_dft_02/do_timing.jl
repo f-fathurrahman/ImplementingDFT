@@ -33,7 +33,7 @@ function timing_op_H(Ham_func, N, grid_type)
     @btime Hpsi = op_H($Ham, $psi)
 
     println("\nop_K")
-    @btime Hpsi = -0.5*$Ham.Laplacian * $psi
+    @btime Hpsi = -0.5*$Ham.∇2 * $psi
 
     println("\nop_V_Ps_nloc")
     @btime Vnlpsi = op_V_Ps_nloc($Ham, $psi)
