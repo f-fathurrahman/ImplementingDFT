@@ -326,23 +326,23 @@ end
 
 Hamiltonian operator:
 \begin{juliacode}
-function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
-  Nbasis = size(psi,1)
-  Nstates = size(psi,2)
-  Hpsi = -0.5*Ham.Laplacian*psi
-  if Ham.pspotNL.NbetaNL > 0
-    Vnlpsi = op_V_Ps_nloc(Ham, psi)
-    for ist in 1:Nstates, ip in 1:Nbasis
-      Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
-        Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist] + Vnlpsi[ip,ist]
+function op_H(Ham::Hamiltonian, psi::Matrix{Float64})
+    Nbasis = size(psi,1)
+    Nstates = size(psi,2)
+    Hpsi = -0.5*Ham.∇2*psi
+    if Ham.pspotNL.NbetaNL > 0
+        Vnlpsi = op_V_Ps_nloc(Ham, psi)
+        for ist in 1:Nstates, ip in 1:Nbasis
+            Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
+              Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist] + Vnlpsi[ip,ist]
+        end
+    else # no nonlocal pspot components
+        for ist in 1:Nstates, ip in 1:Nbasis
+            Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
+              Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
+        end
     end
-  else # no nonlocal pspot components
-    for ist in 1:Nstates, ip in 1:Nbasis
-      Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
-          Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
-    end
-  end
-  return Hpsi
+    return Hpsi
 end
 \end{juliacode}
 
@@ -382,6 +382,7 @@ Total   =      -0.7670933986
 \end{textcode}
 
 Octopus result
+\begin{fullwidth}
 \begin{textcode}
 *********************** SCF CYCLE ITER #   15 ************************
  etot  = -7.86985069E-01 abs_ev   =  8.84E-07 rel_ev   =  2.74E-06
@@ -392,17 +393,20 @@ Converged eigenvectors:      1
 #  State  Eigenvalue [H]  Occupation    Error
       1       -0.161349    2.000000   (7.4E-07)
 \end{textcode}
+\end{fullwidth}
+
 
 Similar result with Octopus.
 
 {\centering
-\includegraphics[scale=1.0]{../codes/ks_dft_02/LOG_files/IMG_LiH.pdf}
+\includegraphics[width=\textwidth]{../codes/ks_dft_02/LOG_files/IMG_LiH.pdf}
 }
 
 
 
 \subsection{$\ce{CH4}$ molecule}
 
+\begin{fullwidth}
 \begin{textcode}
    44      -8.0428330362   4.9289199566e-07   3.3001772073e-09
    45      -8.0428321264   9.0977377454e-07   2.8064033639e-09
@@ -426,7 +430,11 @@ NN      =       9.5322782633
 ----------------------------
 Total   =      -8.0428321264 
 \end{textcode}
+\end{fullwidth}
 
+
+Octopus result
+\begin{fullwidth}
 \begin{textcode}
  *********************** SCF CYCLE ITER #   13 ************************
  etot  = -8.06433473E+00 abs_ev   =  2.54E-05 rel_ev   =  7.64E-06
@@ -440,7 +448,8 @@ Converged eigenvectors:      0
       3       -0.348888    2.000000   (6.2E-07)
       4       -0.341658    2.000000   (2.0E-06)   
 \end{textcode}
+\end{fullwidth}
 
 {\centering
-\includegraphics[scale=1.0]{../codes/ks_dft_02/LOG_files/IMG_CH4.pdf}
+\includegraphics[width=\textwidth]{../codes/ks_dft_02/LOG_files/IMG_CH4.pdf}
 }
