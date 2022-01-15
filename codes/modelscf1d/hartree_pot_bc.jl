@@ -10,8 +10,7 @@ function hartree_pot_bc(rho::Array{Float64,2}, Ls::Float64, YukawaK::Float64, ep
     # this function is called from the one in the Ham. This is anotated to give the jit
     # compiler more information
     Ns_glb = length(rho);
-    kx = 2*pi* vcat(collect(0:Ns_glb/2),
-                    collect(-Ns_glb/2+1:-1))./Ls
+    kx = 2*pi* vcat(collect(0:Ns_glb/2), collect(-Ns_glb/2+1:-1))./Ls
     # Use Yukawa rather than the bare Coulomb potential.  The method does
     # not depend critically on the fact that the Coulomb kernel is to be
     # used.

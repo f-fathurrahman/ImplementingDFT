@@ -32,7 +32,7 @@ end
 
 function Hamiltonian(Lat, Nunit, n_extra, dx, atoms,YukawaK, epsil0,Tbeta)
     Ls = Nunit * Lat
-    Ns = round(Integer, Ls / dx)
+    Ns = round(Int64, Ls / dx)
     #
     dx = Ls / Ns
     # defining the grid
@@ -43,6 +43,9 @@ function Hamiltonian(Lat, Nunit, n_extra, dx, atoms,YukawaK, epsil0,Tbeta)
     # Initialize the atom positions
     atoms   = atoms
     Neigs = sum(atoms.nocc) + n_extra
+
+    println("sum(atoms.nocc) = ", sum(atoms.nocc))
+    println("Neigs = ", Neigs)
 
     Ls_glb = Ls
     Ns_glb = Ns
@@ -188,6 +191,8 @@ function init_pot!(H::Hamiltonian, nocc::Int64)
     #function to initialize the potential in the Hamiltonian class
     rho  = -H.rhoa
     rho  = rho / ( sum(rho)*H.dx) * (nocc*H.nspin)
+    #println("nocc*H.nspin = ", nocc*H.nspin)
+    #exit()
     H.rho = rho
     H.Vhar = hartree_pot_bc(H.rho+H.rhoa, H)
     H.Vtot = H.Vhar   # No exchange-correlation
@@ -197,7 +202,7 @@ end
 function update_pot!(H::Hamiltonian)
      # TODO: I dont' know in how many different ways this si updateded
      # computing the hartree potenatial
-    H.Vhar = hartree_pot_bc(H.rho+H.rhoa,H)
+    H.Vhar = hartree_pot_bc(H.rho + H.rhoa,H)
     # here Vtotnew only considers the
     Vtotnew  = H.Vhar  # no exchange-correlation so far
     Verr = norm(Vtotnew-H.Vtot)./norm(H.Vtot) # computing the relative error

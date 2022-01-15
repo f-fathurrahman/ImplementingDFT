@@ -1,31 +1,23 @@
+# Script to showcase how to use the model scf
+
 push!(LOAD_PATH, "./")
 
 using Printf
-using ModelSCF1d
+using ORIG_ModelSCF1d
+
+# flag to save the data
+
+# number of MD simulations and
+Nit = 3
 
 function main()
+
     # getting all the parameters
     dx = 0.5
     Nunit = 8   # number of units
     Lat = 10     # size of the lattice
     Ls = Nunit*Lat
-    Ns = round(Integer, Ls/dx) # number of discretization points
-
-    Ndist = 1
-    Natoms = round(Integer, Nunit / Ndist)
-    
-    sigma  = ones(Natoms,1)*(1.0)  # insulator
-    omega  = ones(Natoms,1)*0.03
-    Eqdist = ones(Natoms,1)*10.0
-    mass   = ones(Natoms,1)*42000.0
-    nocc   = ones(Natoms,1)*2     # number of electrons per atom
-    Z      = nocc
-    
-    # defining the position of the nuclei
-    R = reshape([ (j-0.5)*Lat*Ndist+dx for j=1:Natoms ], Natoms, 1)
-
-    # creating an atom structure
-    atoms = Atoms(Natoms, R, sigma, omega, Eqdist, mass, Z, nocc)
+    Ns = round(Integer, Ls / dx) # number of discretization points
 
     # using the default values in Lin's code
     YukawaK = 0.0100
@@ -40,28 +32,56 @@ function main()
     betamix = 0.5
     mixdim = 10
 
-    Ham = Hamiltonian(Lat, Nunit, n_extra, dx, atoms,YukawaK, epsil0, Tbeta)
+    Ndist = 1
+    Natoms = round(Integer, Nunit / Ndist)
+
+    sigma  = ones(Natoms,1)*(1.0)  # insulator
+    omega  = ones(Natoms,1)*0.03
+    Eqdist = ones(Natoms,1)*10.0
+    mass   = ones(Natoms,1)*42000.0
+    nocc   = ones(Natoms,1)*2     # number of electrons per atom
+    Z      = nocc
+
+    # defining the position of the nuclei
+    R = reshape([ (j-0.5)*Lat*Ndist+dx for j=1:Natoms ], Natoms, 1)
+
+    # creating an atom structure
+    atoms = Atoms(Natoms, R, sigma,  omega,  Eqdist, mass, Z, nocc)
+    # allocating a Hamiltonian
+    ham = Hamiltonian(Lat, Nunit, n_extra, dx, atoms,YukawaK, epsil0, Tbeta)
     # total number of occupied orbitals
-    Nocc = round(Integer, sum(atoms.nocc) / Ham.nspin)
-    
-    mixOpts = AndersonMixOptions(Ham.Ns, betamix, mixdim)
+    Nocc = round(Integer, sum(atoms.nocc) / ham.nspin)
+
+
+    mixOpts = AndersonMixOptions(ham.Ns, betamix, mixdim )
     eigOpts = EigensolverOptions(1.e-10, 1000, "eigs")
     #eigOpts = eigOptions(1.e-10, 1000, "lobpcg_sep")
     scfOpts = SCFOptions(1.e-8, 300, eigOpts, mixOpts)
-    
+
     # initialize the potentials within the Hemiltonian, setting H[\rho_0]
-    init_pot!(Ham, Nocc)
+    init_pot!(ham, Nocc)
 
-    println(typeof(Ham.occ))
+    # running the scf iteration
+    VtoterrHist = scf_potmix!(ham, scfOpts)
 
-    VtoterrHist = scf_potmix!(Ham, scfOpts)
-    
     if VtoterrHist[end] > scfOpts.SCFtol
         println("convergence not achieved!! ")
     end
-    
+
     println(length(VtoterrHist))
 
+    # we compute the forces
+    get_force!(ham)
+    # computing the energy
+    Vhar = hartree_pot_bc(ham.rho+ham.rhoa,ham)
+
+    # NOTE: ham.Fband is only the band energy here.  The real total energy
+    # is calculated using the formula below:
+    Etot = ham.Eband + 1/2*sum((ham.rhoa-ham.rho).*Vhar)*dx
+    println("Etot = ", Etot)
+
+    # we need to add a proper title
+    #plot(ham.ev)
 end
 
 main()
