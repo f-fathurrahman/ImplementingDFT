@@ -5,10 +5,7 @@ push!(LOAD_PATH, "./")
 using Printf
 using ORIG_ModelSCF1d
 
-# flag to save the data
-
-# number of MD simulations and
-Nit = 3
+include("test_hartree_pot_bc.jl")
 
 function main()
 
@@ -54,9 +51,12 @@ function main()
 
 
     mixOpts = AndersonMixOptions(ham.Ns, betamix, mixdim )
-    eigOpts = EigensolverOptions(1.e-10, 1000, "eigs")
+    eigOpts = EigensolverOptions(1.e-10, 1000, "eig")
     #eigOpts = eigOptions(1.e-10, 1000, "lobpcg_sep")
     scfOpts = SCFOptions(1.e-8, 300, eigOpts, mixOpts)
+
+    test_hartree_pot_bc(ham)
+    exit()
 
     # initialize the potentials within the Hemiltonian, setting H[\rho_0]
     init_pot!(ham, Nocc)

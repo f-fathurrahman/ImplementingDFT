@@ -189,12 +189,14 @@ using FFTW
 function init_pot!(H::Hamiltonian, nocc::Int64)
     # nocc number of occupied states
     #function to initialize the potential in the Hamiltonian class
-    rho  = -H.rhoa
-    rho  = rho / ( sum(rho)*H.dx) * (nocc*H.nspin)
-    #println("nocc*H.nspin = ", nocc*H.nspin)
-    #exit()
+    rho = -H.rhoa
+    rho = rho / ( sum(rho)*H.dx) * (nocc*H.nspin)
     H.rho = rho
-    H.Vhar = hartree_pot_bc(H.rho+H.rhoa, H)
+    println("nocc*H.nspin = ", nocc*H.nspin)
+    println("Sum H.rho + H.rhoa = ", sum(H.rho + H.rhoa))
+    H.Vhar = hartree_pot_bc(H.rho + H.rhoa, H)
+    println("sum VHar = ", sum(H.Vhar))
+    exit()
     H.Vtot = H.Vhar   # No exchange-correlation
     H.Vtot = H.Vtot .- mean(H.Vtot)# IMPORTANT (zero mean?)
 end

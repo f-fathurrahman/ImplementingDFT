@@ -1,10 +1,14 @@
 mutable struct Hamiltonian1d
     atoms::Atoms1d
     gvec::GVectors1d
+    Ns::Int64 # no. real space points
     κ::Float64
     ε0::Float64
     dx::Float64
     electrons::Electrons
+    rhoe::Vector{Float64}
+    VHartree::Vector{Float64}
+    Vtotal::Vector{Float64}
 end
 
 function Hamiltonian1d(atoms, dx_in, κ, ε0; Nstates_extra=0)
@@ -13,6 +17,7 @@ function Hamiltonian1d(atoms, dx_in, κ, ε0; Nstates_extra=0)
     L = atoms.L
     Ns = round(Int64, L/dx_in)
     dx = L/Ns
+    Npoints = Ns
 
     gvec = GVectors1d(L, Ns)
     electrons = Electrons(atoms, Nstates_extra=Nstates_extra)
@@ -22,12 +27,17 @@ function Hamiltonian1d(atoms, dx_in, κ, ε0; Nstates_extra=0)
     println("integ rhoa = ", sum(rhoa)*dx)
 
     rhoe = -rhoa
-    rhoe = rhoe / ( sum(rhoe)*H.dx) * (nocc*H.nspin)
+    rhoe = rhoe / (sum(rhoe)*dx) * electrons.Nelectrons
+    println("integ rhoe = ", sum(rhoe)*dx)
+    
+    VHartree = zeros(Float64, Npoints)
+    Vtotal = zeros(Float64, Npoints)
+
     #H.Vhar = hartree_pot_bc(H.rho+H.rhoa, H)
     #H.Vtot = H.Vhar   # No exchange-correlation
     #H.Vtot = H.Vtot .- mean(H.Vtot)# IMPORTANT (zero mean?)
 
-    return Hamiltonian1d(atoms, gvec, κ, ε0, dx, electrons)
+    return Hamiltonian1d(atoms, gvec, Ns, κ, ε0, dx, electrons, rhoe, VHartree, Vtotal)
 end
 
 
