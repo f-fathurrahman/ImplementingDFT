@@ -63,7 +63,7 @@ function main()
     Rhoe_new = zeros(Float64, Ham.Ns, Nspin)
     β_mix = 0.1
 
-    for iscf in 1:100
+    for iter_scf in 1:200
         # Using dense matrix
         Hmat = get_matrix(Ham)
         evals_all, psi_all = eigen(Hmat)
@@ -85,7 +85,20 @@ function main()
         #
         calc_rhoe!(Ham, psi, Rhoe_new)
         #println("integ Rhoe_new: ", sum(Rhoe_new)*Ham.dx)
-        @printf("RMSE Rhoe = %18.10e\n", sqrt( norm(Rhoe - Rhoe_new)/Ham.Ns) )
+        rmseRhoe = sqrt(norm(Rhoe - Rhoe_new)/Ham.Ns)
+        maeRhoe = sum(abs.(Rhoe - Rhoe_new))/Ham.Ns
+        #
+        # relative error
+        #
+        rel_err = norm(Rhoe_new - Rhoe)/norm(Rhoe)
+        #
+        @printf("%3d %10.5e %10.5e %10.5e\n", iter_scf, rmseRhoe, maeRhoe, rel_err)
+        #
+        if maeRhoe < 1e-7 && rel_err < 1e-7
+            @printf("Converged\n")
+            break
+        end
+
         # Mix rhoe
         @views Rhoe[:] = β_mix*Rhoe_new[:] + (1 - β_mix)*Rhoe[:]
         #println("integ Rhoe: ", sum(Rhoe)*Ham.dx)
