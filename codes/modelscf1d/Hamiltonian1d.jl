@@ -7,6 +7,8 @@ mutable struct Hamiltonian1d
     dx::Float64
     electrons::Electrons
     rhoe::Matrix{Float64}
+    rhoa::Vector{Float64}
+    drhoa::Matrix{Float64}
     VHartree::Vector{Float64}
     Vtotal::Vector{Float64}
 end
@@ -29,14 +31,15 @@ function Hamiltonian1d(atoms, dx_in, κ, ε0; Nstates_extra=0, Nspin=1)
     println("integ rhoa = ", sum(rhoa)*dx)
 
     rhoe = zeros(Float64, Ns, Nspin)
-    rhoe[:,1] = -rhoa
-    rhoe = rhoe / (sum(rhoe)*dx) * electrons.Nelectrons
+    @views rhoe[:,1] = -rhoa
+    rhoe[:] = rhoe[:] / (sum(rhoe)*dx) * electrons.Nelectrons
     println("integ rhoe = ", sum(rhoe)*dx)
     
     VHartree = zeros(Float64, Npoints)
     Vtotal = zeros(Float64, Npoints)
 
-    return Hamiltonian1d(atoms, gvec, Ns, κ, ε0, dx, electrons, rhoe, VHartree, Vtotal)
+    return Hamiltonian1d(atoms, gvec, Ns, κ, ε0, dx, electrons,
+        rhoe, rhoa, drhoa, VHartree, Vtotal)
 end
 
 

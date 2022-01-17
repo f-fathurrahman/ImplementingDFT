@@ -61,29 +61,43 @@ function main()
     psi = zeros(Float64, Ham.Ns, Nstates) # not spin polarized
     Rhoe = Ham.rhoe
     Rhoe_new = zeros(Float64, Ham.Ns, Nspin)
+    β_mix = 0.1
 
-    for iscf in 1:1
+    for iscf in 1:100
         # Using dense matrix
         Hmat = get_matrix(Ham)
         evals_all, psi_all = eigen(Hmat)
         ebands[:,1] = evals_all[1:Nstates]
-        psi[:,:] = psi_all[:,1:Nstates]
+        psi[:,:] = psi_all[:,1:Nstates]/sqrt(Ham.dx) # normalization
         #
-        println("Check ortho psi: 1 1: ", dot(psi[:,1], psi[:,1])*Ham.dx)
-        println("Check ortho psi: 1 2: ", dot(psi[:,1], psi[:,2])*Ham.dx)
+        #println("Check ortho psi: 1 1: ", dot(psi[:,1], psi[:,1])*Ham.dx)
+        #println("Check ortho psi: 1 2: ", dot(psi[:,1], psi[:,2])*Ham.dx)
         #
         E_fermi, mTS = update_Focc!(
             Focc, smear_fermi, smear_fermi_entropy,
             ebands, Nelectrons, kT )
         #
-        for ist in 1:Nstates
-            @printf("%3d %18.10f %18.10f\n", ist, ebands[ist,1], Focc[ist,1])
-        end
-        println("E_fermi = ", E_fermi)
-        println("mTS     = ", mTS)
+        #for ist in 1:Nstates
+        #    @printf("%3d %18.10f %18.10f\n", ist, ebands[ist,1], Focc[ist,1])
+        #end
+        #println("E_fermi = ", E_fermi)
+        #println("mTS     = ", mTS)
         #
         calc_rhoe!(Ham, psi, Rhoe_new)
-        println("integ Rhoe: ", sum(Rhoe_new)*Ham.dx)
+        #println("integ Rhoe_new: ", sum(Rhoe_new)*Ham.dx)
+        @printf("RMSE Rhoe = %18.10e\n", sqrt( norm(Rhoe - Rhoe_new)/Ham.Ns) )
+        # Mix rhoe
+        @views Rhoe[:] = β_mix*Rhoe_new[:] + (1 - β_mix)*Rhoe[:]
+        #println("integ Rhoe: ", sum(Rhoe)*Ham.dx)
+        #println("integ Ham.rhoe: ", sum(Ham.rhoe)*Ham.dx)
+        #
+        # New potential
+        #
+        rho_in = dropdims( sum(Rhoe, dims=2), dims=2 ) + Ham.rhoa
+        @views PoissonYukawa1d_solve!( Ham.κ, Ham.ε0,
+            Ham.gvec, rho_in, Ham.VHartree
+        )
+        Ham.Vtotal[:] = Ham.VHartree[:] # no XC potential
     end
 
 end

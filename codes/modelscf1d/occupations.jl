@@ -60,7 +60,7 @@ function find_E_fermi(
     evals::Array{Float64,2},
     Nelectrons,
     kT::Float64;
-    NiterMax=300, verbose=true
+    NiterMax=300, verbose=false
 )
 
     Nstates = size(evals,1)
