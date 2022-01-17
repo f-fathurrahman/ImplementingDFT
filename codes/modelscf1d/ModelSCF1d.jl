@@ -13,8 +13,14 @@ export GVectors1d
 include("Electrons.jl")
 export Electrons
 
+include("smearing.jl")
+export smear_fermi, smear_fermi_entropy
+
+include("occupations.jl")
+export update_Focc!
+
 include("Hamiltonian1d.jl")
-export Hamiltonian1d
+export Hamiltonian1d, get_matrix
 
 include("PoissonYukawa1d_solve.jl")
 export PoissonYukawa1d_solve!

@@ -20,11 +20,12 @@ function main()
     YukawaK = 0.0100
     n_extra = 10
     epsil0 = 10.0
+    
     T_elec = 100.0
-
     kb = 3.1668e-6
     au2K = 315774.67
     Tbeta = au2K / T_elec
+    println("Tbeta = ", Tbeta)
 
     betamix = 0.5
     mixdim = 10
@@ -55,11 +56,18 @@ function main()
     #eigOpts = eigOptions(1.e-10, 1000, "lobpcg_sep")
     scfOpts = SCFOptions(1.e-8, 300, eigOpts, mixOpts)
 
-    test_hartree_pot_bc(ham)
-    exit()
+    #test_hartree_pot_bc(ham)
+    #exit()
 
     # initialize the potentials within the Hemiltonian, setting H[\rho_0]
     init_pot!(ham, Nocc)
+
+    ham_matrix = create_Hamiltonian(ham)
+    println("size ham_matrix = ", size(ham_matrix))
+    for ip in 1:10
+        @printf("%3d %18.10f\n", ip, ham_matrix[ip])
+    end
+    #exit()
 
     # running the scf iteration
     VtoterrHist = scf_potmix!(ham, scfOpts)
@@ -73,7 +81,7 @@ function main()
     # we compute the forces
     get_force!(ham)
     # computing the energy
-    Vhar = hartree_pot_bc(ham.rho+ham.rhoa,ham)
+    Vhar = hartree_pot_bc(ham.rho + ham.rhoa, ham)
 
     # NOTE: ham.Fband is only the band energy here.  The real total energy
     # is calculated using the formula below:

@@ -2,8 +2,10 @@ function update_rho!(H::Hamiltonian, nocc::Int64)
 
     ev = H.ev
     (occ, fermi) = get_occ(ev, nocc, H.Tbeta)
+
     occ = occ * H.nspin
     rho = sum( H.psi.^2 * Matrix(Diagonal(occ)), dims=2 ) / H.dx
+    println("integ rho = ", sum(rho)*H.dx)
 
     # Total energy
     E = sum(ev .* occ)
@@ -19,6 +21,17 @@ function update_rho!(H::Hamiltonian, nocc::Int64)
       end
     end
     F = sum(ff.*occ) + fermi * nocc * H.nspin
+
+
+    println("\nEigenvalues and occupations")
+    println("nocc = ", nocc)
+    for ist in 1:H.Neigs
+        @printf("%3d %18.10f %18.10f\n", ist, ev[ist], occ[ist])
+    end
+    println("Fermi energy = ", fermi)
+    println("Free energy  = ", F)
+    exit()
+
 
     H.occ = occ
     H.fermi = fermi

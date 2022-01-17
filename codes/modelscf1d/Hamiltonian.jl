@@ -192,13 +192,19 @@ function init_pot!(H::Hamiltonian, nocc::Int64)
     rho = -H.rhoa
     rho = rho / ( sum(rho)*H.dx) * (nocc*H.nspin)
     H.rho = rho
-    println("nocc*H.nspin = ", nocc*H.nspin)
-    println("Sum H.rho + H.rhoa = ", sum(H.rho + H.rhoa))
+    #println("nocc*H.nspin = ", nocc*H.nspin)
+    #println("Sum H.rho + H.rhoa = ", sum(H.rho + H.rhoa))
     H.Vhar = hartree_pot_bc(H.rho + H.rhoa, H)
-    println("sum VHar = ", sum(H.Vhar))
-    exit()
+    #println("sum VHar = ", sum(H.Vhar))
+    #exit()
     H.Vtot = H.Vhar   # No exchange-correlation
     H.Vtot = H.Vtot .- mean(H.Vtot)# IMPORTANT (zero mean?)
+    println("At the end of init_pot: sum(H.Vtot) = ", sum(H.Vtot))
+    println("Some H.Vtot:")
+    for i in 1:10
+        println(H.Vtot[i])
+    end
+    #exit()
 end
 
 function update_pot!(H::Hamiltonian)

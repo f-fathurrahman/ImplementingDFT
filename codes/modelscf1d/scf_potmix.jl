@@ -15,6 +15,12 @@ function scf_potmix!(H::Hamiltonian, scfOpts::SCFOptions)
         # update the electron density
         update_rho!(H, Nocc)
 
+        println("scf_potmix: sum( abs H.Vhar) = ", sum(abs.(H.Vhar)))
+        println("some Vhar")
+        for i in 1:10
+            println(H.Vhar[i])
+        end
+
         # update the total potential, and compute the
         # differnce between the potentials
         Verr = update_vtot!(H, mixOpts)

@@ -27,8 +27,13 @@ function main()
     κ = 0.0100
     ε0 = 10.0
     Ham = Hamiltonian1d(atoms, dx_in, κ, ε0, Nstates_extra=Nstates_extra)
+    #println(Ham)
 
-    println(Ham)
+    Hmat = get_matrix(Ham)
+    println("size Hmat = ", size(Hmat))
+    for ip in 1:10
+        @printf("%3d %18.10f\n", ip, Hmat[ip])
+    end
 end
 
 main()

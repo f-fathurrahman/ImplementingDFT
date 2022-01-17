@@ -6,36 +6,35 @@ mutable struct Hamiltonian1d
     ε0::Float64
     dx::Float64
     electrons::Electrons
-    rhoe::Vector{Float64}
+    rhoe::Matrix{Float64}
     VHartree::Vector{Float64}
     Vtotal::Vector{Float64}
 end
 
-function Hamiltonian1d(atoms, dx_in, κ, ε0; Nstates_extra=0)
+function Hamiltonian1d(atoms, dx_in, κ, ε0; Nstates_extra=0, Nspin=1)
 
-    # Setup grid    
+    @assert Nspin == 1 # current implementation
+
+    # Setup grid
     L = atoms.L
     Ns = round(Int64, L/dx_in)
     dx = L/Ns
     Npoints = Ns
 
     gvec = GVectors1d(L, Ns)
-    electrons = Electrons(atoms, Nstates_extra=Nstates_extra)
+    electrons = Electrons(atoms, Nstates_extra=Nstates_extra, Nspin=Nspin)
 
     rhoa, drhoa = init_pseudocharges(atoms, dx, Ns)
 
     println("integ rhoa = ", sum(rhoa)*dx)
 
-    rhoe = -rhoa
+    rhoe = zeros(Float64, Ns, Nspin)
+    rhoe[:,1] = -rhoa
     rhoe = rhoe / (sum(rhoe)*dx) * electrons.Nelectrons
     println("integ rhoe = ", sum(rhoe)*dx)
     
     VHartree = zeros(Float64, Npoints)
     Vtotal = zeros(Float64, Npoints)
-
-    #H.Vhar = hartree_pot_bc(H.rho+H.rhoa, H)
-    #H.Vtot = H.Vhar   # No exchange-correlation
-    #H.Vtot = H.Vtot .- mean(H.Vtot)# IMPORTANT (zero mean?)
 
     return Hamiltonian1d(atoms, gvec, Ns, κ, ε0, dx, electrons, rhoe, VHartree, Vtotal)
 end
@@ -80,6 +79,15 @@ function init_pseudocharges( atoms::Atoms1d, dx::Float64, Ns::Int64 )
 end
 
 
+function get_matrix( Ham::Hamiltonian1d )
+    Gkin = 0.5*Ham.gvec.G2
+    Ng = Ham.gvec.Ng
+    # create the matrix version of the Hmailtonian
+    Hmat = real( ifft( diagm(0 => Gkin) * fft(Matrix{Float64}(I, Ng, Ng ), 1), 1) )
+    Hmat += diagm( 0 => Ham.Vtotal[:] )
+    # symmetrize
+    return 0.5*(Hmat + Hmat')
+end
 
 
 import Base: show

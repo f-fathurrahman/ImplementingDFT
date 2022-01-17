@@ -37,4 +37,5 @@ function update_psi!(H::Hamiltonian, eigOpts::EigensolverOptions)
     H.ev = ev[ind]
     # updating the eigenvectors
     H.psi = psi[:, ind]
+
 end
