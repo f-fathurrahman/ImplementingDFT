@@ -3,7 +3,7 @@ CalculationMode = gs
 Dimensions = 3
 PeriodicDimensions = 0
 
-TheoryLevel = dft
+TheoryLevel = kohn_sham
 XCFunctional = none
 
 BoxShape = parallelepiped

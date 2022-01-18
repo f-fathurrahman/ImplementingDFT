@@ -3,7 +3,7 @@ CalculationMode = gs
 Dimensions = 3
 PeriodicDimensions = 0
 
-TheoryLevel = dft
+TheoryLevel = kohn_sham
 XCFunctional = lda_x + lda_c_vwn_1
 #XCFunctional = none
 
