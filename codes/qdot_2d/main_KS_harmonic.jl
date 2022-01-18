@@ -54,7 +54,7 @@ function main()
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
-    betamix = 0.5
+    betamix = 0.2
     dRhoe = 0.0
     NiterMax = 200
     etot_conv_thr = 1e-6
@@ -62,9 +62,9 @@ function main()
 
     for iterSCF in 1:NiterMax
 
-        #evals = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
-        evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=false )
-        psi = psi/sqrt(dVol) # renormalize
+        @views evals[:] = diag_LOBPCG!( Ham, psi, Ham.precKin, verbose_last=false )
+        #evals = diag_Emin_PCG!( Ham, psi, Ham.precKin, verbose_last=false )
+        @views psi[:] = psi[:]/sqrt(dVol) # renormalize
 
         #evals = diag_davidson!( Ham, psi, Ham.precKin, verbose_last=false )
         #psi = psi*sqrt(dVol) # renormalize for diag_davidson
@@ -112,4 +112,5 @@ function main()
     println("Etot = ", Etot)
 end
 
+main()
 @time main()
