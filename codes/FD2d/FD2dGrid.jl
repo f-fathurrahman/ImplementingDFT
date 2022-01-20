@@ -43,7 +43,7 @@ function FD2dGrid(
         y, hy = init_FD1d_grid(y_domain, Ny)
     end
 
-    Lx = x_domain[2] - y_domain[1]
+    Lx = x_domain[2] - x_domain[1]
     Ly = y_domain[2] - y_domain[1]
 
     dVol = hx*hy
