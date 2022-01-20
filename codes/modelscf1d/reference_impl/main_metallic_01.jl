@@ -1,7 +1,7 @@
 push!(LOAD_PATH, "./")
 
 using Printf
-using ModelSCF1d
+using OrigModelSCF1d
 
 function main()
     dx = 0.5

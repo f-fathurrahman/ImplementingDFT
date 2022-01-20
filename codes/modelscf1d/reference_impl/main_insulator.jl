@@ -3,7 +3,7 @@
 push!(LOAD_PATH, "./")
 
 using Printf
-using ORIG_ModelSCF1d
+using OrigModelSCF1d
 
 include("test_hartree_pot_bc.jl")
 

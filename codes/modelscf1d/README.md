@@ -1,1 +1,0 @@
-Original: https://github.com/lin-lin/modelscf
