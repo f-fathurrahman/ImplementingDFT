@@ -1,15 +1,11 @@
 using Printf
 using LinearAlgebra
-using Statistics: mean
 
 import PyPlot
 const plt = PyPlot
 plt.rc("text", usetex=true)
 
 include("INC_sch_1d.jl")
-include("XCCalculator.jl")
-include("Libxc_old.jl")
-include("LDA_libxc_1d.jl")
 
 # parameters?
 function pot_gaussian( x, x0 )
@@ -47,14 +43,14 @@ function Poisson_solve_sum!( xgrid, h,
     return
 end 
 
-function calc_E_kin(Ham, Focc, psi, h)
-    E_kin = 0.0
+function calc_Ekin(D2, Focc, psi, h)
+    Ekin = 0.0
     Nstates = size(psi, 2)
-    Kpsi = Ham*psi
+    Kpsi = -0.5*D2*psi
     for ist in 1:Nstates
-        E_kin += -0.5*Focc[ist]*dot(psi[:,ist], Kpsi[:,ist])*h
+        Ekin += Focc[ist]*dot(psi[:,ist], Kpsi[:,ist])*h
     end
-    return E_kin
+    return Ekin
 end
 
 
@@ -86,21 +82,14 @@ function main()
     Focc = 2*ones(Nstates)
     β_mix = 0.2
 
-    xc_calc = LibxcXCCalculator()
-    Vxc = zeros(Float64, Npoints)
-    epsxc = zeros(Float64, Npoints)
-
     Etot = Inf
     Etot_old = Etot
+    Enn = 2*2/2 # Z_i*Z_j/r_ij
 
     for iter_scf in 1:100
 
         # Hamiltonian
-        Vtot[:] = Vion[:] + Vhartree[:] + Vxc[:]
-        #Vmean = mean(Vtot)
-        #Vtot[:] = Vtot[:] .- Vmean
-        #Vmean = mean(Vtot)
-        #println("mean Vtot = ", mean(Vtot))
+        Vtot[:] = Vion[:] + Vhartree[:]
         Ham = -0.5*D2 + diagm( 0 => Vtot )
     
         # Solve the eigenproblem
@@ -122,16 +111,10 @@ function main()
         calc_rhoe!(Focc, psi, rhoe_new)
         println("integ rhoe_new = ", sum(rhoe_new)*h)
 
-        #plt.clf()
-        #plt.plot(xgrid, rhoe_new, marker="o")
-        #plt.grid(true)
-        #plt.savefig("IMG_rhoe_new.pdf")
-
-        epsxc[:] = calc_epsxc_1d(xc_calc, rhoe_new)
-        Etot = calc_E_kin(Ham, Focc, psi, h) +
-                0.5*dot(rhoe_new, Vhartree)*h +
-                dot(rhoe_new, Vion)*h + 
-                dot(rhoe_new, epsxc)*h
+        Ekin = calc_Ekin(D2, Focc, psi, h)
+        Ehartree = 0.5*dot(rhoe_new, Vhartree)*h
+        Eion = dot(rhoe_new, Vion)*h
+        Etot =  Ekin + Ehartree + Eion + Enn
 
         ΔE = abs(Etot - Etot_old)
         mae_rhoe = sum(abs.(rhoe - rhoe_new))/Npoints
@@ -139,6 +122,11 @@ function main()
 
         if mae_rhoe < 1e-7
             println("Converged")
+            Etot = sum(evals) + 0.5*dot(Vhartree, rhoe_new)*h + dot(rhoe_new,Vion)*h
+            @printf("Ekin     = %18.10f\n", Ekin)
+            @printf("Ehartree = %18.10f\n", Ehartree)
+            @printf("Eion     = %18.10f\n", Eion)
+            @printf("Ebands   = %18.10f\n", 2*sum(evals)) # FIXME factor of 2
             break
         end
 
@@ -151,17 +139,7 @@ function main()
         Etot_old = Etot
 
         Poisson_solve_sum!(xgrid, h, rhoe, Vhartree)
-        #plt.clf()
-        #plt.plot(xgrid, rhoe_new, marker="o")
-        #plt.grid(true)
-        #plt.savefig("IMG_Vhartree.pdf")
-        #Vmean = mean(Vhartree)
-        #Vhartree[:] = Vhartree[:] .- Vmean
-        #Vmean = mean(Vtot)
         println("sum Vhartree = ", sum(Vhartree))
-
-        Vxc[:] = calc_Vxc_1d(xc_calc, rhoe)
-
 
     end
 
