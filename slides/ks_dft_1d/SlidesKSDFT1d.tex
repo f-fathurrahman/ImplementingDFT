@@ -1,0 +1,295 @@
+\input{../PREAMBLE_BEAMER}
+
+\begin{document}
+
+\title{Density Functional Theory Calculations for 1d Systems}
+\author{Fadjar Fathurrahman}
+\institute{
+Teknik Fisika \\
+Institut Teknologi Bandung
+}
+\date{}
+
+
+\frame{\titlepage}
+
+
+\begin{frame}
+\frametitle{Introduction: Kohn-Sham equations (in 3d)}
+
+\begin{equation*}
+\mathcal{H}_{\mathrm{KS}} \psi_{i}(\mathbf{r}) = \epsilon_{i} \psi_{i}(\mathbf{r})
+\end{equation*}
+
+\begin{equation*}
+\mathcal{H}_{\mathrm{KS}} =
+-\frac{1}{2} \nabla^2 +
+V_{\mathrm{ion}}(\mathbf{r}) +
+V_{\mathrm{H}}(\mathbf{r}) + V_{\mathrm{xc}}(\mathbf{r})
+\end{equation*}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Electron density, Hartree and XC potentials}
+
+\begin{equation*}
+\rho(\mathbf{r}) = \sum_{i} f_{i} \psi_{i}(\mathbf{r}) \psi^{*}_{i}(\mathbf{r}) 
+\end{equation*}
+
+\begin{equation*}
+V_{\mathrm{H}}(\mathbf{r}) = \int \frac{\rho(\mathbf{r}')}{\left| \mathbf{r} - \mathbf{r}' \right|}
+\,\mathrm{d}\mathbf{r}'
+\end{equation*}
+
+\begin{equation*}
+V_{\mathrm{xc}}(\mathbf{r}) = \frac{\delta E_{\mathrm{xc}}[\rho(\mathbf{r})]}%
+{\delta \rho(\mathbf{r})}
+\end{equation*}
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Self-consistency}
+
+\begin{itemize}
+\item Some terms of $\mathcal{H}_{\mathrm{KS}}$ depends on $\rho(\mathbf{r})$.
+To calculate its matrix elements we need to know $\rho(\mathbf{r})$.
+\item To calculate $\rho(\mathbf{r})$, we need to know $\psi_{i}(\mathbf{r})$
+\item To calculate $\psi_{i}(\mathbf{r})$, we need to diagonalize $\mathcal{H}_{\mathrm{KS}}$
+\end{itemize}
+
+Kohn-Sham equations need to be solved self-consistently.
+
+\end{frame}
+
+
+% -----------------------------
+\begin{frame}
+\frametitle{Simplified, 1d Kohn-Sham model}
+
+\begin{equation*}
+E_{\mathrm{KS}}[\psi_{i}(x)] = E_{\mathrm{kin}} + E_{\mathrm{ion}} +
+E_{\mathrm{H}} + E_{\mathrm{xc}}
+\end{equation*}
+
+\begin{equation*}
+E_{\mathrm{kin}} = -\frac{1}{2} \int \psi^{*}_{i}(x)
+\frac{\mathrm{d}^2}{\mathrm{d}x^2} \psi_{i}(x) \, \mathrm{d}x
+\end{equation*}
+
+
+\begin{equation*}
+E_{\mathrm{ion}} = \int \psi^{*}(x) V_{\mathrm{ion}} \psi_{i}(x) \, \mathrm{d}x
+\end{equation*}
+
+\begin{equation*}
+E_{\mathrm{H}} = \frac{1}{2} \int \int \frac{\rho(x) \rho(x')}{\left| x - x' \right|}
+\,\mathrm{d}x \,\mathrm{d}x'
+\end{equation*}
+
+\begin{equation*}
+E_{\mathrm{xc}} = \int \varepsilon_{\mathrm{xc}}[\rho(x)]
+\rho(x) \, \mathrm{d}x
+\end{equation*}
+
+\end{frame}
+
+
+
+% -------------------------
+\begin{frame}
+\frametitle{Kohn-Sham equations}
+
+\begin{equation*}
+H_{\mathrm{KS}} \psi_{i}(x) = \epsilon_{i} \psi_{i}(x)
+\end{equation*}
+
+\begin{equation*}
+H_{\mathrm{KS}} =
+-\frac{1}{2} \frac{\mathrm{d}^2}{\mathrm{d}x^2} +
+V_{\mathrm{ion}}(x) + V_{\mathrm{H}}(x) + V_{\mathrm{xc}}(x)
+\end{equation*}
+
+
+\begin{equation*}
+V_{\mathrm{H}}(x) = \int \frac{\rho(x')}{\left| x - x' \right|} \,\mathrm{d}x'
+\end{equation*}
+
+
+\begin{equation*}
+V_{\mathrm{xc}}(x) = \frac{\delta E_{xc}[\rho(x)] }{\delta \rho(x)}
+\end{equation*}
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Modification for Hartree potential}
+
+To prevent singularity, we modify the Coulomb interaction:
+\begin{equation*}
+\frac{1}{\left| x - x' \right|} \rightarrow
+\frac{1}{\sqrt{(x - x')^2 + a^2}}
+\end{equation*}
+where $a \neq 0$ is a parameter.
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Real-space discretization}
+
+We will make a grid of points in $x$ axis.
+\begin{juliacode}
+function init_FD1d_grid( x_min::Float64, x_max::Float64, N::Int64 )
+    L = x_max - x_min
+    h = L/(N-1)
+    x = zeros(Float64,N)
+    for i = 1:N
+        x[i] = x_min + (i-1)*h
+    end
+    return x, h
+end
+init_FD1d_grid( X, N ) = init_FD1d_grid( X[1], X[2], N )
+\end{juliacode}
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Example discretization}
+
+Suppose that we want to discretize $x$ domain from $x_{\mathrm{min}} = -8.0$
+to $x_{\mathrm{max}} = -8.0$ with 9 points.
+We call \pyinline{init_FD1d_grid} as:
+\begin{juliacode}
+xgrid, dx = init_FD1d_grid(-8.0, 8.0, 9)
+\end{juliacode}
+
+Result \jlinline{xgrid}:
+\begin{textcode}
+[-8.0, -6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0, 8.0]
+\end{textcode}
+
+Result \jlinline{dx}:
+\begin{textcode}
+2.0
+\end{textcode}
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Gaussian function}
+
+\begin{equation*}
+f(x) = e^{-\alpha x^2}
+\end{equation*}
+
+Take $\alpha = 1$.
+
+Plot this function using discretized points on interval $[-5, 5]$.
+
+Try various number of grid points.
+
+\begin{juliacode}
+function my_gaussian(x; α=1.0)
+    return exp(-α*x^2)
+end
+\end{juliacode}
+
+Note that we use default value of $\alpha = 1$. Try using different value of $\alpha$.
+
+\end{frame}
+
+
+% -----------------------------------------------
+\begin{frame}[fragile]
+
+\begin{juliacode}
+A = -5.0; B =  5.0
+xgrid, dx = init_FD1d_grid( A, B, N )
+fx = my_gaussian.(xgrid)
+
+Ndense = 200 # for reference
+x_dense = range(A, stop=B, length=Ndense)
+fx_dense = my_gaussian.(x_dense)
+
+plt.clf()
+plt.plot(xgrid, fx, marker="o", label=L"Sampled $f(x)$")
+plt.plot(x_dense, fx_dense, label=L"f(x)")
+plt.legend()
+plt.grid()
+plt.title(plot_title)
+plt.savefig("IMG_gaussian_f_"*string(N)*".pdf")
+\end{juliacode}
+
+\end{frame}
+
+
+% ------------------
+\begin{frame}
+
+{\centering
+\includegraphics[width=0.8\textwidth]{../../codes/ks_dft_1d/IMG_gaussian_f_15.pdf}
+\par}
+
+\end{frame}
+
+
+\begin{frame}
+
+{\centering
+\includegraphics[width=0.8\textwidth]{../../codes/ks_dft_1d/IMG_gaussian_f_51.pdf}
+\par}
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Approximating integral}
+
+\begin{equation*}
+I = \int e^{-\alpha x^2}\, \mathrm{d}x = \sqrt{ \frac{\pi}{\alpha} }
+\end{equation*}
+\begin{equation*}
+I \approx \sum_{i} e^{-\alpha x_{i}^2} \Delta x
+\end{equation*}
+
+\begin{juliacode}
+function do_integrate(N::Int64)
+    A = -5.0
+    B = 5.0
+    α = 1.0
+    xgrid, dx = init_FD1d_grid( A, B, N )
+    fx = my_gaussian.(xgrid, α=α)
+    exact_res = sqrt(π)/sqrt(α)
+    num_res = sum(fx)*dx # approximate the integral
+    @printf("%5d %18.10f %10.5e\n", N, num_res, abs(exact_res - num_res))
+end
+
+for N in [10, 20, 30, 40, 50]
+    do_integrate(N)
+end
+\end{juliacode}
+
+\end{frame}
+
+
+
+% ---------------------------------------------
+\begin{frame}
+\frametitle{Finite difference approximation}
+
+
+\end{frame}
+
+
+
+
+\end{document}

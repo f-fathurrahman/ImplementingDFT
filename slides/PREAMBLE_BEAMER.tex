@@ -1,0 +1,54 @@
+\documentclass[10pt,aspectratio=169]{beamer}
+
+%\documentclass[fleqn,aspectratio=169]{beamer}
+
+\usepackage{amsmath, amssymb}
+\usepackage{fancyvrb, color, graphicx, hyperref, url}
+
+%\setbeamersize{text margin left=5pt, text margin right=5pt}
+
+\setlength{\parskip}{\smallskipamount}
+\setlength{\parindent}{0pt}
+
+\usepackage{fontspec}
+%\setmonofont{DejaVu Sans Mono}
+\setmonofont{JuliaMono-Regular}
+
+\usefonttheme[onlymath]{serif}
+
+\usepackage{minted}
+\newminted{python}{breaklines,fontsize=\footnotesize}
+\newminted{julia}{breaklines,fontsize=\footnotesize}
+\newminted{bash}{breaklines,fontsize=\footnotesize}
+\newminted{text}{breaklines,fontsize=\footnotesize}
+
+\newcommand{\txtinline}[1]{\mintinline[breaklines,fontsize=\footnotesize]{text}{#1}}
+\newcommand{\pyinline}[1]{\mintinline[breaklines,fontsize=\footnotesize]{python}{#1}}
+\newcommand{\jlinline}[1]{\mintinline[breaklines,fontsize=\footnotesize]{julia}{#1}}
+
+\definecolor{mintedbg}{rgb}{0.95,0.95,0.95}
+\usepackage{mdframed}
+
+\BeforeBeginEnvironment{minted}{\begin{mdframed}[backgroundcolor=mintedbg,%
+  rightline=false,leftline=false,topline=false,bottomline=false]}
+\AfterEndEnvironment{minted}{\end{mdframed}}
+
+% https://tex.stackexchange.com/questions/33969/changing-font-size-of-selected-slides-in-beamer
+
+\usepackage{environ}
+%
+% Custom font for a frame.
+%
+\newcommand{\customframefont}[1]{
+  \setbeamertemplate{itemize/enumerate body begin}{#1}
+  \setbeamertemplate{itemize/enumerate subbody begin}{#1}
+}
+
+\NewEnviron{framefont}[1]{
+  \customframefont{#1} % for itemize/enumerate
+  {#1 % For the text outside itemize/enumerate
+    \BODY
+  }
+  \customframefont{\normalsize}
+}
+
