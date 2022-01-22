@@ -70,11 +70,6 @@ function main()
     
     # Potential
     Vion = pot_gaussian.(xgrid, -1.0) + pot_gaussian.(xgrid, 1.0)
-    
-    #plt.clf()
-    #plt.plot(xgrid, Vion)
-    #plt.grid(true)
-    #plt.savefig("IMG_Vion.pdf")
 
     Vtot = zeros(Float64, Npoints)
     Vhartree = zeros(Float64, Npoints)
@@ -98,16 +93,13 @@ function main()
 
         # Hamiltonian
         Vtot[:] = Vion[:] + Vhartree[:] + Vxc[:]
-        #Vmean = mean(Vtot)
-        #Vtot[:] = Vtot[:] .- Vmean
-        #Vmean = mean(Vtot)
-        #println("mean Vtot = ", mean(Vtot))
         Ham = -0.5*D2 + diagm( 0 => Vtot )
     
         # Solve the eigenproblem
         evals_all, evecs_all = eigen( Ham )    
         psi = evecs_all[:,1:Nstates]
         evals = evals_all[1:Nstates]
+
         # Renormalize
         psi[:] = psi[:]/sqrt(h)
         
@@ -115,24 +107,16 @@ function main()
         for ist in 1:Nstates
             @printf("%5d %18.10f\n", ist, evals[ist])
         end
-        #println("Check normalization")
-        #for ist in 1:Nstates
-        #    println("dot(1,ist) = ", dot(psi[:,1], psi[:,ist])*h)
-        #end
 
         calc_rhoe!(Focc, psi, rhoe_new)
         println("integ rhoe_new = ", sum(rhoe_new)*h)
 
-        #plt.clf()
-        #plt.plot(xgrid, rhoe_new, marker="o")
-        #plt.grid(true)
-        #plt.savefig("IMG_rhoe_new.pdf")
-
         epsxc[:] = calc_epsxc_1d(xc_calc, rhoe_new)
-        Etot = calc_Ekin(D2, Focc, psi, h) +
-                0.5*dot(rhoe_new, Vhartree)*h +
-                dot(rhoe_new, Vion)*h + 
-                dot(rhoe_new, epsxc)*h + Enn
+        Ekin = calc_Ekin(D2, Focc, psi, h)
+        Ehartree = 0.5*dot(rhoe_new, Vhartree)*h
+        Eion = dot(rhoe_new, Vion)*h
+        Exc = dot(rhoe_new, epsxc)*h
+        Etot = Ekin + Ehartree + Eion + Exc + Enn
 
         ΔE = abs(Etot - Etot_old)
         mae_rhoe = sum(abs.(rhoe - rhoe_new))/Npoints
@@ -151,18 +135,9 @@ function main()
         end
         Etot_old = Etot
 
+        # Update the potentials
         Poisson_solve_sum!(xgrid, h, rhoe, Vhartree)
-        #plt.clf()
-        #plt.plot(xgrid, rhoe_new, marker="o")
-        #plt.grid(true)
-        #plt.savefig("IMG_Vhartree.pdf")
-        #Vmean = mean(Vhartree)
-        #Vhartree[:] = Vhartree[:] .- Vmean
-        #Vmean = mean(Vtot)
-        println("sum Vhartree = ", sum(Vhartree))
-
         Vxc[:] = calc_Vxc_1d(xc_calc, rhoe)
-
 
     end
 
