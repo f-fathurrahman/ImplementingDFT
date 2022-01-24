@@ -657,6 +657,7 @@ C_{x} = \frac{3}{4}\left(\frac{3}{\pi}\right)^{1/3}
 \subsection{Correlation VWN}
 
 VWN parameterization:
+\begin{fullwidth}
 \begin{equation}
 \varepsilon_{c} = A \left\{
 \mathrm{ln}\frac{x}{X(x)} + \frac{2b}{Q}\mathrm{atan}\frac{Q}{2x+b}
@@ -665,6 +666,7 @@ VWN parameterization:
 \right]
 \right\}
 \end{equation}
+\end{fullwidth}
 
 \begin{align}
 x & = \sqrt{r_{s}} \\
@@ -700,6 +702,7 @@ New Hamiltonian, include \jlinline{V_XC}.
 
 Update the potential:
 
+\begin{fullwidth}
 \begin{juliacode}
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
   Ham.rhoe = Rhoe
@@ -708,9 +711,10 @@ function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
   return
 end
 \end{juliacode}
+\end{fullwidth}
 
 Application of Hamiltonian
-
+\begin{fullwidth}
 \begin{juliacode}
 function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
   Nbasis = size(psi,1)
@@ -718,12 +722,12 @@ function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
   Hpsi = zeros(Float64,Nbasis,Nstates)
   Hpsi = -0.5*Ham.∇² * psi
   for ist in 1:Nstates, ip in 1:Nbasis
-    Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] +
-                   Ham.V_XC[ip] ) * psi[ip,ist]
+    Hpsi[ip,ist] += ( Ham.V_Ps_loc[ip] + Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
   end
   return Hpsi
 end
 \end{juliacode}
+\end{fullwidth}
 
 Calculation of XC energy:
 \begin{juliacode}
@@ -736,6 +740,7 @@ Ham.energies.XC = sum( epsxc .* Ham.rhoe )*dVol
 \subsection{Harmonic potential}
 
 Setup:
+\begin{fullwidth}
 \begin{juliacode}
 AA = [-3.0, -3.0, -3.0]
 BB = [3.0, 3.0, 3.0]
@@ -746,13 +751,10 @@ Nelectrons = 8
 Nstates = round(Int64,Nelectrons/2)
 Ham = Hamiltonian( Atoms(), grid, V_Ps_loc, Nelectrons=Nelectrons )
 \end{juliacode}
+\end{fullwidth}
 
+Results:
 \begin{textcode}
-... snipped
-  19      57.5543743808   1.0560459387e-06   4.0259990163e-05
-  20      57.5543736562   7.2459251044e-07   3.1156747100e-05
-Convergence is achieved in 20 iterations
-
 Eigenvalues:
  1       9.0567277414
  2      10.4655966931
@@ -772,21 +774,14 @@ Total   =      57.5543736562
 
 
 Result from Octopus:
-\begin{fullwidth}
 \begin{textcode}
-*********************** SCF CYCLE ITER #   17 ************************
- etot  =  5.75543034E+01 abs_ev   =  4.97E-05 rel_ev   =  6.14E-07
- ediff =       -5.09E-05 abs_dens =  6.73E-05 rel_dens =  8.42E-06
-Matrix vector products:     31
-Converged eigenvectors:      0
-
+etot  =  5.75543034E+01
 #  State  Eigenvalue [H]  Occupation    Error
       1        9.056759    2.000000   (9.9E-06)
       2       10.465603    2.000000   (1.2E-05)
       3       10.465607    2.000000   (5.9E-06)
       4       10.465608    2.000000   (7.1E-06) 
 \end{textcode}
-\end{fullwidth}
 
 Our result is similar to Octopus result.
 
@@ -795,10 +790,6 @@ Our result is similar to Octopus result.
 
 Result:
 \begin{textcode}
-  17      -0.4697222378   2.0241354490e-06   4.7656241007e-09
-  18      -0.4697214473   7.9055452079e-07   2.4859509631e-09
-Convergence is achieved in 18 iterations
-
 Eigenvalues:
  1      -0.2449501107
 ----------------------------
@@ -814,18 +805,11 @@ Total   =      -0.4697214473
 \end{textcode}
 
 Octopus result:
-\begin{fullwidth}
 \begin{textcode}
-*********************** SCF CYCLE ITER #   12 ************************
- etot  = -4.70593023E-01 abs_ev   =  8.06E-07 rel_ev   =  3.28E-06
- ediff =       -4.65E-11 abs_dens =  9.21E-06 rel_dens =  9.21E-06
-Matrix vector products:      6
-Converged eigenvectors:      0
- 
- #  State  Eigenvalue [H]  Occupation    Error
+ etot  = -4.70593023E-01
+  #  State  Eigenvalue [H]  Occupation    Error
        1       -0.245334    1.000000   (3.1E-06)
 \end{textcode}
-\end{fullwidth}
 
 Quite similar to Octopus.
 Difference probabably due to the Poisson solver.
@@ -840,10 +824,6 @@ Need to study convergence with respect to grid spacing.
 
 Result:
 \begin{textcode}
-  15      -1.1975841508   4.0237235348e-06   3.8822972895e-08
-  16      -1.1975850469   8.9614081089e-07   2.1763673163e-08
-Convergence is achieved in 16 iterations
-
 Eigenvalues:
  1      -0.3827444348
 ----------------------------
@@ -859,24 +839,18 @@ Total   =      -1.1975850469
 \end{textcode}
 
 Octopus result:
-\begin{fullwidth}
 \begin{textcode}
-********************** SCF CYCLE ITER #   12 ************************
- etot  = -1.19927504E+00 abs_ev   =  1.50E-06 rel_ev   =  1.95E-06
- ediff =        1.68E-06 abs_dens =  2.11E-06 rel_dens =  1.06E-06
-Matrix vector products:     15
-Converged eigenvectors:      1
-
+ etot  = -1.19927504E+00
 #  State  Eigenvalue [H]  Occupation    Error
       1       -0.383095    2.000000   (6.0E-07) 
 \end{textcode}
-\end{fullwidth}
 
 Similar observation as H atom.
 
 {\centering
 \includegraphics[width=\textwidth]{../codes/ks_dft_02/LOG_files/IMG_H2.pdf}
 }
+
 
 \section{Exercise}
 

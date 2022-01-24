@@ -135,21 +135,22 @@ V^{\mathrm{PS}}_{l}(\mathbf{r}-\mathbf{R}_{I},\mathbf{r}'-\mathbf{R}_{I})
 We will consider how to store various information about GTH pseudopotential.
 First we consider the type \jlinline{PsPot_GTH}. This type stores GTH pseudopotential
 parameters for one element.
-
+\begin{fullwidth}
 \begin{juliacode}
 struct PsPot_GTH
-  pspfile::String
-  atsymb::String
-  zval::Int64
-  rlocal::Float64
-  rc::Array{Float64,1}  # indexed by l, originally [0:3]
-  c::Array{Float64,1}   # coefficients in local pseudopotential
-  h::Array{Float64,3}   # indexed l, 1:3,1:3
-  lmax::Int64           # l = 0, 1, 2, 3 (s, p, d, f)
-  Nproj_l::Array{Int64,1}  # originally 0:3
-  rcut_NL::Array{Float64,1}  # originally 0:3, needed for real space evaluation
+    pspfile::String
+    atsymb::String
+    zval::Int64
+    rlocal::Float64
+    rc::Array{Float64,1}  # indexed by l, originally [0:3]
+    c::Array{Float64,1}   # coefficients in local pseudopotential
+    h::Array{Float64,3}   # indexed l, 1:3,1:3
+    lmax::Int64           # l = 0, 1, 2, 3 (s, p, d, f)
+    Nproj_l::Array{Int64,1}  # originally 0:3
+    rcut_NL::Array{Float64,1}  # originally 0:3, needed for real space evaluation
 end
 \end{juliacode}
+\end{fullwidth}
 
 Example constructor
 \begin{juliacode}
@@ -175,9 +176,9 @@ evaluation of nonlocal pseudopotential.
 %
 \begin{juliacode}
 struct PsPotNL
-  NbetaNL::Int64
-  prj2beta::Array{Int64,4}
-  betaNL::Array{Float64,2}
+    NbetaNL::Int64
+    prj2beta::Array{Int64,4}
+    betaNL::Array{Float64,2}
 end
 \end{juliacode}
 %
@@ -188,72 +189,71 @@ all atoms. The array \jlinline{prj2beta} defines index mapping between projector
 functions for all atoms to their atomic-species-specific data. The constructor
 for \jlinline{PsPotNL} will be listed below.
 
+\begin{fullwidth}
 \begin{juliacode}
 function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=false )
-  Natoms = atoms.Natoms
-  atm2species = atoms.atm2species
-  atpos = atoms.positions
+    Natoms = atoms.Natoms
+    atm2species = atoms.atm2species
+    atpos = atoms.positions
 
-  prj2beta = Array{Int64}(undef,3,Natoms,4,7)
-  prj2beta[:] .= -1   # set to invalid index
+    prj2beta = Array{Int64}(undef,3,Natoms,4,7)
+    prj2beta[:] .= -1   # set to invalid index
 
-  # Here we calculate NbetaNL and define fill up prj2beta array
-  # for mapping between betaNL index.
-  # In case of prj2beta, we probably can do this better by using
-  # prj2beta[1:Natoms][iprj,lm indices]
-  NbetaNL = 0
-  for ia = 1:Natoms
-    isp = atm2species[ia]
-    psp = pspots[isp]
-    for l = 0:psp.lmax
-      for iprj = 1:psp.Nproj_l[l+1]
-        for m = -l:l
-          NbetaNL = NbetaNL + 1
-          prj2beta[iprj,ia,l+1,m+psp.lmax+1] = NbetaNL
+    # Here we calculate NbetaNL and define fill up prj2beta array
+    # for mapping between betaNL index.
+    # In case of prj2beta, we probably can do this better by using
+    # prj2beta[1:Natoms][iprj,lm indices]
+    NbetaNL = 0
+    for ia = 1:Natoms
+        isp = atm2species[ia]
+        psp = pspots[isp]
+        for l in 0:psp.lmax, iprj in 1:psp.Nproj_l[l+1], m in -l:l
+            NbetaNL = NbetaNL + 1
+            prj2beta[iprj,ia,l+1,m+psp.lmax+1] = NbetaNL
         end
-      end
     end
-  end
 
-  # No nonlocal components
-  if NbetaNL == 0
-    # return dummy PsPotNL
-    betaNL = zeros(Float64,1,1)
-    return PsPotNL( 0, zeros(Int64,1,1,1,1), betaNL )
-  end
+    # No nonlocal components
+    if NbetaNL == 0
+        # return dummy PsPotNL
+        betaNL = zeros(Float64,1,1)
+        return PsPotNL( 0, zeros(Int64,1,1,1,1), betaNL )
+    end
 
-  Npoints = grid.Npoints
-  betaNL = zeros(Float64, Npoints, NbetaNL)
-  setup_betaNL!( atoms, grid, pspots, betaNL )
+    Npoints = grid.Npoints
+    betaNL = zeros(Float64, Npoints, NbetaNL)
+    setup_betaNL!( atoms, grid, pspots, betaNL )
 
-  return PsPotNL( NbetaNL, prj2beta, betaNL )
+    return PsPotNL( NbetaNL, prj2beta, betaNL )
 end
 \end{juliacode}
+\end{fullwidth}
 
 The function \jlinline{setup_betaNL!} is listed below.
+\begin{fullwidth}
 \begin{juliacode}
 function setup_betaNL!( atoms, grid, pspots, betaNL )
-  # ... snipped, various shortcuts
-
-  ibeta = 0
-  dr = zeros(3)
-  for ia = 1:Natoms
-    isp = atm2species[ia]
-    psp = pspots[isp]
-    for l = 0:psp.lmax, m = -l:l, iprj = 1:psp.Nproj_l[l+1]
-      ibeta = ibeta + 1
-      for ip in 1:Npoints
-        dr[1] = grid.r[1,ip] - atoms.positions[1,ia]
-        dr[2] = grid.r[2,ip] - atoms.positions[2,ia]
-        dr[3] = grid.r[3,ip] - atoms.positions[3,ia]
-        drm = sqrt( dr[1]^2 + dr[2]^2 + dr[3]^2 )
-        betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
-      end
+    # ... snipped, various shortcuts
+    ibeta = 0
+    dr = zeros(3)
+    for ia = 1:Natoms
+        isp = atm2species[ia]
+        psp = pspots[isp]
+        for l = 0:psp.lmax, m = -l:l, iprj = 1:psp.Nproj_l[l+1]
+            ibeta = ibeta + 1
+            for ip in 1:Npoints
+                dr[1] = grid.r[1,ip] - atoms.positions[1,ia]
+                dr[2] = grid.r[2,ip] - atoms.positions[2,ia]
+                dr[3] = grid.r[3,ip] - atoms.positions[3,ia]
+                drm = sqrt( dr[1]^2 + dr[2]^2 + dr[3]^2 )
+                betaNL[ip,ibeta] = Ylm_real(l, m, dr)*eval_proj_R(psp, l, iprj, drm)
+            end
+        end
     end
-  end
-  return
+    return
 end
 \end{juliacode}
+\end{fullwidth}
 
 For system without any nonlocal pseudopotentials we provide a dummy function:
 \begin{juliacode}
@@ -263,68 +263,72 @@ function PsPotNL()
 end
 \end{juliacode}
 
-Using these information, we can
+Using these information, we can calculate nonlocal pseudopotential
+contribution to the total energy:
+\begin{fullwidth}
 \begin{juliacode}
 function calc_E_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
-  
-  # ... snipped, various shortcuts
+    # ... snipped, various shortcuts
 
-  betaNL_psi = psi' * Ham.pspotNL.betaNL * dVol
-
-  E_Ps_nloc = 0.0
-  for ist = 1:Nstates
-    enl1 = 0.0
-    for ia = 1:Natoms
-      isp = atm2species[ia]
-      psp = pspots[isp]
-      for l = 0:psp.lmax, m = -l:l
-        for iprj = 1:psp.Nproj_l[l+1], jprj = 1:psp.Nproj_l[l+1]
-          ibeta = prj2beta[iprj,ia,l+1,m+psp.lmax+1]
-          jbeta = prj2beta[jprj,ia,l+1,m+psp.lmax+1]
-          hij = psp.h[l+1,iprj,jprj]
-          enl1 = enl1 + hij * betaNL_psi[ist,ibeta] * betaNL_psi[ist,jbeta]
-        end # jprj, iprj
-      end # m, l
+    betaNL_psi = psi' * Ham.pspotNL.betaNL * dVol
+    E_Ps_nloc = 0.0
+    for ist = 1:Nstates
+        enl1 = 0.0
+        for ia = 1:Natoms
+            isp = atm2species[ia]
+            psp = pspots[isp]
+            for l in 0:psp.lmax, m in = -l:l
+                for iprj in 1:psp.Nproj_l[l+1], jprj in 1:psp.Nproj_l[l+1]
+                    ibeta = prj2beta[iprj,ia,l+1,m+psp.lmax+1]
+                    jbeta = prj2beta[jprj,ia,l+1,m+psp.lmax+1]
+                    hij = psp.h[l+1,iprj,jprj]
+                    enl1 = enl1 + hij * betaNL_psi[ist,ibeta] * betaNL_psi[ist,jbeta]
+                end # jprj, iprj
+            end # m, l
+        end
+        E_Ps_nloc = E_Ps_nloc + Focc[ist]*enl1
     end
-    E_Ps_nloc = E_Ps_nloc + Focc[ist]*enl1
-  end
-  return E_Ps_nloc
+    return E_Ps_nloc
 end
 \end{juliacode}
+\end{fullwidth}
 
 Nonlocal operator:
+\begin{fullwidth}
 \begin{juliacode}
 function op_V_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
   # ... snipped
 
-  betaNL_psi = psi' * Ham.pspotNL.betaNL * dVol
-  
-  Vpsi = zeros(Float64,Npoints,Nstates)
-  for ia = 1:Natoms
-    isp = atm2species[ia]
-    psp = pspots[isp]
-    for l = 0:psp.lmax, m = -l:l
-      for iprj = 1:psp.Nproj_l[l+1]
-        ibeta = prj2beta[iprj,ia,l+1,m+psp.lmax+1]
-        for jprj = 1:psp.Nproj_l[l+1]
-          jbeta = prj2beta[jprj,ia,l+1,m+psp.lmax+1]
-          hij = psp.h[l+1,iprj,jprj]
-          for ist in 1:Nstates
-            cc = betaNL_psi[ist,jbeta]*hij
-            # should only loop over limited points (for which the projectors are nonzero)
-            for ip in 1:Npoints
-              Vpsi[ip,ist] = Vpsi[ip,ist] + betaNL[ip,ibeta]*cc
-            end
-          end
-        end # iprj
-      end # jprj
-    end # m, l
+    betaNL_psi = psi' * Ham.pspotNL.betaNL * dVol
+    Vpsi = zeros(Float64,Npoints,Nstates)
+    for ia = 1:Natoms
+        isp = atm2species[ia]
+        psp = pspots[isp]
+        for l in 0:psp.lmax, m in -l:l
+            for iprj in 1:psp.Nproj_l[l+1], jprj in 1:psp.Nproj_l[l+1]
+                ibeta = prj2beta[iprj,ia,l+1,m+psp.lmax+1]
+                jbeta = prj2beta[jprj,ia,l+1,m+psp.lmax+1]
+                hij = psp.h[l+1,iprj,jprj]
+                for ist in 1:Nstates
+                    cc = betaNL_psi[ist,jbeta]*hij
+                    # should only loop over limited points
+                    # (for which the projectors are nonzero)
+                    for ip in 1:Npoints
+                        Vpsi[ip,ist] = Vpsi[ip,ist] + betaNL[ip,ibeta]*cc
+                    end
+                end
+            end # iprj, jprj
+        end # l, m
+    end
   end
   return Vpsi
 end
 \end{juliacode}
+\end{fullwidth}
+
 
 Hamiltonian operator:
+\begin{fullwidth}
 \begin{juliacode}
 function op_H(Ham::Hamiltonian, psi::Matrix{Float64})
     Nbasis = size(psi,1)
@@ -333,19 +337,19 @@ function op_H(Ham::Hamiltonian, psi::Matrix{Float64})
     if Ham.pspotNL.NbetaNL > 0
         Vnlpsi = op_V_Ps_nloc(Ham, psi)
         for ist in 1:Nstates, ip in 1:Nbasis
-            Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
+            Hpsi[ip,ist] += ( Ham.V_Ps_loc[ip] +
               Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist] + Vnlpsi[ip,ist]
         end
     else # no nonlocal pspot components
         for ist in 1:Nstates, ip in 1:Nbasis
-            Hpsi[ip,ist] = Hpsi[ip,ist] + ( Ham.V_Ps_loc[ip] +
+            Hpsi[ip,ist] += ( Ham.V_Ps_loc[ip] +
               Ham.V_Hartree[ip] + Ham.V_XC[ip] ) * psi[ip,ist]
         end
     end
     return Hpsi
 end
 \end{juliacode}
-
+\end{fullwidth}
 
 
 \section{Validation}
@@ -356,11 +360,6 @@ Comparison with Octopus calculations.
 
 N = 40, spacing = 0.41026
 \begin{textcode}
-Emin_PCG step       25 =      -0.7670931285  6.9040618e-07
-Emin_PCG step       26 =      -0.7670933986  2.7002749e-07
-
-Emin_PCG_dot is converged in iter: 26
-
 ----------------------------
 Final Kohn-Sham eigenvalues:
 ----------------------------
@@ -384,12 +383,7 @@ Total   =      -0.7670933986
 Octopus result
 \begin{fullwidth}
 \begin{textcode}
-*********************** SCF CYCLE ITER #   15 ************************
- etot  = -7.86985069E-01 abs_ev   =  8.84E-07 rel_ev   =  2.74E-06
- ediff =       -3.96E-11 abs_dens =  1.54E-05 rel_dens =  7.71E-06
-Matrix vector products:      3
-Converged eigenvectors:      1
-
+ etot  = -7.86985069E-01
 #  State  Eigenvalue [H]  Occupation    Error
       1       -0.161349    2.000000   (7.4E-07)
 \end{textcode}
@@ -406,13 +400,7 @@ Similar result with Octopus.
 
 \subsection{$\ce{CH4}$ molecule}
 
-\begin{fullwidth}
 \begin{textcode}
-   44      -8.0428330362   4.9289199566e-07   3.3001772073e-09
-   45      -8.0428321264   9.0977377454e-07   2.8064033639e-09
-
-SCF is converged in iter: 45
-
 Eigenvalues:
   1      -0.6243171116
   2      -0.3496085566
@@ -430,25 +418,17 @@ NN      =       9.5322782633
 ----------------------------
 Total   =      -8.0428321264 
 \end{textcode}
-\end{fullwidth}
 
 
 Octopus result
-\begin{fullwidth}
 \begin{textcode}
- *********************** SCF CYCLE ITER #   13 ************************
- etot  = -8.06433473E+00 abs_ev   =  2.54E-05 rel_ev   =  7.64E-06
- ediff =       -9.29E-11 abs_dens =  7.73E-05 rel_dens =  9.66E-06
-Matrix vector products:     36
-Converged eigenvectors:      0
-
+ etot  = -8.06433473E+00
 #  State  Eigenvalue [H]  Occupation    Error
       1       -0.624282    2.000000   (2.3E-06)
       2       -0.350544    2.000000   (1.0E-06)
       3       -0.348888    2.000000   (6.2E-07)
       4       -0.341658    2.000000   (2.0E-06)   
 \end{textcode}
-\end{fullwidth}
 
 {\centering
 \includegraphics[width=\textwidth]{../codes/ks_dft_02/LOG_files/IMG_CH4.pdf}
