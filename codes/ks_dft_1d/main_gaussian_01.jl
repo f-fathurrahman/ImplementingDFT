@@ -22,7 +22,7 @@ function main()
     # Build 2nd derivative matrix
     D2 = build_D2_matrix_11pt(N, dx)
     # Potential
-    Vpot = pot_gaussian.(x, A=10.0)
+    Vpot = pot_gaussian.(xgrid, A=10.0)
     # Hamiltonian
     Ham = -0.5*D2 + diagm( 0 => Vpot )
     # Solve the eigenproblem
