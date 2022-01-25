@@ -3,6 +3,7 @@ clean_mem_cov.sh
 create_zip.sh
 __pycache__
 
+Untitled*
 .ipynb_checkpoints
 *.data
 OUT_*
