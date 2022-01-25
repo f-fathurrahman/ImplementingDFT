@@ -2,7 +2,7 @@
 
 \begin{document}
 
-\title{Density Functional Theory Calculations for 1d Systems}
+\title{Density Functional Theory Calculations for a Model 1d Systems}
 \author{Fadjar Fathurrahman}
 \institute{
 Teknik Fisika \\
@@ -506,6 +506,8 @@ using an eigensolver.
 \begin{frame}
 \frametitle{Test: harmonic potential}
 
+Let's choose a potential for which analytic or exact solutions
+are available. In this case we will choose the harmonic potential:
 \begin{equation*}
 V(x) = \frac{1}{2} \omega^2 x^2
 \end{equation*}
@@ -673,73 +675,7 @@ Equation
 \end{frame}
 
 
-\begin{frame}
-\frametitle{Hartree energy and potential}
-
-\begin{align*}
-E_{\mathrm{H}} & = \frac{1}{2} \int \int \frac{\rho(x) \rho(x')}{\left| x - x' \right|}\,\mathrm{d}x \mathrm{d}x' \\
-& = \frac{1}{2} \int \rho(x) V_{\mathrm{H}}(x) \, \mathrm{d}x
-\end{align*}
-    
-\begin{equation*}
-V_{\mathrm{H}} = \int \frac{\rho(x')}{\left| x - x' \right|} \, \mathrm{d}x'
-\end{equation*}
-
-Approximating integral as sum:
-\begin{equation*}
-V_{\mathrm{H}}(x_{i}) \approx \sum_{j} \frac{\rho(x_{i})}{ \left| x_{i} - x_{j} \right| } \Delta x
-\end{equation*}
-This is divergent for $i = j$.
-
-\end{frame}
-
-
-\begin{frame}
-\frametitle{Modification for Hartree potential}
-    
-To prevent singularity, we modify the Coulomb interaction:
-\begin{equation*}
-\frac{1}{\left| x - x' \right|} \rightarrow
-\frac{1}{\sqrt{(x - x')^2 + a^2}}
-\end{equation*}
-where $a \neq 0$ is a parameter.
-
-Our expression for the Hartree potential:
-\begin{equation*}
-V_{\mathrm{H}}(x_{i}) \approx \sum_{j} \frac{\rho(x_{i})}{\sqrt{ (x_{i} - x_{j})^2 + a^2 } } \Delta x
-\end{equation*}
-
-\end{frame}
-
-
-\begin{frame}[fragile]
-\frametitle{Solving for Hartree potential}
-
-Direct sum (integration)
-
-Code
-
-\end{frame}
-
-
-\begin{frame}
-\frametitle{A sketch of self-consistent program}
-
-Algorithm:
-
-Schroedinger equation solver
-
-Hartree potential calculation
-
-\end{frame}
-
-
-\begin{frame}
-\frametitle{Electron density mixing}
-
-Equation, code
-
-\end{frame}
+\input{INC_Hartree}
 
 
 

@@ -1,0 +1,94 @@
+\begin{frame}
+\frametitle{Hartree energy and potential}
+
+\begin{align*}
+E_{\mathrm{H}} & = \frac{1}{2} \int \int \frac{\rho(x) \rho(x')}{\left| x - x' \right|}\,\mathrm{d}x \mathrm{d}x' \\
+& = \frac{1}{2} \int \rho(x) V_{\mathrm{H}}(x) \, \mathrm{d}x
+\end{align*}
+    
+\begin{equation*}
+V_{\mathrm{H}} = \int \frac{\rho(x')}{\left| x - x' \right|} \, \mathrm{d}x'
+\end{equation*}
+
+Approximating integral as sum:
+\begin{equation*}
+V_{\mathrm{H}}(x_{i}) \approx \sum_{j} \frac{\rho(x_{i})}{ \left| x_{i} - x_{j} \right| } \Delta x
+\end{equation*}
+This is divergent for $i = j$.
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Modification for Hartree potential}
+    
+To prevent the divergence, we modify the Coulomb interaction using the soft-Coulomb
+interaction:
+\begin{equation*}
+\frac{1}{\left| x - x' \right|} \rightarrow
+\frac{1}{\sqrt{(x - x')^2 + a^2}}
+\end{equation*}
+where $a \neq 0$ is a parameter.
+
+Our final expression for the Hartree potential:
+\begin{equation*}
+V_{\mathrm{H}}(x_{i}) \approx \sum_{j} \frac{\rho(x_{i})}{\sqrt{ (x_{i} - x_{j})^2 + a^2 } } \Delta x
+\end{equation*}
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Solving for Hartree potential}
+
+Input \jlinline{rho}, output: \jlinline{V}
+\begin{juliacode}
+function Poisson_solve_sum!( xgrid, h,
+    rho::Vector{Float64}, V::Vector{Float64}; a = 1.0
+)
+    Npoints = size(rho,1) 
+    fill!(V, 0.0)
+    for ip in 1:Npoints
+        xi = xgrid[ip]
+        for jp in 1:Npoints
+            xj = xgrid[jp]
+            dr = sqrt( (xi - xj)^2 + a^2 )
+            V[ip] += rho[jp]/dr
+        end
+        V[ip] = V[ip]*h
+    end
+    return
+end 
+\end{juliacode}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{A sketch of self-consistent program}
+
+Our Hamiltonian now contains Hartree potential term which depends on the electron density.
+Total potential:
+\begin{equation*}
+V(x) = V_{\mathrm{ion}}(x) + V_{\mathrm{H}}(x)
+\end{equation*}
+
+We need to use self-consistent field (SCF) method to solve the Schroedinger-Hartree
+equations.
+
+For SCF, we need a starting point. Several options: orbitals $\{ \psi_{i} \}$,
+electron density $\rho(x)$, or (total) potential $V(x)$
+
+Schroedinger equation solver: input $V(x)$, output $\{ \psi \}$
+
+Hartree solver: input $\rho(x)$, output $V_{\mathrm{H}}(x)$
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Electron density mixing}
+
+Equation, code
+
+\end{frame}
