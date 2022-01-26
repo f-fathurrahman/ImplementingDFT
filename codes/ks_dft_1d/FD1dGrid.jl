@@ -9,7 +9,7 @@ struct FD1dGrid
 end
 
 
-function FD1dGrid( x_domain::Tuple{Float64,Float64}, Nx::Int64, pbc=false )
+function FD1dGrid( x_domain::Tuple{Float64,Float64}, Nx::Int64; pbc=false )
 
     @assert x_domain[1] < x_domain[2]
     if pbc

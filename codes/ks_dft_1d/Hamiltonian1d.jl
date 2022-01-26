@@ -1,91 +1,70 @@
+mutable struct Potentials
+    Ions::Array{Float64,1}
+    Hartree::Array{Float64,1}
+    XC::Array{Float64,2}  # spin dependent
+    Total::Array{Float64,2}
+end
+
 mutable struct Hamiltonian1d
     atoms::Atoms1d
+    grid::FD1dGrid
     electrons::Electrons
     rhoe::Matrix{Float64}
-    rhoa::Vector{Float64}
-    drhoa::Matrix{Float64}
-    VHartree::Vector{Float64}
-    Vtotal::Vector{Float64}
+    potentials::Potentials
 end
 
-function Hamiltonian1d(atoms, dx_in, κ, ε0; Nstates_extra=0, Nspin=1)
 
-    @assert Nspin == 1 # current implementation
+# XXX Make this type parametric according to the basis used:
+# FD1dGrid, LF1dGrid, or PW1dGrid
+function Hamiltonian1d(
+    atoms::Atoms1d,
+    Npoints::Int64;
+    basis=:fd,
+    Nstates_extra=0,
+    Nspin=1,
+)
 
-    # Setup grid
-    L = atoms.L
-    Ns = round(Int64, L/dx_in)
-    dx = L/Ns
-    Npoints = Ns
+    # Limitations on the current implementation
+    @assert Nspin == 1
+    @assert atoms.pbc == false
 
-    gvec = GVectors1d(L, Ns)
+    #if basis == :fd
+    xmin = -atoms.L/2
+    xmax =  atoms.L/2
+    grid = FD1dGrid( (xmin, xmax), Npoints, pbc=atoms.pbc)
+    #elseif basis_type == :pw
+    #    gvec = GVectors1d(L, Ns)
+    #end
+
+    hx = grid.hx
+
     electrons = Electrons(atoms, Nstates_extra=Nstates_extra, Nspin=Nspin)
 
-    rhoa, drhoa = init_pseudocharges(atoms, dx, Ns)
-
-    println("integ rhoa = ", sum(rhoa)*dx)
-
-    rhoe = zeros(Float64, Ns, Nspin)
-    @views rhoe[:,1] = -rhoa
-    rhoe[:] = rhoe[:] / (sum(rhoe)*dx) * electrons.Nelectrons
-    println("integ rhoe = ", sum(rhoe)*dx)
+    rhoe = ones(Float64, Npoints, Nspin)
+    @views rhoe[:] = rhoe[:] / ( sum(rhoe)*hx ) * electrons.Nelectrons
+    println("integ rhoe = ", sum(rhoe)*hx)
     
-    VHartree = zeros(Float64, Npoints)
-    Vtotal = zeros(Float64, Npoints)
+    potentials = Potentials(
+        zeros(Float64, Npoints),
+        zeros(Float64, Npoints),
+        zeros(Float64, Npoints, Nspin),
+        zeros(Float64, Npoints, Nspin)
+    )
 
-    return Hamiltonian1d(atoms, gvec, Ns, κ, ε0, dx, electrons,
-        rhoe, rhoa, drhoa, VHartree, Vtotal)
+    return Hamiltonian1d( atoms, grid, electrons, rhoe, potentials )
 end
 
 
-#
-# Create the pseudo-charge for Coulomb interaction
-# $\rho_a = \sum_{N_{\text{atoms}}} - Z_j/\sqrt{2 \pi \sigma_i}$
-#
-function init_pseudocharges( atoms::Atoms1d, dx::Float64, Ns::Int64 )
-
-    Natoms = atoms.Natoms
-    Zvals = atoms.Zvals
-    σ = atoms.σ
-    atpos = atoms.positions
-    L = atoms.L
-    Npoints = Ns
-
-    # rgrid[ip] = (ip-1)*dx
-
-    # Calculate the total pseudo-charge
-    # NOTE: The pseudo-charge should not extend over twice the domain size!
-    rhoa = zeros(Float64, Npoints)
-    for ia in 1:Natoms
-        for ip in 1:Npoints
-            d = atpos[ia] - (ip-1)*dx
-            d = d - round(Int64, d/L)*L # why? (PBC)
-            # Note: Z has minus sign in front of it!
-            rhoa[ip] += -Zvals[ia]/sqrt(2π*σ[ia]^2) * exp(-0.5*(d/σ[ia])^2)
-        end
-    end
-
-    drhoa = zeros(Float64, Npoints, Natoms) # FIXME CHECK THIS
-    for ia in 1:Natoms
-        for ip in 1:Natoms
-            d = atpos[ia] - (ip-1)*dx
-            d = d - round(Int64, d/L)*L
-            drhoa[ip,ia] += -Zvals[ia]/sqrt(2π*σ[ia]^2)/σ[ia]^2 * exp(-0.5*(d/σ[ia])^2)*d
-        end
-    end
-    return rhoa, drhoa
-end
-
-
-function get_matrix( Ham::Hamiltonian1d )
-    Gkin = 0.5*Ham.gvec.G2
-    Ng = Ham.gvec.Ng
-    # create the matrix version of the Hmailtonian
-    Hmat = real( ifft( diagm(0 => Gkin) * fft(Matrix{Float64}(I, Ng, Ng ), 1), 1) )
-    Hmat += diagm( 0 => Ham.Vtotal[:] )
-    # symmetrize
-    return 0.5*(Hmat + Hmat')
-end
+# For plane wave basis
+#function get_matrix( Ham::Hamiltonian1d )
+#    Gkin = 0.5*Ham.gvec.G2
+#    Ng = Ham.gvec.Ng
+#    # create the matrix version of the Hamiltonian
+#    Hmat = real( ifft( diagm(0 => Gkin) * fft(Matrix{Float64}(I, Ng, Ng ), 1), 1) )
+#    Hmat += diagm( 0 => Ham.Vtotal[:] )
+#    # symmetrize
+#    return 0.5*(Hmat + Hmat')
+#end
 
 
 import Base: show
