@@ -11,6 +11,8 @@ mutable struct Hamiltonian1d
     electrons::Electrons
     rhoe::Matrix{Float64}
     potentials::Potentials
+    Kmat::Matrix{Float64}
+    xc_calc::LibxcXCCalculator
 end
 
 
@@ -32,6 +34,8 @@ function Hamiltonian1d(
     xmin = -atoms.L/2
     xmax =  atoms.L/2
     grid = FD1dGrid( (xmin, xmax), Npoints, pbc=atoms.pbc)
+    Kmat = -0.5*build_D2_matrix_9pt(Npoints, grid.hx)
+
     #elseif basis_type == :pw
     #    gvec = GVectors1d(L, Ns)
     #end
@@ -51,7 +55,9 @@ function Hamiltonian1d(
         zeros(Float64, Npoints, Nspin)
     )
 
-    return Hamiltonian1d( atoms, grid, electrons, rhoe, potentials )
+    xc_calc = LibxcXCCalculator()
+
+    return Hamiltonian1d( atoms, grid, electrons, rhoe, potentials, Kmat, xc_calc )
 end
 
 

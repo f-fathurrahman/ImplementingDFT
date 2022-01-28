@@ -20,6 +20,10 @@ export smear_fermi, smear_fermi_entropy
 include("occupations.jl")
 export update_Focc!
 
+include("XCCalculator.jl")
+include("Libxc_old.jl")
+include("LDA_libxc_1d.jl")
+
 include("Hamiltonian1d.jl")
 export Hamiltonian1d
 
