@@ -28,11 +28,16 @@ function init_Vions!(Ham)
     return
 end
 
-function main()
+function init_Hamiltonian()
     atoms = create_atoms()
     Ham = Hamiltonian1d(atoms, 51)
     init_Vions!(Ham)
-    println("sum Vion = ", sum(Ham.potentials.Ions))
+    return Ham
+end
+
+function main()
+    Ham = init_Hamiltonian()
+    println(Ham.electrons)
 end
 
 main()

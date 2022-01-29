@@ -27,4 +27,13 @@ include("LDA_libxc_1d.jl")
 include("Hamiltonian1d.jl")
 export Hamiltonian1d
 
+include("Poisson_solve_sum.jl")
+export Poisson_solve_sum!
+
+include("calc_rhoe.jl")
+export calc_rhoe!
+
+include("calc_energies.jl")
+export calc_Ekin, calc_Enn
+
 end # module
