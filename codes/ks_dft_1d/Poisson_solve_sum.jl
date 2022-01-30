@@ -1,8 +1,10 @@
 # a is in bohr, softening parameter of soft Coulomb potential
-function Poisson_solve_sum!( xgrid, h,
+function Poisson_solve_sum!( grid,
     rho::Vector{Float64}, V::Vector{Float64}; a = 1.0
 )
-    Npoints = size(rho,1) 
+    xgrid = grid.x
+    hx = grid.hx
+    Npoints = size(rho,1)
     fill!(V, 0.0)
     for ip in 1:Npoints
         xi = xgrid[ip]
@@ -11,7 +13,7 @@ function Poisson_solve_sum!( xgrid, h,
             dr = sqrt( (xi - xj)^2 + a^2 )
             V[ip] += rho[jp]/dr
         end
-        V[ip] = V[ip]*h
+        V[ip] = V[ip]*hx
     end
     return
 end 

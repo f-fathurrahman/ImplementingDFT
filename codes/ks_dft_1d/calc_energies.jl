@@ -1,4 +1,4 @@
-function calc_Enn(atoms::Atoms1d)
+function calc_E_nn(atoms::Atoms1d)
     @assert atoms.pbs == false
     Natoms = atoms.Natoms
     Enn = 0.0
@@ -14,7 +14,7 @@ function calc_Enn(atoms::Atoms1d)
     return Enn
 end
 
-function calc_Ekin(Ham, psi)
+function calc_E_kin(Ham, psi)
     Ekin = 0.0
     Nstates = size(psi, 2)
     Kpsi = Ham.Kmat*psi

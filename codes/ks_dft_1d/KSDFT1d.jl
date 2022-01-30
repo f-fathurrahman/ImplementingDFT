@@ -21,8 +21,7 @@ include("occupations.jl")
 export update_Focc!
 
 include("XCCalculator.jl")
-include("Libxc_old.jl")
-include("LDA_libxc_1d.jl")
+export XCCalculator
 
 include("Hamiltonian1d.jl")
 export Hamiltonian1d
@@ -34,6 +33,10 @@ include("calc_rhoe.jl")
 export calc_rhoe!
 
 include("calc_energies.jl")
-export calc_Ekin, calc_Enn
+export calc_E_kin, calc_E_nn
+
+include("Libxc_old.jl")
+include("LDA_libxc_1d.jl")
+export calc_epsxc_1d, calc_Vxc_1d
 
 end # module
