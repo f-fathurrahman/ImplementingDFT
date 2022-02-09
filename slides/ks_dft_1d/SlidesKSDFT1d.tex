@@ -546,8 +546,9 @@ evals, evecs = eigen( Ham ) # Solve the eigenproblem
 
 
 \begin{frame}[fragile]
-\frametitle{Results (51 grid points, 3-points stencil for 2nd derivative)}
+\frametitle{Eigenvalue results}
 
+Using 51 grid points, 3-points stencil for 2nd derivative:
 \begin{textcode}
 Eigenvalues
 State         Approx              Exact          Difference
@@ -557,45 +558,81 @@ State         Approx              Exact          Difference
    4       3.4684589732       3.5000000000   3.1541026791e-02
    5       4.4481438504       4.5000000000   5.1856149551e-02
 \end{textcode}
+
+Can we get better results? (smaller difference with exact results?)
+
 \end{frame}
+
+
 
 \begin{frame}
 \frametitle{Eigenvectors (wave functions or orbitals)}
+
+Eigenvectors are not unique, so there is no guarantee that it will
+match the analytic solutions. Nevertheless it is sometimes useful
+to visualize them.
 
 {\centering
 \includegraphics[width=0.6\textwidth]{../../codes/ks_dft_1d/IMG_main_harmonic_01_51.pdf}
 \par}
 
-Remember: eigenvectors are not unique.
-
 \end{frame}
 
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{More about eigen}
 
-Orbital energy levels:
+\begin{itemize}
+\item Suppose that our Hamiltonian has the size of $N \times N$. In our case $N$ is
+total number of grid points.
+The eigenvalue solver will give us $N$ pairs of eigenvalue-eigenvector
+(sometimes called eigenpairs).
+%
+\item We have used the Julia built-in function \jlinline{eigen} to calculate the eigenpairs:
+\begin{juliacode}
+evals, evecs = eigen(Ham)
+\end{juliacode}
+%
+\item The eigenvalues are given in increasing order, i.e. the lowest eigenvalue
+is \jlinline{evals[1]} in our code.
+%
+\item The eigenvectors are given by columns.
+The eigenvector corresponding to the \jlinline{i}-th eigenvalue is
+\jlinline{evecs[:,i]}.
+\end{itemize}
 
-Orbital filling, occupation number:
+% Orbital energy levels:
 
-Total energy:
+% Orbital filling, occupation number:
+
+% Total energy:
 
 \end{frame}
 
 
 \begin{frame}[fragile]
-\frametitle{Some points regarding eigenvectors}
+\frametitle{Reminders about the eigenvectors}
 
 \begin{itemize}
-\item Unlike eigenvalues, eigenvectors are not unique.
-\item Eigenvectors forms orthonormal basis
+%
+\item Eigenvectors forms orthonormal basis. Check:
+\begin{juliacode}
+dot(evecs[:,i], evecs[:,j]) # 1 if i==j, 0 if i != j
+\end{juliacode}
+%
 \item In electronic structure calculations, we usually restrict eigenvectors to be
 orthonormalized according to:
 \begin{equation*}
 \int_{-\infty}^{\infty} \psi^{*}_{i}(x) \psi_{j}(x) \, \mathrm{d}x = \delta_{ij}
 \end{equation*}
+or in code:
+\begin{juliacode}
+dot(evecs[:,i], evecs[:,j])*dx
+\end{juliacode}
+%
 \end{itemize}
-We use the following to renormalize the eigenvectors:
+
+We use the following to "renormalize" the eigenvectors:
 \begin{juliacode}
 for i in 1:3
     evecs[:,i] = evecs[:,i]/sqrt(dx)
@@ -608,8 +645,12 @@ end
 \begin{frame}[fragile]
 \frametitle{More accurate formulas for 2nd derivative}
 
+Another way to improve the results of eigenvalues other than increasing total number
+of points \jlinline{Npoints}, is to use more accurate formulas to approximate
+second derivative operators. These formulas are usually named according to
+the number of points involved (stencil):
 \begin{itemize}
-\item \jlinline{build_D2_matrix_3pt}
+\item \jlinline{build_D2_matrix_3pt} (we used this in the previous calculation)
 \item \jlinline{build_D2_matrix_5pt}
 \item \jlinline{build_D2_matrix_7pt}
 \item \jlinline{build_D2_matrix_9pt}
@@ -622,8 +663,9 @@ end
 
 
 \begin{frame}[fragile]
-\frametitle{Results (51 grid points, 11-points stencil for 2nd derivative)}
+\frametitle{Eigenvalue results}
 
+Using 51 grid points, 11-points stencil for 2nd derivative:
 \begin{textcode}
 Eigenvalues
 State         Approx              Exact          Difference
@@ -633,6 +675,9 @@ State         Approx              Exact          Difference
    4       3.5000000923       3.5000000000   9.2303385379e-08
    5       4.5000023627       4.5000000000   2.3626997363e-06
 \end{textcode}
+
+Better agreement with exact results, while still using the same number of total
+grid points.
 
 \end{frame}
 
