@@ -712,11 +712,42 @@ Two Gaussians centered at $x = -1$ and $x = 1$.
 
 
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{Calculate electron density}
 
-Equation
+\begin{equation*}
+\int \rho(\mathbf{r}) \, \mathrm{d}x = N_{\mathrm{electrons}}
+\end{equation*}
 
+\begin{juliacode}
+println(sum(rhoe)*dx) # check the integral of electron density
+\end{juliacode}
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Calculate electron density}
+    
+\begin{equation*}
+\rho(\mathbf{r}) = \sum_{i} f_{i} \psi_{i}(\mathbf{r}) \psi^{*}_{i}(\mathbf{r}) 
+\end{equation*}
+    
+In-place version and assuming that \jlinline{psi} is already orthonormalized:
+\begin{juliacode}
+function calc_rhoe!(Focc, psi, rhoe)
+    Npoints = size(psi, 1)
+    Nstates = size(psi, 2)
+    fill!(rhoe, 0.0)
+    for ist in 1:Nstates
+        for ip in 1:Npoints
+            rhoe[ip] += Focc[ist] * psi[ip,ist] * psi[ip,ist]
+        end
+    end
+    return
+end
+\end{juliacode}
+    
 \end{frame}
 
 

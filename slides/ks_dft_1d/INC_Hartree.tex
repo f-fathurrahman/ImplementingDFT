@@ -7,12 +7,12 @@ E_{\mathrm{H}} & = \frac{1}{2} \int \int \frac{\rho(x) \rho(x')}{\left| x - x' \
 \end{align*}
     
 \begin{equation*}
-V_{\mathrm{H}} = \int \frac{\rho(x')}{\left| x - x' \right|} \, \mathrm{d}x'
+V_{\mathrm{H}}(x) = \int \frac{\rho(x')}{\left| x - x' \right|} \, \mathrm{d}x'
 \end{equation*}
 
 Approximating integral as sum:
 \begin{equation*}
-V_{\mathrm{H}}(x_{i}) \approx \sum_{j} \frac{\rho(x_{i})}{ \left| x_{i} - x_{j} \right| } \Delta x
+V_{\mathrm{H}}(x_{i}) \approx \sum_{j} \frac{\rho(x_{j})}{ \left| x_{i} - x_{j} \right| } \Delta x
 \end{equation*}
 This is divergent for $i = j$.
 
@@ -32,7 +32,7 @@ where $a \neq 0$ is a parameter.
 
 Our final expression for the Hartree potential:
 \begin{equation*}
-V_{\mathrm{H}}(x_{i}) \approx \sum_{j} \frac{\rho(x_{i})}{\sqrt{ (x_{i} - x_{j})^2 + a^2 } } \Delta x
+V_{\mathrm{H}}(x_{i}) \approx \sum_{j} \frac{\rho(x_{j})}{\sqrt{ (x_{i} - x_{j})^2 + a^2 } } \Delta x
 \end{equation*}
 
 \end{frame}
