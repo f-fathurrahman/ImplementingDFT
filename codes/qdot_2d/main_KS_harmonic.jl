@@ -22,19 +22,19 @@ function main()
 
     Random.seed!(1234)
 
-    AA = [-15.0, -15.0]
-    BB = [ 15.0,  15.0]
-    NN = [80, 80]
+    AA = [-25.0, -25.0]
+    BB = [ 25.0,  25.0]
+    NN = [81, 81]
 
     grid = FD2dGrid( NN, AA, BB )
     #grid = LF2dGrid( NN, AA, BB, types=(:sinc,:sinc) )
 
+    V_ext = pot_harmonic( grid, ω=0.22, A=0.0 )
+
     Npoints = grid.Npoints
     dVol = grid.dVol
-
-    V_ext = pot_harmonic( grid, ω=0.22, A=1.0 )
     
-    Nstates = 10
+    Nstates = 3
     Nelectrons = 2*Nstates
     Ham = Hamiltonian( grid, V_ext, Nelectrons=Nelectrons )
 
@@ -54,10 +54,10 @@ function main()
     evals = zeros(Float64,Nstates)
     Etot_old = 0.0
     dEtot = 0.0
-    betamix = 0.2
+    betamix = 0.5
     dRhoe = 0.0
     NiterMax = 200
-    etot_conv_thr = 1e-6
+    etot_conv_thr = 1e-7
     Nconverges = 1
 
     for iterSCF in 1:NiterMax
