@@ -16,6 +16,11 @@ function pot_gaussian( x, x0 )
     return -exp(-(x - x0)^2)/sqrt(1.0/π)^3
 end
 
+# deriv of pot_gaussian w.r.t x0
+function d_pot_gaussian(x, x0)
+    return -2.0 * π^(3/2) * (x - x0) * exp(-(x - x0)^2)
+end
+
 function calc_rhoe!(Focc, psi, rhoe)
     Npoints = size(psi, 1)
     Nstates = size(psi, 2)
@@ -69,7 +74,7 @@ function main()
     D2 = build_D2_matrix_9pt(Npoints, h)
     
     # Potential
-    Vion = pot_gaussian.(xgrid, -1.0) + pot_gaussian.(xgrid, 1.0)
+    Vion = pot_gaussian.(xgrid, -1.5) + pot_gaussian.(xgrid, 1.0)
 
     Vtot = zeros(Float64, Npoints)
     Vhartree = zeros(Float64, Npoints)
@@ -141,7 +146,15 @@ function main()
 
     end
 
+    dVpot = d_pot_gaussian.(xgrid, -1.5)
+    F_loc_1 = -sum( rhoe[:] .* dVpot )*h
+    println("F_loc_1 = ", F_loc_1)
+
+    dVpot = d_pot_gaussian.(xgrid, 1.0)
+    F_loc_2 = -sum( rhoe[:] .* dVpot )*h
+    println("F_loc_2 = ", F_loc_2)
+
 end
 
 main()
-@time main()
+#@time main()
