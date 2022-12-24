@@ -87,7 +87,6 @@ n = 2: (3)(4)/2 = 6  (E=3.5)
 \end{textcode}
 
 The following is the result of \jlinline{diag_Emin_PCG}, for the 4 lowest eigenstates:
-\begin{fullwidth}
 \begin{textcode}
 CG step       12 =       8.9999996162 4.4341014e-06
 evals[  1] =       1.4999999732, devals =   4.1020002284e-07
@@ -97,7 +96,6 @@ evals[  4] =       2.4999999042, devals =   1.6905715712e-06
 iter 12 nconv = 4
 Convergence is achieved based on nconv    
 \end{textcode}
-\end{fullwidth}
 %
 The obtained eigenvalues are close the the analytic solution.
 Note that the we have second lowest eigenstate of degeneracy 3.
@@ -213,7 +211,6 @@ where $\bar{r}=r/r_{\mathrm{loc}}$ and with the parameters $r_{loc}=0.2$,
 $Z_{\mathrm{val}}=1$, $C_{1}=-4.0663326$, and $C_{2}=0.6678322$.
 
 The following Julia code implements this pseudopotential.
-\begin{fullwidth}
 \begin{juliacode}
 function pot_Hps_HGH( grid; r0=(0.0, 0.0, 0.0) )
     Npoints = grid.Npoints
@@ -238,7 +235,6 @@ function pot_Hps_HGH( grid; r0=(0.0, 0.0, 0.0) )
     return Vpot
 end
 \end{juliacode}
-\end{fullwidth}
 
 Note that, you need to import \jlinline{erf} from the package \jlinline{SpecialFunctions}:
 \begin{juliacode}
@@ -274,7 +270,6 @@ Figure \ref{fig:compare_H_pspot}.
 
 The pseudopotential in \ref{eq:H_psp_GTH} is actually a special case of the more general
 form of the local part of pseudopotential developed by Goedecker-Teter-Hutter (GTH):
-\begin{fullwidth}
 \begin{equation}
 V^{\mathrm{ps}}_{\mathrm{loc}}(r) = -\frac{Z_{\mathrm{val}}}{r}
 \mathrm{erf}\left( \frac{\bar{r}}{\sqrt{2}} \right) +
@@ -282,7 +277,6 @@ V^{\mathrm{ps}}_{\mathrm{loc}}(r) = -\frac{Z_{\mathrm{val}}}{r}
 \left( C_{1} + C_{2}\bar{r}^2 + C_{3}\bar{r}^4 + C_{4}\bar{x}^6\right)
 \label{eq:V_loc_GTH}
 \end{equation}
-\end{fullwidth}
 GTH pseudopotentials also come with the nonlocal potential which is considerably more complicated
 that the local one.
 We will consider the case of nonlocal pseudopotentials in Chapter 7.

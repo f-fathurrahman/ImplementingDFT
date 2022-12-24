@@ -1,7 +1,6 @@
-\RequirePackage{luatex85} % tuftebook not yet compatible with recent luatex
-\documentclass[a4paper,twoside,nobib,display,justified]{tufte-book}
+\documentclass[sectrefs]{svmono}
 
-% nobib: not putting citation at the margin note
+\usepackage{type1cm}
 
 \usepackage{fontspec}
 \setmonofont{JuliaMono-Regular}
@@ -20,12 +19,12 @@
 \usepackage{minted}
 % When using some monospace fonts, we need to scale the font to smaller
 % size to match the main font.
-\newminted{julia}{breaklines,fontsize=\footnotesize}
-\newminted{bash}{breaklines,fontsize=\footnotesize}
-\newminted{text}{breaklines,fontsize=\footnotesize}
+\newminted{julia}{breaklines,fontsize=\scriptsize}
+\newminted{bash}{breaklines,fontsize=\scriptsize}
+\newminted{text}{breaklines,fontsize=\scriptsize}
 
-\newcommand{\txtinline}[1]{\mintinline[fontsize=\footnotesize]{text}{#1}}
-\newcommand{\jlinline}[1]{\mintinline[fontsize=\footnotesize]{julia}{#1}}
+\newcommand{\txtinline}[1]{\mintinline[fontsize=\scriptsize]{text}{#1}}
+\newcommand{\jlinline}[1]{\mintinline[fontsize=\scriptsize]{julia}{#1}}
 
 \newmintedfile[juliafile]{julia}{breaklines,fontsize=\footnotesize}
 
@@ -44,18 +43,6 @@
 
 \renewcommand{\imath}{\textrm{i}}
 
-\setcounter{secnumdepth}{0}
-
-% Chapter and Equation numbering
-% https://tex.stackexchange.com/questions/522494/all-of-my-figures-equations-are-0-x-how-to-increment-properly-between-chapter
-%\usepackage{etoolbox}
-%\makeatletter
-%\patchcmd{\Hy@org@chapter}% <cmd>
-%  {\ifnum}% <search>
-%  {\refstepcounter{chapter}\ifnum}% <replace>
-%  {}{}% <success><failure>
-%\makeatother
-
 \usepackage{hyperref}
 \usepackage{multicol}
 
@@ -63,13 +50,11 @@
 \makeindex
 
 
-\title{Implementing \\
-  \noindent{Density Functional Theory Calculations}
+\title{Implementing Density Functional Theory Calculations}
+\author{
+  Fadjar Fathurrahman\\
+  Hermawan Kresno Dipojono
 }
-\author[ImplDFT]{\noindent{Fadjar Fathurrahman} \\[3mm]
-  \noindent{Hermawan Kresno Dipojono} \\[3mm]
-}
-\publisher{}
 
 
 % START OF DOCUMENT -----------------------------------------------------------

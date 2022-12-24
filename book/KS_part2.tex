@@ -135,7 +135,6 @@ V^{\mathrm{PS}}_{l}(\mathbf{r}-\mathbf{R}_{I},\mathbf{r}'-\mathbf{R}_{I})
 We will consider how to store various information about GTH pseudopotential.
 First we consider the type \jlinline{PsPot_GTH}. This type stores GTH pseudopotential
 parameters for one element.
-\begin{fullwidth}
 \begin{juliacode}
 struct PsPot_GTH
     pspfile::String
@@ -150,7 +149,6 @@ struct PsPot_GTH
     rcut_NL::Array{Float64,1}  # originally 0:3, needed for real space evaluation
 end
 \end{juliacode}
-\end{fullwidth}
 
 If you prefer to use \jlinline{0:3} by using \jlinline{OffsetArrays}
 package.
@@ -192,7 +190,6 @@ all atoms. The array \jlinline{prj2beta} defines index mapping between projector
 functions for all atoms to their atomic-species-specific data. The constructor
 for \jlinline{PsPotNL} will be listed below.
 
-\begin{fullwidth}
 \begin{juliacode}
 function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=false )
     Natoms = atoms.Natoms
@@ -230,10 +227,8 @@ function PsPotNL( atoms::Atoms, pspots::Array{PsPot_GTH,1}, grid; check_norm=fal
     return PsPotNL( NbetaNL, prj2beta, betaNL )
 end
 \end{juliacode}
-\end{fullwidth}
 
 The function \jlinline{setup_betaNL!} is listed below.
-\begin{fullwidth}
 \begin{juliacode}
 function setup_betaNL!( atoms, grid, pspots, betaNL )
     # ... snipped, various shortcuts
@@ -256,7 +251,6 @@ function setup_betaNL!( atoms, grid, pspots, betaNL )
     return
 end
 \end{juliacode}
-\end{fullwidth}
 
 For system without any nonlocal pseudopotentials we provide a dummy function:
 \begin{juliacode}
@@ -268,7 +262,6 @@ end
 
 Using these information, we can calculate nonlocal pseudopotential
 contribution to the total energy:
-\begin{fullwidth}
 \begin{juliacode}
 function calc_E_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
     # ... snipped, various shortcuts
@@ -294,10 +287,8 @@ function calc_E_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
     return E_Ps_nloc
 end
 \end{juliacode}
-\end{fullwidth}
 
 Nonlocal operator:
-\begin{fullwidth}
 \begin{juliacode}
 function op_V_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
   # ... snipped
@@ -327,11 +318,8 @@ function op_V_Ps_nloc( Ham::Hamiltonian, psi::Array{Float64,2} )
   return Vpsi
 end
 \end{juliacode}
-\end{fullwidth}
-
 
 Hamiltonian operator:
-\begin{fullwidth}
 \begin{juliacode}
 function op_H(Ham::Hamiltonian, psi::Matrix{Float64})
     Nbasis = size(psi,1)
@@ -352,7 +340,6 @@ function op_H(Ham::Hamiltonian, psi::Matrix{Float64})
     return Hpsi
 end
 \end{juliacode}
-\end{fullwidth}
 
 
 \section{Validation}
@@ -384,13 +371,11 @@ Total   =      -0.7670933986
 \end{textcode}
 
 Octopus result
-\begin{fullwidth}
 \begin{textcode}
  etot  = -7.86985069E-01
 #  State  Eigenvalue [H]  Occupation    Error
       1       -0.161349    2.000000   (7.4E-07)
 \end{textcode}
-\end{fullwidth}
 
 
 Similar result with Octopus.

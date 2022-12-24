@@ -147,13 +147,11 @@ The results are:
 \end{textcode}
 %
 We also can use the usual rearrange these points in the usual 2d grid rearrangement:
-\begin{fullwidth}
 \begin{textcode}
 [  -5.000,  -5.000] [  -5.000,  -1.667] [  -5.000,   1.667] [  -5.000,   5.000] 
 [   0.000,  -5.000] [   0.000,  -1.667] [   0.000,   1.667] [   0.000,   5.000] 
 [   5.000,  -5.000] [   5.000,  -1.667] [   5.000,   1.667] [   5.000,   5.000]
 \end{textcode}
-\end{fullwidth}
 %
 which can be produced from the following snippet:
 %
@@ -237,7 +235,6 @@ approximation of second derivative}
 
 The following program is used to produce the figure.
 
-\begin{fullwidth}
 \begin{juliacode}
 using Printf
 using LinearAlgebra
@@ -286,7 +283,6 @@ end
     
 main()    
 \end{juliacode}
-\end{fullwidth}
 
 
 \section{More about sparse matrices in Julia}
@@ -328,7 +324,6 @@ julia> fieldnames(typeof(∇2))
 \end{textcode}
 
 From the documentation
-\begin{fullwidth}
 \begin{juliacode}
 struct SparseMatrixCSC{Tv,Ti<:Integer} <: AbstractSparseMatrix{Tv,Ti}
     #
@@ -345,7 +340,6 @@ struct SparseMatrixCSC{Tv,Ti<:Integer} <: AbstractSparseMatrix{Tv,Ti}
     nzval::Vector{Tv}
 end
 \end{juliacode}
-\end{fullwidth}
 
 Example 1:
 \begin{equation}
@@ -655,13 +649,11 @@ Despite its simplicity, the steepest descent method has several drawbacks.
 The most prominent one is that it is very slow to converge. For this particular case
 we have the following result.
 
-\begin{fullwidth}
 \begin{textcode}
 SD step     2258 =       5.0001854888   1.1198655e-06  nconv =     2
 SD step     2259 =       5.0001843756   1.1131584e-06  nconv =     3
 Emin_SD convergence: nconv =     3 in  2259 iterations
 \end{textcode}
-\end{fullwidth}
 
 Note that the convergence is also dependent to the step
 length parameter \jlinline{α}.
@@ -682,7 +674,6 @@ end
 
 Implemented in the program \txtinline{main_harmonic_Emin_linmin.jl}.
 Result using line minimization:
-\begin{fullwidth}
 \begin{textcode}
 linmin step      589 =       5.0000566204   1.4525395e-06  nconv =     2
 linmin step      590 =       5.0000552040   1.4164238e-06  nconv =     3
@@ -694,7 +685,6 @@ evals[  1] =       1.0000001750 devals =   3.4402208904e-07
 evals[  2] =       2.0000051631 devals =   1.0311948540e-07
 evals[  3] =       2.0000498659 devals =   9.6928218651e-07  
 \end{textcode}
-\end{fullwidth}
 
 
 \subsection{Preconditioning}
@@ -714,7 +704,6 @@ prec = ilu(-0.5*∇2)
 \end{juliacode}
 
 Result using ILU preconditioner based on kinetic operator:
-\begin{fullwidth}
 \begin{textcode}
 linmin step       55 =       5.0000009960   1.2258080e-06  nconv =     2
 linmin step       56 =       5.0000003689   6.2711750e-07  nconv =     3
@@ -726,14 +715,12 @@ evals[  1] =       0.9999999739 devals =   6.0261565960e-07
 evals[  2] =       1.9999999937 devals =   5.8729066055e-09
 evals[  3] =       2.0000004014 devals =   1.8628935727e-08  
 \end{textcode}
-\end{fullwidth}
 
 ILU preconditioner based on Hamiltonian operator:
 \begin{juliacode}
 prec = ilu(Ham)
 \end{juliacode}
 
-\begin{fullwidth}
 \begin{textcode}
 linmin step       15 =       5.0000004295   3.2233493e-06  nconv =     2
 linmin step       16 =       4.9999998058   6.2374058e-07  nconv =     3
@@ -745,14 +732,12 @@ evals[  1] =       0.9999999787 devals =   1.2492943446e-07
 evals[  2] =       1.9999998478 devals =   1.2682084205e-07
 evals[  3] =       1.9999999792 devals =   3.7199030434e-07
 \end{textcode}
-\end{fullwidth}
 
 Multigrid preconditioner
 \begin{juliacode}
 prec = aspreconditioner(ruge_stuben(Ham))
 \end{juliacode}
 
-\begin{fullwidth}
 \begin{textcode}
 linmin step       15 =       5.0000010097   4.8543236e-06  nconv =     2
 linmin step       16 =       4.9999999515   1.0581623e-06  nconv =     3
@@ -764,7 +749,6 @@ evals[  1] =       0.9999999796 devals =   1.0151917307e-07
 evals[  2] =       1.9999998532 devals =   1.9803365658e-07
 evals[  3] =       2.0000001187 devals =   7.5860946458e-07
 \end{textcode}
-\end{fullwidth}
 
 
 ILU0 preconditioner, in SPARSKIT.
@@ -772,7 +756,6 @@ ILU0 preconditioner, in SPARSKIT.
 prec = ILU0Preconditioner(Ham)
 \end{juliacode}
 
-\begin{fullwidth}
 \begin{textcode}
 linmin step       64 =       5.0000041335   1.4349680e-06  nconv =     2
 linmin step       65 =       5.0000030469   1.0865516e-06  nconv =     3
@@ -784,7 +767,6 @@ evals[  1] =       1.0000001632 devals =   1.3899380646e-07
 evals[  2] =       2.0000000485 devals =   6.1344835878e-08
 evals[  3] =       2.0000028351 devals =   8.8621293415e-07
 \end{textcode}
-\end{fullwidth}
 
 
 For testing purpose
@@ -819,7 +801,6 @@ if β < 0.0 β = 0.0 end
 \end{juliacode}
 
 CG using ILU$0$ (Ham)
-\begin{fullwidth}
 \begin{textcode}
 CG step       29 =       5.0000026056   2.8129344e-06  nconv =     2
 CG step       30 =       5.0000011500   1.4555620e-06  nconv =     3
@@ -831,7 +812,7 @@ evals[  1] =       1.0000001156 devals =   1.4606434040e-07
 evals[  2] =       2.0000002046 devals =   6.6796002196e-07
 evals[  3] =       2.0000008298 devals =   6.4153765811e-07  
 \end{textcode}
-\end{fullwidth}
+
 
 \subsection{Eigenfunctions}
 
@@ -844,7 +825,6 @@ X[:,:] = X*evecs
 
 The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 
-\begin{fullwidth}
 \begin{figure}[h]
 {\centering
 \includegraphics[width=0.4\textwidth]{../codes/sch_2d/IMG_harmonic_psi_1.pdf}\\
@@ -854,7 +834,6 @@ The eigenfunctions are shown in Figure \ref{fig:harm_2d_eigenfunctions}.
 \caption{Visualization of eigenstates of 2d harmonic potential}
 \label{fig:harm_2d_eigenfunctions}
 \end{figure}
-\end{fullwidth}
 
 \section{Exercises}
 

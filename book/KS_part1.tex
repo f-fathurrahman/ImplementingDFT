@@ -129,7 +129,6 @@ as \jlinline{Hamiltonian}.
 
 The definition of the \jlinline{Hamiltonian} struct can be seen in the following
 Julia code.
-\begin{fullwidth}
 \begin{juliacode}
 const AMG_PREC_TYPE = typeof( aspreconditioner(ruge_stuben(speye(1))) )
 mutable struct Hamiltonian
@@ -146,7 +145,6 @@ mutable struct Hamiltonian
     gvec::Union{Nothing,GVectors}
 end
 \end{juliacode}
-\end{fullwidth}
 %
 A short explanation about the fields of \jlinline{Hamiltonian} follows.
 \begin{itemize}
@@ -190,7 +188,6 @@ periodic structure.
 
 
 The following constructor can be used to initialize an instance of \jlinline{Hamiltonian}.
-\begin{fullwidth}
 \begin{juliacode}
 function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
   Nelectrons=2, Nstates_extra=0, stencil_order=9,
@@ -227,7 +224,6 @@ function Hamiltonian( atoms::Atoms, grid, V_Ps_loc;
                       Rhoe, atoms, precKin, psolver, energies, gvec )
 end
 \end{juliacode}
-\end{fullwidth}
 
 An important operation that must be defined for \jlinline{Hamiltonian} is the
 multiplication between Hamiltonian and wave function.
@@ -328,7 +324,6 @@ E_{\mathrm{kin}} =
 -\frac{1}{2} \int \psi_{i}(\mathbf{r}) \nabla^{2} \psi_{i}(\mathbf{r})\,\mathrm{d}\mathbf{r}
 \end{equation}
 can be done using the following function.
-\begin{fullwidth}
 \begin{juliacode}
 function calc_E_kin( Ham::Hamiltonian, psi::Array{Float64,2} )
     Nbasis = size(psi,1)
@@ -343,7 +338,6 @@ function calc_E_kin( Ham::Hamiltonian, psi::Array{Float64,2} )
     return E_kin
 end
 \end{juliacode}
-\end{fullwidth}
 
 In the function \jlinline{calc_energies!}, we calculate total electronic energy terms.
 This function modifies \jlinline{Ham.energies}.
@@ -657,7 +651,6 @@ C_{x} = \frac{3}{4}\left(\frac{3}{\pi}\right)^{1/3}
 \subsection{Correlation VWN}
 
 VWN parameterization:
-\begin{fullwidth}
 \begin{equation}
 \varepsilon_{c} = A \left\{
 \mathrm{ln}\frac{x}{X(x)} + \frac{2b}{Q}\mathrm{atan}\frac{Q}{2x+b}
@@ -666,7 +659,7 @@ VWN parameterization:
 \right]
 \right\}
 \end{equation}
-\end{fullwidth}
+
 
 \begin{align}
 x & = \sqrt{r_{s}} \\
@@ -702,7 +695,6 @@ New Hamiltonian, include \jlinline{V_XC}.
 
 Update the potential:
 
-\begin{fullwidth}
 \begin{juliacode}
 function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
   Ham.rhoe = Rhoe
@@ -711,10 +703,8 @@ function update!( Ham::Hamiltonian, Rhoe::Vector{Float64} )
   return
 end
 \end{juliacode}
-\end{fullwidth}
 
 Application of Hamiltonian
-\begin{fullwidth}
 \begin{juliacode}
 function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
   Nbasis = size(psi,1)
@@ -727,7 +717,6 @@ function op_H( Ham::Hamiltonian, psi::Matrix{Float64} )
   return Hpsi
 end
 \end{juliacode}
-\end{fullwidth}
 
 Calculation of XC energy:
 \begin{juliacode}
@@ -740,7 +729,6 @@ Ham.energies.XC = sum( epsxc .* Ham.rhoe )*dVol
 \subsection{Harmonic potential}
 
 Setup:
-\begin{fullwidth}
 \begin{juliacode}
 AA = [-3.0, -3.0, -3.0]
 BB = [3.0, 3.0, 3.0]
@@ -751,7 +739,6 @@ Nelectrons = 8
 Nstates = round(Int64,Nelectrons/2)
 Ham = Hamiltonian( Atoms(), grid, V_Ps_loc, Nelectrons=Nelectrons )
 \end{juliacode}
-\end{fullwidth}
 
 Results:
 \begin{textcode}
