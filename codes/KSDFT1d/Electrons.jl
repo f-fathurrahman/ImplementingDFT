@@ -13,8 +13,21 @@ function Electrons(atoms::Atoms1d; Nstates_extra=0, Nspin=1)
     Nstates_occ = round(Int64, Nelectrons/2)
     Nstates = Nstates_occ + Nstates_extra
     #
+    is_odd = round(Int64,Nelectrons)%2 == 1
+    
     Focc = zeros(Float64, Nstates, Nspin)
-    Focc[1:Nstates_occ] .= 2.0
+    if Nspin == 1
+        # XXX Broadcast is used here in case we have second dimension of Nkpt*Nspin
+        for ist in 1:Nstates_occ-1
+            Focc[ist,:] .= 2.0
+        end
+        if is_odd
+            Focc[Nstates_occ,:] .= 1.0
+        else
+            Focc[Nstates_occ,:] .= 2.0
+        end
+    end
+
     #
     ebands = zeros(Float64, Nstates, Nspin)
     #
