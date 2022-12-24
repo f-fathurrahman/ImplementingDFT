@@ -40,7 +40,7 @@ function main(N::Int64)
     plt.grid()
     plt.title(plot_title)
     plt.tight_layout()
-    plt.savefig("IMG_gaussian_f_d2f_"*string(N)*".pdf")
+    plt.savefig("IMG_gaussian_f_d2f_"*string(N)*".png")
 end
 
 main(15)

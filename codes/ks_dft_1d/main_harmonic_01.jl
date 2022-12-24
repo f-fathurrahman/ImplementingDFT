@@ -55,7 +55,7 @@ function main()
     plt.legend()
     plt.grid()
     plt.tight_layout()
-    plt.savefig("IMG_main_harmonic_01_"*string(N)*".pdf")
+    plt.savefig("IMG_main_harmonic_01_"*string(N)*".png")
 end
 
 main()

@@ -52,7 +52,7 @@ function main()
     plt.grid()
     plt.tight_layout()
     plt.xlim(-3.0, 3.0)
-    plt.savefig("IMG_main_2gaussian_01_"*string(N)*".pdf")
+    plt.savefig("IMG_main_2gaussian_01_"*string(N)*".png")
 
     plt.clf()
     plt.plot(xgrid, evecs[:,1].^2, label="Bonding")
@@ -61,7 +61,7 @@ function main()
     plt.grid()
     plt.tight_layout()
     plt.xlim(-3.0, 3.0)
-    plt.savefig("IMG_main_2gaussian_01_rho_"*string(N)*".pdf")
+    plt.savefig("IMG_main_2gaussian_01_rho_"*string(N)*".png")
 
 end
 

@@ -70,7 +70,7 @@ function main()
     #plt.clf()
     #plt.plot(xgrid, Vion)
     #plt.grid(true)
-    #plt.savefig("IMG_Vion.pdf")
+    #plt.savefig("IMG_Vion.png")
 
     Vtot = zeros(Float64, Npoints)
     Vhartree = zeros(Float64, Npoints)

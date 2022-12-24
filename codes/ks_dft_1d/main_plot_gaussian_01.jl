@@ -29,7 +29,7 @@ function main(N::Int64)
     plt.legend()
     plt.grid()
     plt.title(plot_title)
-    plt.savefig("IMG_gaussian_f_"*string(N)*".pdf")
+    plt.savefig("IMG_gaussian_f_"*string(N)*".png", dpi=150)
 end
 
 main(15)
