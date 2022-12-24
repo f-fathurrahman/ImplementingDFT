@@ -13,11 +13,11 @@ function pot_gaussian( x; A=1.0, α=1.0, x0=0.0 )
     return -A*exp( -α*(x-x0)^2 )
 end
 
-function main()
+function main(; do_plot=false)
     # Initialize the grid points
     xmin = -5.0
     xmax =  5.0
-    N = 81
+    N = 51
     xgrid, dx = init_FD1d_grid(xmin, xmax, N)
     # Build 2nd derivative matrix
     D2 = build_D2_matrix_11pt(N, dx)
@@ -45,14 +45,16 @@ function main()
     end
 
     # Plot up to 3rd eigenstate
-    plot_title = "N="*string(N)
-    plt.plot(xgrid, evecs[:,1], label="1st eigenstate", marker="o")
-    plt.plot(xgrid, evecs[:,2], label="2nd eigenstate", marker="o")
-    plt.plot(xgrid, evecs[:,3], label="3rd eigenstate", marker="o")
-    plt.legend()
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig("IMG_main_gaussian_01_"*string(N)*".pdf")
+    if do_plot
+        plot_title = "N="*string(N)
+        plt.plot(xgrid, evecs[:,1], label="1st eigenstate", marker="o")
+        plt.plot(xgrid, evecs[:,2], label="2nd eigenstate", marker="o")
+        plt.plot(xgrid, evecs[:,3], label="3rd eigenstate", marker="o")
+        plt.legend()
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig("IMG_main_gaussian_01_"*string(N)*".pdf")
+    end
 end
 
-main()
+main(do_plot=false)
