@@ -84,10 +84,10 @@ function main()
 
     Focc = Ham.electrons.Focc
     use_smearing = true
-    kT = 0.05 #0.1*eV2Ha
+    kT = 0.1 # 0.3*eV2Ha
     mTS = 0.0
 
-    #println("kT = ", kT)
+    println("kT = ", kT)
 
     evals = Ham.electrons.ebands
 
@@ -153,6 +153,20 @@ function main()
 
     end
 
+    println("kT = ", kT)
+
+    @printf("-----------------------------\n")
+    @printf("Total energy components\n")
+    @printf("-----------------------------\n")
+    @printf("Ekin     = %18.10f\n", Ekin)
+    @printf("Eion     = %18.10f\n", Eion)
+    @printf("Ehartree = %18.10f\n", Ehartree)
+    @printf("Exc      = %18.10f\n", Exc)
+    @printf("E_NN     = %18.10f\n", E_NN)
+    @printf("mTS      = %18.10f\n", mTS)
+    @printf("-----------------------------\n")
+    @printf("Etot     = %18.10f\n", Etot)
+    # Etot is actually free energy (include mTS)
 
 end
 
