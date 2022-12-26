@@ -1,3 +1,43 @@
+struct OccupationUpdater
+    smear_func::Function
+    smear_func_entropy::Function
+    smear_func_prime::Function
+    kT::Float64
+end
+
+function OccupationUpdater(; smear_type=:FermiDirac, kT::Float64=0.01)
+    if smear_type == :FermiDirac
+        return OccupationUpdater(
+            smear_fermi, smear_fermi_entropy, smear_fermi_prime, kT
+        )
+    elseif smear_type == :Gaussian
+        return OccupationUpdater(
+            smear_gauss, smear_gauss_entropy, smear_gauss_prime, kT
+        )
+    elseif (smear_type == :MarzariVanderbilt) || (smear_type == :cold)
+        return OccupationUpdater(
+            smear_cold, smear_cold_entropy, smear_cold_prime, kT
+        )
+    else
+        println("Unknown smear_type: ", smear_type)
+        error()
+    end
+end
+
+
+function update_Focc!(
+    occ_updater::OccupationUpdater,
+    Focc::Matrix{Float64},
+    evals::Matrix{Float64},
+    Nelectrons
+)
+    update_Focc!(Focc, occ_updater.smear_func, occ_updater.smear_func_entropy,
+        Nelectrons, occ_updater.kT)
+    return
+end
+
+# Update occupation number according to `smear_func`
+# with given energy eigenvalues `evals`
 function update_Focc!(
     Focc::Array{Float64,2},
     smear_func, smear_func_entropy,
