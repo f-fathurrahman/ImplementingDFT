@@ -1,17 +1,13 @@
-function calc_E_nn(atoms::Atoms1d)
-    @assert atoms.pbs == false
+function calc_E_NN(atoms::Atoms1d)
     Natoms = atoms.Natoms
-    Enn = 0.0
     Zvals = atoms.Zvals
     atpos = atoms.positions
-    for ia in 1:Natoms
-        for ja in 2:Natoms
-            r = abs(atpos[ia] - atpos[ja]) # in 1d
-            Enn += Zvals[ia]*Zvals[ja]/r
-        end
+    E_NN = 0.0
+    for i in 1:Natoms, j in (i+1):Natoms
+        rij = abs(atpos[i] - atpos[j])
+        E_NN += Zvals[i]*Zvals[j]/rij
     end
-    Enn = 0.5*Enn # correct for double counting
-    return Enn
+    return E_NN
 end
 
 function calc_E_kin(Ham, psi)
