@@ -4,6 +4,8 @@ using Printf
 using LinearAlgebra
 using KSDFT1d
 
+include("BroydenMixer.jl")
+
 function create_atoms()
     Natoms = 3
     σ = ones(Float64, Natoms)*(1.0)
@@ -80,7 +82,8 @@ function main()
     Eion = 0.0
     Exc = 0.0
 
-    β_mix = 0.5
+    betamix = 0.5
+    mixer = BroydenMixer(rhoe, betamix, mixdim=8)
 
     Focc = Ham.electrons.Focc
     use_smearing = true
@@ -138,7 +141,8 @@ function main()
 
         # Mix
         if iter_scf >= 2
-            rhoe[:] = β_mix*rhoe_new[:] + (1 - β_mix)*rhoe[:]
+            #rhoe[:] = betamix*rhoe_new[:] + (1 - betamix)*rhoe[:]
+            do_mix!(mixer, rhoe, rhoe_new, iter_scf)
         else
             rhoe[:] = rhoe_new[:]
         end
