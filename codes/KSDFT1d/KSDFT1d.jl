@@ -27,8 +27,12 @@ export update_Focc!
 include("XCCalculator.jl")
 export XCCalculator
 
+include("Energies.jl")
+export Energies
+
 include("Hamiltonian1d.jl")
 export Hamiltonian1d
+export op_H
 
 include("Poisson_solve_sum.jl")
 export Poisson_solve_sum!
