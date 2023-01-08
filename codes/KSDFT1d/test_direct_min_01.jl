@@ -3,6 +3,7 @@ push!(LOAD_PATH, "./")
 using Printf
 using LinearAlgebra
 using KSDFT1d
+import Random
 
 function create_atoms()
     Natoms = 2
@@ -98,7 +99,7 @@ function calc_KohnSham_Etotal!(Ham, psi)
 
     # Electron density
     calc_rhoe!(Ham, psi, rhoe)
-    println("integ rhoe = ", sum(rhoe)*hx)
+    #println("integ rhoe = ", sum(rhoe)*hx)
 
     # Update the potentials
     ρ = reshape(rhoe, Npoints)
@@ -106,32 +107,48 @@ function calc_KohnSham_Etotal!(Ham, psi)
     Vxc[:] = calc_Vxc_1d(Ham.xc_calc, rhoe)
     @views Vtot[:,1] = Vion[:] + Vhartree[:] + Vxc[:,1]
 
-    epsxc = calc_epsxc_1d(Ham.xc_calc, rhoe[:,1])
+    # Evaluate total energy components
     Ekin = calc_E_kin(Ham, psi)
+    Ham.energies.Kinetic = Ekin
+    
     Ehartree = 0.5*dot(rhoe[:,1], Vhartree)*hx
+    Ham.energies.Hartree = Ehartree
+
     Eion = dot(rhoe, Vion)*hx
+    Ham.energies.Ion = Eion
+
+    epsxc = calc_epsxc_1d(Ham.xc_calc, rhoe[:,1])
     Exc = dot(rhoe, epsxc)*hx
-    Eelec = Ekin + Ehartree + Eion + Exc
-    # only electronic parts, E_NN should be added separately
+    Ham.energies.XC = Exc
 
-    @printf("-----------------------------\n")
-    @printf("Total energy components\n")
-    @printf("-----------------------------\n")
-    @printf("Ekin     = %18.10f\n", Ekin)
-    @printf("Eion     = %18.10f\n", Eion)
-    @printf("Ehartree = %18.10f\n", Ehartree)
-    @printf("Exc      = %18.10f\n", Exc)
-    @printf("-----------------------------\n")
-    @printf("Eelec     = %18.10f\n", Eelec)
+    # The total energy (also include nuclei-nuclei or ion-ion energy)
+    Etot = Ekin + Ehartree + Eion + Exc + Ham.energies.NN
 
-    return Eelec
+    return Etot
 end
 
 function prec_invK(Ham::Hamiltonian1d, v)
     return inv(Ham.Kmat)*v
 end
 
+
+# Ideal preconditioner (expensive to calculate)
+function prec_invHam(Ham::Hamiltonian1d, v)
+    Kmat = Ham.Kmat
+    Vtot = Ham.potentials.Total
+    Hmat = Kmat + diagm( 0 => Vtot[:,1] )
+    λ = eigvals(Hmat)
+    vout = similar(v)
+    for i in 1:size(v,2)
+        @views vout[:,i] = inv(Hmat - λ[i]*I)*v[:,i]
+    end
+    return vout
+end
+
+
 function main()
+
+    Random.seed!(1234)
 
     Ham = init_Hamiltonian()
 
@@ -156,6 +173,7 @@ function main()
     Etot = Inf
     Etot_old = Etot
     E_NN = calc_E_NN(Ham.atoms)
+    Ham.energies.NN = E_NN
 
     psi = ortho_sqrt( rand(Float64, Npoints, Nstates) )
     psi[:] = psi[:]/sqrt(hx)
@@ -169,19 +187,40 @@ function main()
     d = zeros(Float64, Npoints, Nstates)
     psic = zeros(Float64, Npoints, Nstates)
 
+    g_old = zeros(Float64, Npoints, Nstates)
+    Kg_old = zeros(Float64, Npoints, Nstates)
+    d_old = zeros(Float64, Npoints, Nstates)
+
+    β = 0.0
+
     for iterEmin in 1:50
         
-        Eelec = calc_KohnSham_Etotal!(Ham, psi)
-        Etot = Eelec + E_NN
-
-        println("iterEmin = ", iterEmin, " Etot = ", Etot)
+        Etot_old = Etot
+        Etot = calc_KohnSham_Etotal!(Ham, psi)
 
         g[:,:] .= calc_grad(Ham, psi)
-        Kg[:,:] .= prec_invK(Ham, g)
 
-        println("dot(g,g) = ", dot(g,g)*hx)
+        dg = dot(g,g)*hx
+        dEtot = abs(Etot - Etot_old)
+        @printf("iterEmin = %3d Etot = %18.10f dEtot = %10.5e dg = %10.5e\n", 
+            iterEmin, Etot, dEtot, dg)
+        if dEtot < 1e-6
+            println("Converged")
+            break
+        end
 
-        @views d[:] .= -Kg[:]
+        #Kg[:,:] .= prec_invK(Ham, g)
+        Kg[:,:] .= prec_invHam(Ham, g)
+
+        if iterEmin >= 2
+            β = real( dot(g - g_old, Kg) )/real( dot(g_old,Kg_old) )
+            if β < 0.0
+                β = 0.0
+            end
+            #println("β = ", β)
+        end
+
+        @views d[:] .= -Kg[:] + β*d_old[:]
         psic[:] = ortho_sqrt( psi + α_t*d )
         psic[:] = psic[:]/sqrt(hx)
 
@@ -200,18 +239,23 @@ function main()
         #else
         #    α = 0.0
         #end
-        println("α = ", α)
+        #println("α = ", α)
 
         # Update wavefunction
         psi[:,:] .= ortho_sqrt(psi + α*d)
         psi[:] = psi[:]/sqrt(hx)
+
+        # Previous
+        @views g_old[:] .= g[:]
+        @views Kg_old[:] .= Kg[:]
+        @views d_old[:] .= d[:]
     end
-    println("E_NN = ", E_NN)
 
     Hr = psi' * (Ham*psi) * hx
     band_energies = eigvals(Hr)
     display(band_energies); println()
 
+    println(Ham.energies)
 
 end
 
