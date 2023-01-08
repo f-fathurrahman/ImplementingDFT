@@ -13,6 +13,7 @@ mutable struct Hamiltonian1d
     potentials::Potentials
     Kmat::Matrix{Float64}
     xc_calc::LibxcXCCalculator
+    energies::Energies
 end
 
 
@@ -57,7 +58,9 @@ function Hamiltonian1d(
 
     xc_calc = LibxcXCCalculator()
 
-    return Hamiltonian1d( atoms, grid, electrons, rhoe, potentials, Kmat, xc_calc )
+    energies = Energies()
+
+    return Hamiltonian1d( atoms, grid, electrons, rhoe, potentials, Kmat, xc_calc, energies )
 end
 
 # This function can be optimized
