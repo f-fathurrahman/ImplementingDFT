@@ -60,6 +60,18 @@ function Hamiltonian1d(
     return Hamiltonian1d( atoms, grid, electrons, rhoe, potentials, Kmat, xc_calc )
 end
 
+# This function can be optimized
+function op_H(Ham::Hamiltonian1d, psi::Union{Matrix{Float64},Vector{Float64}})
+    Kmat = Ham.Kmat
+    Vtot = Ham.potentials.Total
+    Hmat = Kmat + diagm( 0 => Vtot[:,1] )
+    return Hmat * psi
+end
+
+import Base.*
+*(Ham::Hamiltonian1d, psi) = op_H(Ham, psi)
+
+
 
 # For plane wave basis
 #function get_matrix( Ham::Hamiltonian1d )
