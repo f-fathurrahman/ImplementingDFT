@@ -39,7 +39,11 @@ end
 
 # Evaluate gradient at psi
 # Ham matrix is not updated
-function calc_grad( Ham, psi )
+function calc_grad( Ham, psi; update=false )
+
+    if update
+        update_from_wavefunc!(Ham, psi)
+    end
     
     ispin = 1
     Focc = Ham.electrons.Focc
@@ -86,10 +90,7 @@ function ortho_sqrt!( psi::Array{Float64,2} )
     return
 end
 
-
-# Ham will be modified (the potential terms)
-function calc_KohnSham_Etotal!(Ham, psi)
-    hx = Ham.grid.hx    
+function update_from_wavefunc!(Ham, psi)
     Npoints = Ham.grid.Npoints
     Vion = Ham.potentials.Ions
     Vxc = Ham.potentials.XC
@@ -102,10 +103,27 @@ function calc_KohnSham_Etotal!(Ham, psi)
     #println("integ rhoe = ", sum(rhoe)*hx)
 
     # Update the potentials
-    ρ = reshape(rhoe, Npoints)
+    # Note that Vxc, Vhartree, and Vtot refers to Ham.potentials
+    ρ = reshape(rhoe, Npoints) # FIXME: need to do this is Poisson_solve_sum!
     Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
     Vxc[:] = calc_Vxc_1d(Ham.xc_calc, rhoe)
     @views Vtot[:,1] = Vion[:] + Vhartree[:] + Vxc[:,1]
+
+    return
+end
+
+# Ham will be modified (the potential terms)
+function calc_KohnSham_Etotal!(Ham, psi)
+    
+    update_from_wavefunc!(Ham, psi)
+
+    hx = Ham.grid.hx    
+    Npoints = Ham.grid.Npoints
+    Vion = Ham.potentials.Ions
+    Vxc = Ham.potentials.XC
+    Vhartree = Ham.potentials.Hartree
+    Vtot = Ham.potentials.Total
+    rhoe = Ham.rhoe
 
     # Evaluate total energy components
     Ekin = calc_E_kin(Ham, psi)
@@ -209,8 +227,8 @@ function main()
             break
         end
 
-        #Kg[:,:] .= prec_invK(Ham, g)
-        Kg[:,:] .= prec_invHam(Ham, g)
+        Kg[:,:] .= prec_invK(Ham, g)
+        #Kg[:,:] .= prec_invHam(Ham, g)
 
         if iterEmin >= 2
             β = real( dot(g - g_old, Kg) )/real( dot(g_old,Kg_old) )
@@ -224,8 +242,8 @@ function main()
         psic[:] = ortho_sqrt( psi + α_t*d )
         psic[:] = psic[:]/sqrt(hx)
 
-        _ = calc_KohnSham_Etotal!(Ham, psic)
-        gt[:,:] = calc_grad(Ham, psic)
+        #_ = calc_KohnSham_Etotal!(Ham, psic)
+        gt[:,:] = calc_grad(Ham, psic; update=true)
 
         denum = real(sum(conj(g-gt).*d))
         if denum != 0.0
@@ -260,3 +278,4 @@ function main()
 end
 
 main()
+#@time main()
