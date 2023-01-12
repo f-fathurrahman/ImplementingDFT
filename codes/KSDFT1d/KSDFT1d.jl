@@ -19,7 +19,7 @@ include("Electrons.jl")
 export Electrons
 
 include("smearing.jl")
-export smear_fermi, smear_fermi_entropy
+export smear_fermi, smear_fermi_entropy, smear_fermi_prime, grad_smear
 
 include("occupations.jl")
 export update_Focc!
