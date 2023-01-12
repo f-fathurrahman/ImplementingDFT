@@ -2,6 +2,8 @@ push!(LOAD_PATH, "./")
 
 using Printf
 using LinearAlgebra
+using Serialization
+
 using KSDFT1d
 
 include("BroydenMixer.jl")
@@ -39,18 +41,6 @@ function init_Hamiltonian()
     return Ham
 end
 
-function calc_E_NN(atoms::Atoms1d)
-    Natoms = atoms.Natoms
-    Zvals = atoms.Zvals
-    atpos = atoms.positions
-    E_NN = 0.0
-    for i in 1:Natoms, j in (i+1):Natoms
-        rij = abs(atpos[i] - atpos[j])
-        E_NN += Zvals[i]*Zvals[j]/rij
-    end
-    return E_NN
-end
-
 function main()
 
     Ham = init_Hamiltonian()
@@ -73,22 +63,20 @@ function main()
     epsxc = zeros(Float64, Npoints)
     rhoe_new = zeros(Float64, Npoints, Nspin)
 
+    psi = zeros(Float64, Npoints, Nstates)
+
     Etot = Inf
     Etot_old = Etot
-    E_NN = calc_E_NN(Ham.atoms)
+    Ham.energies.NN = calc_E_NN(Ham.atoms)
 
-    Ekin = 0.0
-    Ehartree = 0.0
-    Eion = 0.0
-    Exc = 0.0
+    E_NN = Ham.energies.NN
 
     betamix = 0.5
     mixer = BroydenMixer(rhoe, betamix, mixdim=8)
 
     Focc = Ham.electrons.Focc
     use_smearing = true
-    kT = 0.1 # 0.3*eV2Ha
-    mTS = 0.0
+    kT = 0.1*eV2Ha #0.1 # 0.3*eV2Ha
 
     println("kT = ", kT)
 
@@ -102,7 +90,7 @@ function main()
     
         # Solve the eigenproblem
         evals_all, evecs_all = eigen( Hmat )   
-        psi = evecs_all[:,1:Nstates]
+        psi[:,:] .= evecs_all[:,1:Nstates]
         evals[:,1] .= evals_all[1:Nstates]
 
         # Renormalize
@@ -123,11 +111,20 @@ function main()
         calc_rhoe!(Ham, psi, rhoe_new)
         println("integ rhoe_new = ", sum(rhoe_new)*hx)
 
-        epsxc[:] = calc_epsxc_1d(Ham.xc_calc, rhoe_new[:,1])
         Ekin = calc_E_kin(Ham, psi)
         Ehartree = 0.5*dot(rhoe_new[:,1], Vhartree)*hx
         Eion = dot(rhoe_new, Vion)*hx
+
+        epsxc[:] = calc_epsxc_1d(Ham.xc_calc, rhoe_new[:,1])
         Exc = dot(rhoe_new, epsxc)*hx
+        
+        # Set the internal variables
+        Ham.energies.Kinetic = Ekin
+        Ham.energies.Hartree = Ehartree
+        Ham.energies.Ion = Eion
+        Ham.energies.XC = Exc
+        Ham.energies.mTS = mTS
+
         Etot = Ekin + Ehartree + Eion + Exc + mTS + E_NN
 
         ΔE = abs(Etot - Etot_old)
@@ -135,7 +132,7 @@ function main()
         @printf("%3d %18.10f %10.5e %10.5e\n", iter_scf, Etot, ΔE, mae_rhoe)
 
         if mae_rhoe < 1e-7
-            println("Converged")
+            println("Converged: mae_rhoe = ", mae_rhoe, " ΔE = ", ΔE)
             break
         end
 
@@ -157,20 +154,10 @@ function main()
 
     end
 
-    println("kT = ", kT)
+    serialize("TEMP_psi.dat", psi)
+    serialize("TEMP_evals.dat", evals)
 
-    @printf("-----------------------------\n")
-    @printf("Total energy components\n")
-    @printf("-----------------------------\n")
-    @printf("Ekin     = %18.10f\n", Ekin)
-    @printf("Eion     = %18.10f\n", Eion)
-    @printf("Ehartree = %18.10f\n", Ehartree)
-    @printf("Exc      = %18.10f\n", Exc)
-    @printf("E_NN     = %18.10f\n", E_NN)
-    @printf("mTS      = %18.10f\n", mTS)
-    @printf("-----------------------------\n")
-    @printf("Etot     = %18.10f\n", Etot)
-    # Etot is actually free energy (include mTS)
+    println(Ham.energies)
 
 end
 

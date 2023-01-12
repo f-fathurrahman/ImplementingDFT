@@ -3,6 +3,7 @@ push!(LOAD_PATH, "./")
 using Printf
 using LinearAlgebra
 using KSDFT1d
+using Serialization
 
 function create_atoms()
     Natoms = 2
@@ -60,8 +61,16 @@ function main()
 
     Etot = Inf
     Etot_old = Etot
-    Enn = 2*2/2 # Z_i*Z_j/r_ij
+    E_NN = 2*2/2 # Z_i*Z_j/r_ij
     β_mix = 0.2
+    
+    Ekin = 0.0
+    Ehartree = 0.0
+    Eion = 0.0
+    Exc = 0.0
+    Etot = 0.0
+
+    psi = zeros(Float64, Npoints, Nstates)
 
     for iter_scf in 1:100
 
@@ -71,7 +80,7 @@ function main()
     
         # Solve the eigenproblem
         evals_all, evecs_all = eigen( Hmat )   
-        psi = evecs_all[:,1:Nstates]
+        psi[:,:] .= evecs_all[:,1:Nstates]
         evals = evals_all[1:Nstates]
 
         # Renormalize
@@ -90,7 +99,7 @@ function main()
         Ehartree = 0.5*dot(rhoe_new[:,1], Vhartree)*hx
         Eion = dot(rhoe_new, Vion)*hx
         Exc = dot(rhoe_new, epsxc)*hx
-        Etot = Ekin + Ehartree + Eion + Exc + Enn
+        Etot = Ekin + Ehartree + Eion + Exc + E_NN
 
         ΔE = abs(Etot - Etot_old)
         mae_rhoe = sum(abs.(rhoe - rhoe_new))/Npoints
@@ -116,8 +125,20 @@ function main()
 
     end
 
+    serialize("TEMP_psi.dat", psi)
+
+    @printf("-----------------------------\n")
+    @printf("Total energy components\n")
+    @printf("-----------------------------\n")
+    @printf("Ekin     = %18.10f\n", Ekin)
+    @printf("Eion     = %18.10f\n", Eion)
+    @printf("Ehartree = %18.10f\n", Ehartree)
+    @printf("Exc      = %18.10f\n", Exc)
+    @printf("E_NN     = %18.10f\n", E_NN)
+    @printf("-----------------------------\n")
+    @printf("Etot     = %18.10f\n", Etot)
+
 
 end
 
 main()
-@time main()
