@@ -5,6 +5,8 @@ mutable struct Electrons
     Nstates::Int64
     Focc::Matrix{Float64}
     ebands::Matrix{Float64}
+    E_fermi::Float64
+    kT::Float64
 end
 
 
@@ -30,6 +32,9 @@ function Electrons(atoms::Atoms1d; Nstates_extra=0, Nspin=1)
 
     #
     ebands = zeros(Float64, Nstates, Nspin)
+
+    E_fermi = 0.0
+    kT = 0.0 # If not used
     #
-    return Electrons(Nelectrons, Nstates_occ, Nstates_extra, Nstates, Focc, ebands)
+    return Electrons(Nelectrons, Nstates_occ, Nstates_extra, Nstates, Focc, ebands, E_fermi, kT)
 end
