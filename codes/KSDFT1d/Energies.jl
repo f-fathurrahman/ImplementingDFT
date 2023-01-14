@@ -33,8 +33,8 @@ function show( io::IO, energies::Energies )
     E_total = E_elec + energies.NN
     
     @printf(io, "Total free energy: %18.10f\n", E_total)
-    @printf(io, "\n")
-    @printf(io, "Total energy (extrapolated to T=0): %18.10f\n", E_total - 0.5*energies.mTS)
+    #@printf(io, "\n")
+    #@printf(io, "Total energy (extrapolated to T=0): %18.10f\n", E_total - 0.5*energies.mTS)
     return
 end
 
