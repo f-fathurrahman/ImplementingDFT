@@ -31,9 +31,8 @@ function update_Focc!(
     evals::Matrix{Float64},
     Nelectrons
 )
-    update_Focc!(Focc, occ_updater.smear_func, occ_updater.smear_func_entropy,
+    return update_Focc!(Focc, occ_updater.smear_func, occ_updater.smear_func_entropy,
         Nelectrons, occ_updater.kT)
-    return
 end
 
 # Update occupation number according to `smear_func`
@@ -70,6 +69,24 @@ function update_Focc!(
         end
     end
     return E_f, mTS  
+end
+
+# FIXME: include in update_Focc! ?
+function calc_electronic_entropy( smear_func_entropy, evals, E_f, kT )
+    Nstates = size(evals,1)
+    Nspin = size(evals,2)
+    mTS = 0.0
+    if Nspin == 1
+        w = 2.0 # weight factor
+    else
+        w = 1.0
+    end
+    for ispin in 1:Nspin
+        for ist in 1:Nstates
+            mTS = mTS - w*kT*smear_func_entropy( evals[ist,ispin], E_f, kT )
+        end
+    end
+    return mTS
 end
 
 
