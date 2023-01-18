@@ -4,11 +4,12 @@ function calc_grad!(
     ispin = 1 # FIXED
 
     Nstates = size(psi,2)
+    hx = Ham.grid.hx
     Focc = Ham.electrons.Focc
 
     Hpsi = op_H( Ham, psi )
-    Hsub[:,:] = psi' * Hpsi
-    Hpsi = Hpsi - psi*Hsub
+    Hsub[:,:] = psi' * Hpsi * hx
+    Hpsi -= psi*Hsub
 
     for ist in 1:Nstates
         @views g[:,ist] = Focc[ist,ispin] * Hpsi[:,ist]
