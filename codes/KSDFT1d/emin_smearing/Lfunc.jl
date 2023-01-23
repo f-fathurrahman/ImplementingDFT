@@ -46,6 +46,7 @@ function calc_Lfunc_Haux!(
     psi, # (Nbasis,Nstates)
     Haux # (Nstates,Nstates)
 )
+    # Calculate ebands first
     ebands = zeros(size(psi,2),1) # ebands need to be of size (Nstates,1)
     # Ham.electrons.ebands also can be used
     ebands[:,1], Urot = eigen(Hermitian(Haux)) # Force Haux to be Hermitian

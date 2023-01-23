@@ -26,24 +26,24 @@ Focc = Ham.electrons.Focc
 Random.seed!(1234)
 psi = generate_random_wavefunc(Ham)
 
+# Prepare Haux
 Haux = psi' * (Ham*psi) * hx # Hsub, subspace Hamiltonian
+# Using diagonal Haux
+#ebands1 = sort(randn(Nstates))
+#Haux = diagm(0 => ebands1)
+transform_psi_Haux!(psi, Haux)
+
 
 # Evaluate total energy by calling Lfunc
 E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
 
 g = zeros(Npoints,Nstates)
 Hsub = zeros(Nstates,Nstates)
-# Evaluate the gradient for psi
-calc_grad!(Ham, psi, g, Hsub)
-# The outputs are g and Hsub
-# Hsub is byproduct of calculation of g
-# Hsub will be used in calculating g_Haux and Kg_Haux
-
-# Evaluate the gradient for Haux
 g_Haux = zeros(Nstates,Nstates)
 Kg_Haux = zeros(Nstates,Nstates)
-calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
-# The additional input is Hsub
-# The outputs are in g_Haux and Kg_Haux
 
-# FIXME: these should be combined into one function call
+# Evaluate gradients
+calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+
+display(g_Haux)
+display(Kg_Haux)

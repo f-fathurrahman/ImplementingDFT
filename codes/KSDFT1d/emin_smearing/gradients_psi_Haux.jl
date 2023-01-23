@@ -20,7 +20,7 @@ end
 
 # Gradient for Haux
 # The real input is actually stored in Ham.electrons.ebands which is calculated
-# from  
+# from diagonalizing Haux
 function calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
 
     Nspin = 1
@@ -95,4 +95,59 @@ function offdiag_elements( Hsub, ebands, E_f::Float64, kT::Float64 )
         end
     end
     return mat
+end
+
+
+function calc_grad_Lfunc_Haux!(
+    Ham::Hamiltonian1d,
+    psi, # (Nbasis,Nstates)
+    Haux, # (Nstates,Nstates)
+    g,
+    Hsub,
+    g_Haux,
+    Kg_Haux
+)
+
+    # Calculate ebands first
+    ebands = zeros(size(psi,2),1) # ebands need to be of size (Nstates,1)
+    # Ham.electrons.ebands also can be used
+    ebands[:,1], Urot = eigen(Hermitian(Haux)) # Force Haux to be Hermitian
+
+
+    fill!(g, 0.0)
+    fill!(Hsub, 0.0)
+    fill!(g_Haux, 0.0)
+    fill!(Kg_Haux, 0.0)
+
+    # Evaluate the gradient for psi
+    calc_grad!(Ham, psi*Urot, g, Hsub)
+    calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
+
+    return
+end
+
+
+function calc_grad_Lfunc_ebands!(
+    Ham::Hamiltonian1d,
+    psi, # (Nbasis,Nstates)
+    ebands, # (Nstates,1)
+    g,
+    Hsub,
+    g_Haux,
+    Kg_Haux
+)
+
+    @assert size(ebands,2) == 1
+
+    Haux = diagm(0 => ebands[:,1])
+
+    fill!(g, 0.0)
+    fill!(Hsub, 0.0)
+    fill!(g_Haux, 0.0)
+    fill!(Kg_Haux, 0.0)
+
+    # Evaluate the gradient for psi
+    calc_grad!(Ham, psi, g, Hsub)
+    calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
+    return
 end
