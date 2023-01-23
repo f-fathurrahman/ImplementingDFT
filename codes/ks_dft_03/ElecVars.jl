@@ -74,8 +74,8 @@ function ElecVars( Ham::Hamiltonian, psi::Matrix{Float64} )
     calc_rhoe!(Ham, psi, Rhoe)
     update!(Ham, Rhoe)    
     
-    Hsub = psi' * op_H(Ham, psi) * Ham.grid.dVol
-    Hsub_eigs = eigvals(Hermitian(Hsub))
+    Hsub = Hermitian(psi' * op_H(Ham, psi) * Ham.grid.dVol)
+    Hsub_eigs = eigvals(Hsub)
     return ElecVars( psi, Hsub, Hsub_eigs )
 end
 
