@@ -1,10 +1,17 @@
 include("update_Hamiltonian.jl")
 
+# The inputs are:
+# - wavefunction psi, and
+# - auxiliary Hamiltonian in diagonal form, stored as matrix with size (Nstates,Nspin)
+#   Nspin=1 is assumed for the moment.
+# Some fields of Ham will be modified
 function calc_Lfunc_ebands!(
     Ham::Hamiltonian1d,
     psi::Matrix{Float64}, # (Nbasis,Nstates)
     ebands::Matrix{Float64} # (Nstates,Nspin)
 )
+
+    @assert size(ebands,2) == 1
 
     update_from_ebands!(Ham, ebands)
     update_from_wavefunc!(Ham, psi)
@@ -41,6 +48,17 @@ function calc_Lfunc_ebands!(
 end
 
 
+# The inputs are:
+# - wavefunction psi, and
+# - auxiliary Hamiltonian Haux. No support for spin polarization for now.
+#
+# Some fields of Ham will be modified
+#
+# psi and Haux should be transformed simultaneously by using some unitary matrix.
+# The transformation chosen such that Haux transformed to diagonal form using
+# eigendecomposition.
+#
+# psi and Haux will not be modified in place upon calling this function.
 function calc_Lfunc_Haux!(
     Ham::Hamiltonian1d,
     psi, # (Nbasis,Nstates)
