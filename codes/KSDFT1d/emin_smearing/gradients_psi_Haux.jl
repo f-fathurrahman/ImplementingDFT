@@ -113,6 +113,8 @@ function calc_grad_Lfunc_Haux!(
     # Ham.electrons.ebands also can be used
     ebands[:,1], Urot = eigen(Hermitian(Haux)) # Force Haux to be Hermitian
 
+    update_from_ebands!(Ham, ebands)
+    update_from_wavefunc!(Ham, psi)
 
     fill!(g, 0.0)
     fill!(Hsub, 0.0)
@@ -120,7 +122,7 @@ function calc_grad_Lfunc_Haux!(
     fill!(Kg_Haux, 0.0)
 
     # Evaluate the gradient for psi
-    calc_grad!(Ham, psi*Urot, g, Hsub)
+    calc_grad!(Ham, psi*Urot, g, Hsub) # don't forget to include Urot in psi
     calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
 
     return
@@ -140,6 +142,9 @@ function calc_grad_Lfunc_ebands!(
     @assert size(ebands,2) == 1
 
     Haux = diagm(0 => ebands[:,1])
+
+    update_from_ebands!(Ham, ebands)
+    update_from_wavefunc!(Ham, psi)
 
     fill!(g, 0.0)
     fill!(Hsub, 0.0)
