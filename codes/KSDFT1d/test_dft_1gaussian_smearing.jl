@@ -74,7 +74,7 @@ function main()
 
     Focc = Ham.electrons.Focc
     use_smearing = true
-    kT = 0.1 #0.1*eV2Ha #0.1 # 0.3*eV2Ha
+    kT = 0.1*eV2Ha #0.1 # 0.3*eV2Ha
 
     println("kT = ", kT)
 
