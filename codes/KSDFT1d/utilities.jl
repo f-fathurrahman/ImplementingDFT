@@ -2,7 +2,7 @@ function transform_psi_Haux!(psi, Haux)
     λ, Urot = eigen(Hermitian(Haux))
     psi[:,:] = psi[:,:]*Urot
     Haux[:,:] = diagm(0 => λ)
-    return
+    return Urot
 end
 
 function ortho_sqrt( psi::Array{Float64,2} )
