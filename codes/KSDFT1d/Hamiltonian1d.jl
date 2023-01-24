@@ -75,6 +75,10 @@ import Base.*
 *(Ham::Hamiltonian1d, psi) = op_H(Ham, psi)
 
 
+function prec_invK!(Ham::Hamiltonian1d, v, Kv)
+    return Kv[:,:] = inv(Ham.Kmat)*v
+end
+
 
 # For plane wave basis
 #function get_matrix( Ham::Hamiltonian1d )

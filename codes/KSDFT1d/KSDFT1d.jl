@@ -33,6 +33,7 @@ export Energies
 include("Hamiltonian1d.jl")
 export Hamiltonian1d
 export op_H
+export prec_invK!
 
 include("Poisson_solve_sum.jl")
 export Poisson_solve_sum!
