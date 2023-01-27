@@ -25,12 +25,14 @@ function main()
     Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
     Focc = Ham.electrons.Focc
-    
+
+    # Random wavefunc    
     Random.seed!(1234)
     psi = generate_random_wavefunc(Ham)
 
     # Read data
-    psi = deserialize("../TEMP_psi_v2.dat") # for system_defs_02
+    #psi = deserialize("../TEMP_psi_v2.dat") # for system_defs_02
+
     update_from_wavefunc!(Ham, psi) # update the potential
     
     # Prepare Haux
@@ -73,13 +75,14 @@ function main()
     dg = dot(g_Haux,g_Haux)*hx
     println("dot g_Haux,g_Haux = ", dg)
 
-    α = 0.0 # 3e-5 # 1e-5
-    α_Haux = 1.e-1 #1.0 # 1e-5
+    α = 2e-3 #3e-5
+    α_Haux = 0.1
 
     Urot2 = zeros(Nstates,Nstates)
     E2 = 0.0
+    Udagger = zeros(Nstates,Nstates)
 
-    for i in 1:50
+    for i in 1:2000
     
         println("----------------")
         println("Enter step: ", i)
@@ -92,14 +95,25 @@ function main()
         Haux[:,:] = Haux[:,:] + α_Haux*d_Haux[:,:]
     
         # Orthonormalize
-        ortho_sqrt!(psi)
-        psi[:,:] = psi[:,:]*( 1.0/sqrt(hx) )
-    
+        #ortho_sqrt!(psi)
+        
+        # Orthonormalize (involves rotation)
+        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(hx)
+        psi[:,:] = psi*Udagger
 
-        println("Haux before:")
+        println("Check ortho 1:")
+        display(psi' * psi * hx)
+
+        # Also rotate Haux
+        Haux[:,:] = Udagger' * Haux * Udagger
+
+        println("Haux before (after rotated by Udagger):")
         display(Haux); println()
         
         Urot2[:,:] = transform_psi_Haux!(psi, Haux)
+
+        println("Check ortho 2:")
+        display(psi' * psi * hx)
         
         println("Haux after (should be diagonal):")
         display(Haux); println()
