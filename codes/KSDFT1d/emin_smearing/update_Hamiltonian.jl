@@ -6,7 +6,9 @@
 # Also set kT (hardcoded)
 function update_from_ebands!(Ham, ebands)
     
-    println("\nENTER update_from_ebands!")
+    #println("\nENTER update_from_ebands!")
+
+    Nstates = Ham.electrons.Nstates
 
     kT = 0.1*eV2Ha # XXX FIXED
     Ham.electrons.kT = kT
@@ -21,19 +23,18 @@ function update_from_ebands!(Ham, ebands)
         ebands, Float64(Nelectrons), kT
     )
 
-    println("-----------------------")
-    println("In update_from_ebands!:")
-    println("-----------------------")
-    println()
-    println("E_fermi = ", Ham.electrons.E_fermi)
-    println("mTS = ", Ham.energies.mTS)
-    for ist in 1:Nstates
-        @printf("%3d %18.10f %18.10f\n", ist, Focc[ist,1], ebands[ist,1])
-    end
-    println("sum Focc: ", sum(Focc))
-    println()
-
-    println("EXIT update_from_ebands!\n")
+    #println("-----------------------")
+    #println("In update_from_ebands!:")
+    #println("-----------------------")
+    #println()
+    #println("E_fermi = ", Ham.electrons.E_fermi)
+    #println("mTS = ", Ham.energies.mTS)
+    #for ist in 1:Nstates
+    #    @printf("%3d %18.10f %18.10f\n", ist, Focc[ist,1], ebands[ist,1])
+    #end
+    #println("sum Focc: ", sum(Focc))
+    #println()
+    #println("EXIT update_from_ebands!\n")
 
     return
 end
@@ -49,11 +50,12 @@ function update_from_wavefunc!(Ham, psi)
     Vtot = Ham.potentials.Total
     rhoe = Ham.rhoe
 
-    println("\nENTER update_from_wavefunc!")
+    #println("\nENTER update_from_wavefunc!")
 
     # Electron density
+    hx = Ham.grid.hx
     calc_rhoe!(Ham, psi, rhoe)
-    println("integ rhoe = ", sum(rhoe)*hx)
+    #println("integ rhoe = ", sum(rhoe)*hx)
 
     # Update the potentials
     # Note that Vxc, Vhartree, and Vtot refers to Ham.potentials
@@ -62,7 +64,7 @@ function update_from_wavefunc!(Ham, psi)
     Vxc[:] = calc_Vxc_1d(Ham.xc_calc, rhoe)
     @views Vtot[:,1] = Vion[:] + Vhartree[:] + Vxc[:,1]
 
-    println("EXIT update_from_wavefunc!\n")
+    #println("EXIT update_from_wavefunc!\n")
 
     return
 end

@@ -42,7 +42,7 @@ function calc_Lfunc_ebands!(
     # The total energy (also include nuclei-nuclei or ion-ion energy)
     Etot = Ekin + Ehartree + Eion + Exc + Ham.energies.NN + mTS
 
-    println(Ham.energies)
+    #println(Ham.energies)
 
     return Etot
 end

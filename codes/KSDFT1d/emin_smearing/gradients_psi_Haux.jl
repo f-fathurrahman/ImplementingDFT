@@ -49,9 +49,9 @@ function calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
 
     dmuContrib = sum(dmuNum)/sum(dmuDen)
     dBzContrib = 0.0 # not used
-    println("fprime     = ", fprime)
-    println("fprimeNum  = ", fprimeNum)
-    println("dmuContrib = ", dmuContrib)
+    #println("fprime     = ", fprime)
+    #println("fprimeNum  = ", fprimeNum)
+    #println("dmuContrib = ", dmuContrib)
 
     gradF0 = zeros(Nstates,Nstates)
     gradF = zeros(Nstates,Nstates)
