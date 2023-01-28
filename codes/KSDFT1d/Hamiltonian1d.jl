@@ -76,7 +76,21 @@ import Base.*
 
 
 function prec_invK!(Ham::Hamiltonian1d, v, Kv)
-    return Kv[:,:] = inv(Ham.Kmat)*v
+    Kv[:,:] = inv(Ham.Kmat)*v
+    return
+end
+
+# Ideal preconditioner (expensive to calculate)
+function prec_invHam!(Ham::Hamiltonian1d, v, Kv)
+    Kmat = Ham.Kmat
+    Vtot = Ham.potentials.Total
+    Hmat = Kmat + diagm( 0 => Vtot[:,1] )
+    λ = eigvals(Hmat)
+    fill!(Kv, 0.0)
+    for i in 1:size(v,2)
+        @views Kv[:,i] = inv(Hmat - λ[i]*I)*v[:,i]
+    end
+    return
 end
 
 
