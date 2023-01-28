@@ -15,6 +15,8 @@ include("../utilities.jl")
 include("gradients_psi_Haux.jl")
 
 
+# TODO: move out Hamiltonian update steps from calc_Lfunc! and calc_grad_Lfunc!
+
 function main()
 
     # Initialize a Hamiltonian object
