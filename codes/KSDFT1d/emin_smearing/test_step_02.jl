@@ -75,58 +75,70 @@ function main()
     dg = dot(g_Haux,g_Haux)*hx
     println("dot g_Haux,g_Haux = ", dg)
 
-    α = 2e-3 #3e-5
+    # We use different "learning rate" for psi and Haux
+    α = 5e-3 #3e-5
     α_Haux = 0.1
 
-    Urot2 = zeros(Nstates,Nstates)
-    E2 = 0.0
-    Udagger = zeros(Nstates,Nstates)
+    Urot2 = zeros(Float64, Nstates,Nstates)
+    E_new = 0.0
+    Udagger = zeros(Float64, Nstates,Nstates)
 
-    for i in 1:2000
+    for iterEmin in 1:2000
     
         println("----------------")
-        println("Enter step: ", i)
+        println("Enter step: ", iterEmin)
         println("----------------")
 
+        # Set the directions for psi and Haux
         d[:,:] = -Kg[:,:]
         d_Haux[:,:] = -Kg_Haux[:,:]
 
+        # Update wavefunction and auxiliary Hamiltonian
         psi[:,:] = psi[:,:] + α*d[:,:]
         Haux[:,:] = Haux[:,:] + α_Haux*d_Haux[:,:]
     
         # Orthonormalize
         #ortho_sqrt!(psi)
         
-        # Orthonormalize (involves rotation)
-        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(hx)
+        # Orthonormalize wavefunction (involves rotation)
+        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(hx) # rotation
         psi[:,:] = psi*Udagger
 
-        println("Check ortho 1:")
-        display(psi' * psi * hx)
+        #println("Check ortho 1:")
+        #display(psi' * psi * hx)
 
-        # Also rotate Haux
+        # Also rotate Haux according to Udagger
         Haux[:,:] = Udagger' * Haux * Udagger
 
-        println("Haux before (after rotated by Udagger):")
-        display(Haux); println()
+        #println("Haux before (after rotated by Udagger):")
+        #display(Haux); println()
         
+        # This is needed to make Haux diagonal
+        # wavefunction psi also must be rotated or transformed
+        # Urot2 is the matrix that diagonalizes Haux (probably not needed?)
         Urot2[:,:] = transform_psi_Haux!(psi, Haux)
+        # XXX: probably the name of this function should be more specific:
 
-        println("Check ortho 2:")
-        display(psi' * psi * hx)
+        # Wavefunction must be still orthogonal
+        #println("Check ortho 2:")
+        #display(psi' * psi * hx)
         
-        println("Haux after (should be diagonal):")
-        display(Haux); println()
+        # Haux should be diagonal
+        #println("Haux after (should be diagonal):")
+        #display(Haux); println()
     
-        E2 = calc_Lfunc_Haux!(Ham, psi, Haux)
+        # Evaluate new energy with new psi and Haux
+        E_new = calc_Lfunc_Haux!(Ham, psi, Haux)
+        # also calculate the gradients
         calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
         
         prec_invK!(Ham, g, Kg)
 
+        # check norm of the gradients:
         println("dot(g,g) = ", dot(g,g)*hx)
 
-        println("g_Haux = ")
-        display(g_Haux)
+        #println("g_Haux = ")
+        #display(g_Haux)
 
         # why????
         #g_Haux[:,:] = Urot2 * g_Haux * Urot2'
@@ -136,24 +148,30 @@ function main()
         #Kg[:,:] = Kg*Urot2
 
         println("E1 = ", E1)
-        println("E2 = ", E2)
+        println("E_new = ", E_new)
 
-        if E1 < E2
+        # Some heuristics
+        if E1 < E_new
             println("WARNING: Energy does not decrease")
             α = α*0.9
             α_Haux = α_Haux*0.9
             println("α and α_Haux are reduced to: ", α, " ", α_Haux)
         end
 
-        dg = dot(g_Haux,g_Haux)*hx
+        dE = abs(E1 - E_new)
+        dg = dot(g_Haux,g_Haux)*hx/length(g_Haux)
         println("dot g_Haux,g_Haux = ", dg)
 
-        if (abs(E1 - E2) < 1e-7) && (dg < 1e-7)
+        @printf("Emin: %8d %18.10f %18.10e %18.10e\n", iterEmin, E_new, dE, dg)
+
+        # Check convergence
+        # Probably we don't need to set too small criteria for dg
+        if (abs(E1 - E_new) < 1e-7) && (dg < 1e-3)
             println("Converged")
             break
         end
 
-        E1 = E2 # set old value
+        E1 = E_new # set old value
         Urot[:,:] = Urot2[:,:]
 
     end
