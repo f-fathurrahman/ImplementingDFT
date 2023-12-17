@@ -58,16 +58,13 @@ function main()
     E_new = 0.0
     Udagger = zeros(Float64, Nstates,Nstates)
 
-    α_t = 1e-3
-    α_t_Haux = 1e-3
+
     psic  = zeros(Float64, Npoints, Nstates)
     Hauxc = zeros(Float64, Nstates, Nstates)
     gt = zeros(Float64, Npoints, Nstates)
     gt_Haux = zeros(Float64, Nstates, Nstates)
     Kgt_Haux = zeros(Float64, Nstates, Nstates)    
 
-    β = 0.0
-    β_Haux = 0.0
     g_old = zeros(Float64, Npoints, Nstates)
     Kg_old = zeros(Float64, Npoints, Nstates)
     d_old = zeros(Float64, Npoints, Nstates)
@@ -76,10 +73,14 @@ function main()
     Kg_Haux_old = zeros(Float64, Nstates, Nstates)
     d_Haux_old = zeros(Float64, Nstates, Nstates)
 
+    α_t = 1e-1
+    α_t_Haux = 1e-1
     α = 1e-2
     α_Haux = 1e-1
+    β = 0.0
+    β_Haux = 0.0
 
-    for iterEmin in 1:2000
+    for iterEmin in 1:100
 
         println("\niterEmin = $(iterEmin)")
 
@@ -106,14 +107,24 @@ function main()
             break
         end
 
+        if (iterEmin >= 10) && ( ( abs(α_t) + abs(α_t_Haux) ) < 10*eps() )
+            println("STOPPED: too small α")
+            break
+        end
+
         # No convergence yet if we reach this point
 
         # Some heuristics for setting α and α_Haux
         if E1 < E_new
             println("WARNING: Energy does not decrease")
-            α = α*0.9
-            α_Haux = α_Haux*0.9
-            println("α and α_Haux are reduced to: $(α), $(α_Haux)")
+            # activate this heuristic for steepest descent without line minimization
+            #α = α*0.9
+            #α_Haux = α_Haux*0.9
+            #println("α and α_Haux are reduced to: $(α), $(α_Haux)")
+            #
+            α_t = α_t*0.5
+            α_t_Haux = α_t_Haux*0.5
+            println("α_t and α_t_Haux are reduced to: $(α_t), $(α_t_Haux)")
         end
 
 #=
@@ -138,7 +149,7 @@ function main()
         d[:,:] = -Kg[:,:] + β*d_old[:,:]
         d_Haux[:,:] = -Kg_Haux[:,:] + β_Haux*d_Haux_old[:,:]
 
-#=
+
         #
         # Line mininization to find α
         #
@@ -154,7 +165,7 @@ function main()
         _ = calc_Lfunc_Haux!(Ham, psic, Hauxc)
         calc_grad_Lfunc_Haux!(Ham, psic, Hauxc, gt, Hsub, gt_Haux, Kgt_Haux)
         #
-        denum = real(sum(conj(g-gt).*d))
+        denum = real(sum(conj(g-gt).*d)) # no need for factor of hx for dot product here
         println("denum = ", denum)
         if denum != 0.0
             α = abs( α_t*real(sum(conj(g).*d))/denum )
@@ -170,7 +181,6 @@ function main()
             α_Haux = 0.0
         end
         println("linmin: α = $(α)  α_Haux=$(α_Haux)")
-=#
 
 
         #
