@@ -118,6 +118,9 @@ function main()
         # Urot2 is the matrix that diagonalizes Haux (probably not needed?)
         Urot2[:,:] = transform_psi_Haux!(psi, Haux)
         # XXX: probably the name of this function should be more specific:
+        # We need this because Haux need to be diagonal at all times
+        # Calculation of gradient will be wrong if we don't do this
+        # The formula used for gradient is assuming that Haux is diagonal
     
         # Evaluate new energy with new psi and Haux
         E_new = calc_Lfunc_Haux!(Ham, psi, Haux)
