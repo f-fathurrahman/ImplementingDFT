@@ -7,8 +7,8 @@ using Serialization
 
 using KSDFT1d
 
-#include("system_defs_01.jl")
-include("system_defs_02.jl")
+include("system_defs_01.jl")
+#include("system_defs_02.jl")
 
 include("Lfunc.jl")
 include("../utilities.jl")
@@ -28,6 +28,18 @@ Focc = Ham.electrons.Focc
 psi = deserialize("../TEMP_psi.dat")
 ebands = deserialize("../TEMP_evals.dat")
 Haux = diagm(0 => ebands[:,1])
+
+# Some sanity checks
+if size(psi,1) != Npoints
+    error("Different: Npoints = $(Npoints), read from data $(size(psi,1))")
+end
+
+if size(psi,2) != Nstates
+    error("Different: Nstates = $(Nstates), read from data $(size(psi,2))")
+end
+
+@assert size(ebands,1) == Nstates
+
 
 # Evaluate total energy by calling Lfunc
 E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
