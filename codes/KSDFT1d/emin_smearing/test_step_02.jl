@@ -28,7 +28,7 @@ function main()
     Focc = Ham.electrons.Focc
 
     # Random wavefunc    
-    Random.seed!(1234)
+    #Random.seed!(1234)
     psi = generate_random_wavefunc(Ham)
 
     update_from_wavefunc!(Ham, psi) # update the potential
@@ -157,7 +157,7 @@ function main()
         # Check convergence
         # Probably we don't need to set too small criteria for dg
         if (abs(E1 - E_new) < 1e-7) && (dg_Haux < 1e-3)
-            println("Converged")
+            println("\n*** Converged ***\n")
             break
         end
 
