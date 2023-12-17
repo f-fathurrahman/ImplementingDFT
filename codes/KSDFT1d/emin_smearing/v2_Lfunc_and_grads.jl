@@ -20,6 +20,7 @@ function v2_calc_Lfunc_Haux!(
 
     hx = Ham.grid.hx    
     Npoints = Ham.grid.Npoints
+    Nstates = Ham.electrons.Nstates
     Vion = Ham.potentials.Ions
     Vxc = Ham.potentials.XC
     Vhartree = Ham.potentials.Hartree
