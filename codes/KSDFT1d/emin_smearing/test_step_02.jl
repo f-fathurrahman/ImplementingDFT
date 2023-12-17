@@ -118,14 +118,6 @@ function main()
         # Urot2 is the matrix that diagonalizes Haux (probably not needed?)
         Urot2[:,:] = transform_psi_Haux!(psi, Haux)
         # XXX: probably the name of this function should be more specific:
-
-        # Wavefunction must be still orthogonal
-        #println("Check ortho 2:")
-        #display(psi' * psi * hx)
-        
-        # Haux should be diagonal
-        #println("Haux after (should be diagonal):")
-        #display(Haux); println()
     
         # Evaluate new energy with new psi and Haux
         E_new = calc_Lfunc_Haux!(Ham, psi, Haux)
@@ -133,12 +125,6 @@ function main()
         calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
         
         prec_invK!(Ham, g, Kg)
-
-        # check norm of the gradients:
-        println("dot(g,g) = ", dot(g,g)*hx)
-
-        #println("g_Haux = ")
-        #display(g_Haux)
 
         # why????
         #g_Haux[:,:] = Urot2 * g_Haux * Urot2'
@@ -159,14 +145,15 @@ function main()
         end
 
         dE = abs(E1 - E_new)
-        dg = dot(g_Haux,g_Haux)*hx/length(g_Haux)
+        dg_Haux = dot(g_Haux,g_Haux)*hx/length(g_Haux)
+        dg = dot(g,g)*hx/length(g)
         println("dot g_Haux,g_Haux = ", dg)
 
-        @printf("Emin: %8d %18.10f %18.10e %18.10e\n", iterEmin, E_new, dE, dg)
+        @printf("Emin: %8d %18.10f %10.5e [%10.5e,%10.5e]\n", iterEmin, E_new, dE, dg, dg_Haux)
 
         # Check convergence
         # Probably we don't need to set too small criteria for dg
-        if (abs(E1 - E_new) < 1e-7) && (dg < 1e-3)
+        if (abs(E1 - E_new) < 1e-7) && (dg_Haux < 1e-3)
             println("Converged")
             break
         end
