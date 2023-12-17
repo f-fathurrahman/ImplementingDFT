@@ -7,13 +7,13 @@ using Serialization
 
 using KSDFT1d
 
-include("system_defs_01.jl")
+#include("system_defs_01.jl")
 #include("system_defs_02.jl")
+include("system_defs_03.jl")
 
 include("Lfunc.jl")
 include("../utilities.jl")
 include("gradients_psi_Haux.jl")
-include("v2_Lfunc_and_grads.jl")
 
 function linemin_armijo(Ham, psi, Haux, Kg, Kg_Haux, E1;
     α0=1.0, reduce_factor=0.5, α_safe=1e-8
@@ -35,8 +35,7 @@ function linemin_armijo(Ham, psi, Haux, Kg, Kg_Haux, E1;
     Haux_new = Udagger' * Haux_new * Udagger
     Urot = transform_psi_Haux!(psi_new, Haux_new)
     #
-    update_from_wavefunc_Haux!(Ham, psi_new, Haux_new)
-    E_new = v2_calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
+    E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
     #
     success = false
     for iterE in 1:20
@@ -61,8 +60,7 @@ function linemin_armijo(Ham, psi, Haux, Kg, Kg_Haux, E1;
         Haux_new[:,:] = Udagger' * Haux_new * Udagger
         Urot[:,:] = transform_psi_Haux!(psi_new, Haux_new)
         #
-        update_from_wavefunc_Haux!(Ham, psi_new, Haux_new)
-        E_new = v2_calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
+        E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
     end
 
     if success
@@ -107,9 +105,8 @@ function main()
     Urot = zeros(Float64, size(Haux))
 
     # Evaluate total energy and gradient by calling Lfunc
-    update_from_wavefunc_Haux!(Ham, psi, Haux)
-    E1 = v2_calc_Lfunc_Haux!(Ham, psi, Haux)
-    v2_calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+    E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
+    calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
     prec_invK!(Ham, g, Kg) # Precondition
 
     E_old = E1
@@ -139,9 +136,8 @@ function main()
         Haux[:,:] = Udagger' * Haux * Udagger
         Urot[:,:] = transform_psi_Haux!(psi, Haux)
         #
-        update_from_wavefunc_Haux!(Ham, psi, Haux)
-        E1 = v2_calc_Lfunc_Haux!(Ham, psi, Haux)
-        v2_calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+        E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
+        calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
         prec_invK!(Ham, g, Kg) # Precondition
         #
         #

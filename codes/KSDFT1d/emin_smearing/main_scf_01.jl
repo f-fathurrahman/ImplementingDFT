@@ -8,9 +8,11 @@ using KSDFT1d
 
 include("../BroydenMixer.jl")
 
-include("system_defs_01.jl")
+#include("system_defs_01.jl")
+include("system_defs_02.jl")
+#include("system_defs_03.jl")
 
-function main()
+#function main()
 
     Ham = init_Hamiltonian()
 
@@ -128,6 +130,5 @@ function main()
 
     println(Ham.energies)
 
-end
-
-main()
+#end
+#main()

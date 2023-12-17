@@ -7,7 +7,9 @@ using Serialization
 
 using KSDFT1d
 
-include("system_defs_01.jl")
+#include("system_defs_01.jl")
+include("system_defs_02.jl")
+#include("system_defs_03.jl")
 
 include("Lfunc.jl")
 include("../utilities.jl")
@@ -16,7 +18,7 @@ include("gradients_psi_Haux.jl")
 
 # TODO: move out Hamiltonian update steps from calc_Lfunc! and calc_grad_Lfunc!
 
-function main()
+#function main()
 
     # Initialize a Hamiltonian object
     Ham = init_Hamiltonian()
@@ -172,5 +174,6 @@ function main()
     println("Focc = ")
     println(Ham.electrons.Focc); println()
 
-end
-main()
+#end
+
+#main()
