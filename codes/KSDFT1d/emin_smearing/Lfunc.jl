@@ -11,6 +11,7 @@ function calc_Lfunc_ebands!(
     ebands::Matrix{Float64} # (Nstates,Nspin)
 )
 
+    # We don't support Nspin=2 yet
     @assert size(ebands,2) == 1
 
     update_from_ebands!(Ham, ebands)
@@ -54,7 +55,7 @@ end
 #
 # Some fields of Ham will be modified
 #
-# psi and Haux should be transformed simultaneously by using some unitary matrix.
+# psi and Haux must be transformed simultaneously by using some unitary matrix.
 # The transformation chosen such that Haux transformed to diagonal form using
 # eigendecomposition.
 #
@@ -65,7 +66,7 @@ function calc_Lfunc_Haux!(
     Haux # (Nstates,Nstates)
 )
     # Calculate ebands first
-    ebands = zeros(size(psi,2),1) # ebands need to be of size (Nstates,1)
+    ebands = zeros(Float64, size(psi,2), 1) # ebands need to be of size (Nstates,1)
     # Ham.electrons.ebands also can be used
     ebands[:,1], Urot = eigen(Hermitian(Haux)) # Force Haux to be Hermitian
 
