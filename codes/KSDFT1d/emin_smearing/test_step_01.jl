@@ -7,8 +7,8 @@ using Serialization
 
 using KSDFT1d
 
-#include("system_defs_01.jl")
-include("system_defs_02.jl")
+include("system_defs_01.jl")
+#include("system_defs_02.jl")
 
 include("Lfunc.jl")
 include("../utilities.jl")

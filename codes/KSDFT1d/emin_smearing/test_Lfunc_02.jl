@@ -25,8 +25,11 @@ psi = generate_random_wavefunc(Ham)
 # Generate Haux
 Haux = Hermitian(rand(Nstates,Nstates))
 
-_, Urot = eigen(Haux)
+ebands, Urot = eigen(Haux)
 Etot1 = calc_Lfunc_Haux!(Ham, psi, Haux)
 
+# Haux can be made diagonal by
+# Urot' * Haux * Urot
+
 println("\nCall again: (by simultaneously transforming psi and Haux)")
-Etot2 = calc_Lfunc_Haux!(Ham, psi*Urot, Urot' * Haux * Urot)
+Etot2 = calc_Lfunc_Haux!(Ham, psi*Urot, diagm(0=>ebands))

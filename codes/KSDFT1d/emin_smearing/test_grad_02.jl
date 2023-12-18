@@ -13,7 +13,6 @@ include("system_defs_02.jl")
 include("Lfunc.jl")
 include("../utilities.jl")
 include("gradients_psi_Haux.jl")
-include("v2_Lfunc_and_grads.jl")
 
 Ham = init_Hamiltonian()
 
@@ -37,9 +36,17 @@ Kg_Haux = zeros(Float64, size(Haux))
 Hsub = zeros(Float64, size(Haux))
 
 # Evaluate total energy by calling Lfunc
-update_from_wavefunc_Haux!(Ham, psi, Haux)
-E0 = v2_calc_Lfunc_Haux!(Ham, psi, Haux)
-v2_calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+println("Before calculating energy:")
+println("ebands = ", Ham.electrons.ebands)
+println("ebands = ", Ham.electrons.Focc)
+E0 = calc_Lfunc_Haux!(Ham, psi, Haux)
+println("After calculating energy:")
+println("ebands = ", Ham.electrons.ebands)
+println("ebands = ", Ham.electrons.Focc)
+calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+println("After calculating gradients:")
+println("ebands = ", Ham.electrons.ebands)
+println("ebands = ", Ham.electrons.Focc)
 
 
 Δ = 1e-5
@@ -54,10 +61,13 @@ Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
 psi_new[:,:] = psi_new*Udagger
 Haux_new = Udagger' * Haux_new * Udagger
 Urot = transform_psi_Haux!(psi_new, Haux_new)
-update_from_wavefunc_Haux!(Ham, psi_new, Haux_new)
-E_plus = v2_calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
+E_plus = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
+println("After calculating energy:")
+println("ebands = ", Ham.electrons.ebands)
+println("ebands = ", Ham.electrons.Focc)
 
 
+#=
 dW[1,1] = -Δ
 psi_new = psi + dW
 Haux_new = Haux + dW_Haux
@@ -66,6 +76,5 @@ Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
 psi_new[:,:] = psi_new*Udagger
 Haux_new = Udagger' * Haux_new * Udagger
 Urot = transform_psi_Haux!(psi_new, Haux_new)
-update_from_wavefunc_Haux!(Ham, psi_new, Haux_new)
-E_minus = v2_calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
-
+E_minus = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
+=#

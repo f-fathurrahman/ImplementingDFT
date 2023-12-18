@@ -8,8 +8,8 @@ using Serialization
 using KSDFT1d
 
 #include("system_defs_01.jl")
-include("system_defs_02.jl")
-#include("system_defs_03.jl")
+#include("system_defs_02.jl")
+include("system_defs_03.jl")
 
 include("Lfunc.jl")
 include("../utilities.jl")
@@ -66,11 +66,9 @@ include("gradients_psi_Haux.jl")
     calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
     
     # Precondition
-    prec_invK!(Ham, g, Kg)
-    
-    println("g_Haux = ")
-    display(g_Haux)
-    #display(Kg_Haux)
+    #prec_invK!(Ham, g, Kg)
+    calc_grad_no_Focc!(Ham, psi, Kg)
+    prec_invK!(Ham, Kg)
 
     println("dot g,g = ", dot(g,g)*hx)
 
@@ -78,7 +76,8 @@ include("gradients_psi_Haux.jl")
     println("dot g_Haux,g_Haux = ", dg)
 
     # We use different "learning rate" for psi and Haux
-    α = 5e-3 #3e-5
+    # Convergence will strongly depend on these two parameters
+    α = 1.0 # 5e-3 #3e-5
     α_Haux = 0.1
 
     Urot2 = zeros(Float64, Nstates,Nstates)
@@ -129,7 +128,10 @@ include("gradients_psi_Haux.jl")
         # also calculate the gradients
         calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
         
-        prec_invK!(Ham, g, Kg)
+        #prec_invK!(Ham, g, Kg)
+        
+        calc_grad_no_Focc!(Ham, psi, Kg)
+        prec_invK!(Ham, Kg)
 
         # why????
         #g_Haux[:,:] = Urot2 * g_Haux * Urot2'

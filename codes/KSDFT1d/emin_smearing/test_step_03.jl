@@ -91,7 +91,10 @@ function main()
         calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
         #
         # Precondition the gradient for psi
-        prec_invK!(Ham, g, Kg)
+        calc_grad_no_Focc!(Ham, psi, Kg)
+        prec_invK!(Ham, Kg)
+        #
+        #prec_invK!(Ham, g, Kg)
         # Preconditioning for g_Haux is done in calc_grad_Lfunc_Haux!
 
         dE = abs(E1 - E_new)

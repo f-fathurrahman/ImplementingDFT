@@ -11,7 +11,7 @@ function create_atoms()
 end
 
 function pot_gaussian( x, x0 )
-    return -20.0*exp(-4.5*(x-x0)^2)
+    return -25.0*exp(-4.5*(x-x0)^2)
 end
 # too negative amplitude might gave NaN to g_Haux
 
