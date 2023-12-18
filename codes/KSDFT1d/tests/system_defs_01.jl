@@ -1,8 +1,3 @@
-push!(LOAD_PATH, "./")
-
-using Printf
-using KSDFT1d
-
 function create_atoms()
     Natoms = 2
     σ = ones(Float64, Natoms)*(1.0)
@@ -28,11 +23,9 @@ function init_Vions!(Ham)
     return
 end
 
-function main()
+function init_Hamiltonian()
     atoms = create_atoms()
     Ham = Hamiltonian1d(atoms, 51)
     init_Vions!(Ham)
-    println("sum Vion = ", sum(Ham.potentials.Ions))
+    return Ham
 end
-
-main()

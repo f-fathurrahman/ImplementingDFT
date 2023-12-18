@@ -1,4 +1,4 @@
-push!(LOAD_PATH, "./")
+push!(LOAD_PATH, "../")
 
 using Printf
 using LinearAlgebra
@@ -6,7 +6,7 @@ using Serialization
 
 using KSDFT1d
 
-include("BroydenMixer.jl")
+include("../BroydenMixer.jl")
 
 function create_atoms()
     Natoms = 3

@@ -1,4 +1,4 @@
-push!(LOAD_PATH, pwd())
+push!(LOAD_PATH, "../")
 
 using KSDFT1d
 

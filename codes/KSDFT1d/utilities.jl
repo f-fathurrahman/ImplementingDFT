@@ -34,3 +34,22 @@ function print_matrix(A, Nrows, Ncols)
     end
     return
 end
+
+function prec_invK(Ham::Hamiltonian1d, v)
+    return inv(Ham.Kmat)*v
+end
+
+
+# Ideal preconditioner (expensive to calculate)
+function prec_invHam(Ham::Hamiltonian1d, v)
+    Kmat = Ham.Kmat
+    Vtot = Ham.potentials.Total
+    Hmat = Kmat + diagm( 0 => Vtot[:,1] )
+    λ = eigvals(Hmat)
+    vout = similar(v)
+    for i in 1:size(v,2)
+        @views vout[:,i] = inv(Hmat - λ[i]*I)*v[:,i]
+    end
+    return vout
+end
+

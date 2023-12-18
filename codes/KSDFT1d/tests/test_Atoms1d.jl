@@ -1,4 +1,4 @@
-push!(LOAD_PATH, "./")
+push!(LOAD_PATH, "../")
 
 using Printf
 using KSDFT1d

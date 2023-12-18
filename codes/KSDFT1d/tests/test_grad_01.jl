@@ -1,4 +1,12 @@
-include("test_direct_min_01.jl")
+push!(LOAD_PATH, "../")
+
+using Printf
+using LinearAlgebra
+using KSDFT1d
+import Random
+
+include("system_defs_01.jl")
+include("../utilities.jl")
 
 Ham = init_Hamiltonian()
 
