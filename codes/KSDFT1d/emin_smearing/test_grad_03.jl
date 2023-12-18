@@ -40,34 +40,12 @@ g_Haux = zeros(Float64, size(Haux))
 Kg_Haux = zeros(Float64, size(Haux))
 Hsub = zeros(Float64, size(Haux))
 
-update_from_ebands!(Ham, ebands)
-
-#Ham.electrons.ebands[:,:] = ebands[:,:]
-## Also need to set E_fermi accordingly, probaly call to update_from_ebands?
-#Nstates_occ = Ham.electrons.Nstates_occ
-#println("Nstates_occ = ", Nstates_occ)
-#Ham.electrons.E_fermi = ebands[Nstates_occ,1]
-
 # Evaluate total energy by calling Lfunc
-println("Before calculating energy:")
-ebands_orig = deepcopy(ebands)
-Focc_orig = deepcopy(Ham.electrons.Focc)
+E0 = calc_Lfunc_Haux!(Ham, psi, Haux)
+calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+println("E0 = ", E0)
 
-println("ebands = ", Ham.electrons.ebands)
-println("Focc = ", Ham.electrons.Focc)
 
-E0 = v2_calc_Lfunc_Haux!(Ham, psi, Haux)
-
-println("After calculating energy:")
-println("ebands = ", Ham.electrons.ebands)
-println("Focc = ", Ham.electrons.Focc)
-
-v2_calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
-println("After calculating gradients:")
-println("ebands = ", Ham.electrons.ebands)
-println("ebands = ", Ham.electrons.Focc)
-
-#=
 Δ = 1e-5
 dW = zeros(Float64, size(psi))
 dW_Haux = zeros(Float64, size(Haux))
@@ -81,10 +59,6 @@ psi_new[:,:] = psi_new*Udagger
 Haux_new = Udagger' * Haux_new * Udagger
 Urot = transform_psi_Haux!(psi_new, Haux_new)
 E_plus = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
-println("After calculating energy:")
-println("ebands = ", Ham.electrons.ebands)
-println("ebands = ", Ham.electrons.Focc)
-=#
 
 
 #=

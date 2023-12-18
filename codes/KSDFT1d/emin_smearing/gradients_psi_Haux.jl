@@ -54,20 +54,16 @@ function calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
 
     w = 2.0 # For Nspin=2
     ispin = 1 # FIXED
-    println("E_fermi = ", E_fermi)
     for ist in 1:Nstates
         fprime[ist] = smear_fermi_prime( ebands[ist,ispin], E_fermi, kT )
-        println("ist, fprime = ", ist, fprime[ist])
         fprimeNum[ist] = fprime[ist] * ( real(Hsub[ist,ist]) - ebands[ist,ispin] )
     end
+    # smear_fermi_prime might return NaN if E_fermi is not set properly
     dmuNum[ispin] += w * sum(fprimeNum)
     dmuDen[ispin] += w * sum(fprime)
 
     dmuContrib = sum(dmuNum)/sum(dmuDen)
     dBzContrib = 0.0 # not used
-    println("fprime     = ", fprime)
-    println("fprimeNum  = ", fprimeNum)
-    println("dmuContrib = ", dmuContrib)
 
     gradF0 = zeros(Nstates,Nstates)
     gradF = zeros(Nstates,Nstates)
@@ -79,11 +75,7 @@ function calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
     for ist in 1:Nstates
         gradF[ist,ist] = gradF0[ist,ist] - dmuContrib # FIXME: not tested for spinpol
     end
-    println("gradF")
-    print_matrix(gradF, Nstates, Nstates)
     g_tmp[:,:] = grad_smear( smear_fermi, smear_fermi_prime, ebands[:,ispin], E_fermi, kT, gradF )
-    println("g_tmp")
-    print_matrix(g_tmp, Nstates, Nstates)
     g_Haux[:,:] = w * 0.5 * (g_tmp' + g_tmp)
     Kg_Haux[:,:] = -copy(gradF0) #-0.1*copy(gradF0)
 

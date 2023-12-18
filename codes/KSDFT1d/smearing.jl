@@ -78,7 +78,6 @@ function grad_smear(
     for j in 1:Ncols, i in 1:Nrows
         dϵ = evals[i] - evals[j]
         if abs(dϵ) < 1e-6
-            println("Pass here 82")
             ∇ϵ[i,j] = ∇ϵ[i,j] * smear_func_prime( evals[i], E_f, kT )
         else
             ∇ϵ[i,j] = ∇ϵ[i,j] * ( smear_func(evals[i], E_f, kT) - smear_func(evals[j], E_f, kT) ) / dϵ
