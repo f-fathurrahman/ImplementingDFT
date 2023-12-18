@@ -18,6 +18,18 @@ function calc_grad!(
     return
 end
 
+
+# For preconditioned grad, no Focc
+function calc_grad_no_Focc!( Ham, psi, g )
+    ispin = 1 # FIXED
+    hx = Ham.grid.hx
+    g[:,:] = op_H( Ham, psi )
+    Hsub = psi' * g * hx
+    g[:,:] -= psi*Hsub
+    return
+end
+
+
 # Gradient for Haux
 # The real input is actually stored in Ham.electrons.ebands which is calculated
 # from diagonalizing Haux
