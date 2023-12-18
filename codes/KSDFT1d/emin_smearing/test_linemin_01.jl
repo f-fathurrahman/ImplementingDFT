@@ -86,7 +86,7 @@ end
     Nstates = Ham.electrons.Nstates
 
     # Random wavefunc
-    Random.seed!(1) # vary this to find problematic case?
+    Random.seed!(11) # vary this to find problematic case?
     psi = generate_random_wavefunc(Ham)
     Haux = diagm( 0 => sort(randn(Nstates)) )
 
@@ -164,9 +164,9 @@ end
         #
         @printf("EMIN: %8d %18.10f %18.10e [%18.10e,%18.10e]\n", iterEmin, E1, dE, dg, dg_Haux)
         if E1 > E_old
-            println("!!! Energy is not decreasing")
-            #error("!!! Energy is not decreasing")
-            is_increasing = true
+            #println("!!! Energy is not decreasing")
+            #is_increasing = true
+            error("!!! Energy is not decreasing")
         else
             is_increasing = false
         end

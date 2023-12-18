@@ -1,3 +1,6 @@
+# XXX: Can we vary psi only? while keeping Haux constant?
+# XXX: vice versa?
+
 function calc_grad!(
     Ham, psi, g, Hsub
 )
