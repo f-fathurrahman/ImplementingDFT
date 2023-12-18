@@ -71,8 +71,17 @@ println("E_new = ", E_new)
 dE = abs(E_new - E1)
 println("dE      = ", dE)
 
+# XXX: Use different gradient from this? from Lfunc_Focc?
 println()
 dE_psi = abs( 2*real(dot(g, Δ*dW)*hx) )
+dE_Haux = abs( real(dot(g_Haux, Δ_Haux*dW_Haux)) )
+println("dE_psi  = ", dE_psi)
+println("dE_Haux = ", dE_Haux)
+println("sum = ", dE_psi + dE_Haux)
+println("ratio = ", (dE_psi + dE_Haux)/dE)
+
+println()
+dE_psi = abs( 2*real(dot(g, Δ*dW*inv(Urot))*hx) )
 dE_Haux = abs( real(dot(g_Haux, Δ_Haux*dW_Haux)) )
 println("dE_psi  = ", dE_psi)
 println("dE_Haux = ", dE_Haux)
