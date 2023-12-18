@@ -80,18 +80,36 @@ function prec_invK!(Ham::Hamiltonian1d, v, Kv)
     return
 end
 
-# Ideal preconditioner (expensive to calculate)
+# inplace version
+function prec_invK!(Ham::Hamiltonian1d, v)
+    v[:,:] = inv(Ham.Kmat)*v[:,:]
+    return
+end
+
+# Ideal preconditioner (expensive to calculate), not always working?
 function prec_invHam!(Ham::Hamiltonian1d, v, Kv)
     Kmat = Ham.Kmat
     Vtot = Ham.potentials.Total
     Hmat = Kmat + diagm( 0 => Vtot[:,1] )
     λ = eigvals(Hmat)
-    fill!(Kv, 0.0)
     for i in 1:size(v,2)
         @views Kv[:,i] = inv(Hmat - λ[i]*I)*v[:,i]
     end
     return
 end
+
+# Ideal preconditioner, in-place
+function prec_invHam!(Ham::Hamiltonian1d, v)
+    Kmat = Ham.Kmat
+    Vtot = Ham.potentials.Total
+    Hmat = Kmat + diagm( 0 => Vtot[:,1] )
+    λ = eigvals(Hmat)
+    for i in 1:size(v,2)
+        @views v[:,i] = inv(Hmat - λ[i]*I)*v[:,i]
+    end
+    return
+end
+
 
 
 # For plane wave basis
