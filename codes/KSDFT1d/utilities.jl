@@ -17,6 +17,18 @@ function transform_psi_Haux!(psi, Haux)
     return Urot
 end
 
+# Just like transform_psi_Haux + orthonormalization
+function prepare_psi_Haux!(psi, Haux, hx)
+    Udagger = inv(sqrt(psi'*psi)) ./ sqrt(hx)
+    psi[:,:] = psi*Udagger
+    Haux[:,:] = Udagger' * Haux * Udagger
+    # Make Haux diagonal
+    λ, Urot = eigen(Hermitian(Haux))
+    Haux[:,:] = diagm(0 => λ)
+    psi[:,:] = psi[:,:]*Urot
+    return Udagger, Urot # need these?
+end
+
 function ortho_sqrt( psi::Array{Float64,2} )
     Udagger = inv(sqrt(psi'*psi))
     return psi*Udagger
