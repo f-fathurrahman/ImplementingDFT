@@ -15,6 +15,42 @@ include("Lfunc.jl")
 include("../utilities.jl")
 include("gradients_psi_Haux.jl")
 
+function linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux)
+    #
+    hx = Ham.grid.hx
+    #
+    gt = zeros(Float64, size(psi))
+    gt_Haux = zeros(Float64, size(Haux))
+    Kgt_Haux = zeros(Float64, size(Haux))
+    Hsub = zeros(Float64, size(Haux))
+    #
+    α_t = 1e-1
+    psic = psi + α_t*d # trial wavefunc
+    Hauxc = Haux + α_t*d_Haux
+    #
+    Udagger = inv(sqrt(psic'*psic)) ./ sqrt(hx) # rotation
+    psic[:,:] = psic*Udagger # orthogonalize
+    Hauxc = Udagger' * Hauxc * Udagger # rotate Haux
+    Urot2 = transform_psi_Haux!(psic, Hauxc) # make Haux diagonal 
+    #
+    Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc) # need to call this?
+    calc_grad_Lfunc_Haux!(Ham, psic, Hauxc, gt, Hsub, gt_Haux, Kgt_Haux)
+    #
+    denum1 = sum(conj(g-gt).*d)*hx + sum(conj(g_Haux-gt_Haux).*d_Haux)
+    println("LineMin: denum1 = ", denum1)
+    println("LineMin: Etrial = ", Etrial)
+    if denum1 != 0.0 # check for small
+        num1 = sum(conj(g).*d)*hx + sum(conj(g_Haux).*d_Haux)
+        println("num1 = ", num1)
+        α = abs( α_t*num1/denum1 )
+    else
+        α = 0.0
+    end
+    println("LineMin: α = ", α)
+    return α
+end
+
+
 function linemin_armijo(Ham, psi, Haux, d_in, d_Haux_in, E1;
     α0=10.0, reduce_factor=0.5, α_safe=1e-8
 )
@@ -122,14 +158,15 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
     println("E initial = ", E1)
 
-    for iterEmin in 1:2000
+    for iterEmin in 1:500
 
 
-        if iterEmin >= 3
+#=
+        if iterEmin >= 2
             #β = real( dot(g - g_old, Kg) )/real( dot(g_old,Kg_old) )
-            numb = dot(g - g_old, Kg) + dot(g_Haux - g_Haux_old, Kg_Haux)
-            denumb = dot(g_old,Kg_old) + dot(g_Haux_old,Kg_Haux_old)
-            β = numb/denumb
+            num1 = 2*dot(g - g_old, Kg)*hx + dot(g_Haux - g_Haux_old, Kg_Haux)
+            denum1 = 2*dot(g_old,Kg_old)*hx + dot(g_Haux_old,Kg_Haux_old)
+            β = num1/denum1
             if β < 0.0
                 β = 0.0
             end
@@ -140,6 +177,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         end
         #println("β = $(β) , β_Haux = $(β_Haux)")
         println("β = $(β)")
+=#
 
 
         #d[:,:] = -Kg + (β+β_Haux)*d_old
@@ -155,6 +193,9 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         else
             α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
         end
+
+        #α = linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux)
+        #is_linmin_success = true # force to true
 
         if !is_linmin_success
             is_converged = false
@@ -232,7 +273,7 @@ function main()
     Nstates = Ham.electrons.Nstates
 
     # Random wavefunc
-    #Random.seed!(111) # vary this to find problematic case?
+    Random.seed!(11) # vary this to find problematic case?
     psi = generate_random_wavefunc(Ham)
     Haux = diagm( 0 => sort(randn(Nstates)) )
     #

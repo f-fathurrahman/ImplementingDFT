@@ -63,7 +63,7 @@ function main()
     Hauxc = zeros(Float64, Nstates, Nstates)
     gt = zeros(Float64, Npoints, Nstates)
     gt_Haux = zeros(Float64, Nstates, Nstates)
-    Kgt_Haux = zeros(Float64, Nstates, Nstates)    
+    Kgt_Haux = zeros(Float64, Nstates, Nstates)
 
     g_old = zeros(Float64, Npoints, Nstates)
     Kg_old = zeros(Float64, Npoints, Nstates)

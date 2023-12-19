@@ -125,7 +125,8 @@ function calc_grad_Lfunc_Haux!(
     ebands[:,1], Urot = eigen(Hermitian(Haux)) # Force Haux to be Hermitian
 
     update_from_ebands!(Ham, ebands)
-    update_from_wavefunc!(Ham, psi)
+    update_from_wavefunc!(Ham, psi*Urot)
+    # Urot should not affect anything in Rhoe calculation
 
     fill!(g, 0.0)
     fill!(Hsub, 0.0)

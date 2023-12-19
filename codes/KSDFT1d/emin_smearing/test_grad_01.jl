@@ -38,17 +38,19 @@ Hsub = zeros(Float64, size(Haux))
 
 # Evaluate total energy by calling Lfunc
 E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
+energies1 = deepcopy(Ham.energies)
 calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+
 println("Original variables:")
 println("Ham.electrons.ebands  = ", Ham.electrons.ebands)
 println("Ham.electrons.Focc    = ", Ham.electrons.Focc)
 println("Ham.electrons.E_fermi = ", Ham.electrons.E_fermi)
 
 
-Δ = 1e-8
+Δ = 1e-5
 Δ_Haux = 0.0
-dW = randn(Float64, size(psi))
-dW_Haux = randn(Float64, size(Haux))
+dW = #randn(Float64, size(psi))
+dW_Haux = #randn(Float64, size(Haux))
 
 psi_new = psi + Δ*dW
 Haux_new = Haux + Δ_Haux*dW_Haux
