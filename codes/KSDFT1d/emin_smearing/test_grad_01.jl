@@ -14,6 +14,11 @@ include("Lfunc.jl")
 include("../utilities.jl")
 include("gradients_psi_Haux.jl")
 
+function constrain_search_dir!(d, psi, hx)
+    d[:] = d - psi * ( psi' * d ) * hx
+    return
+end
+
 Ham = init_Hamiltonian()
 
 hx = Ham.grid.hx
@@ -48,9 +53,12 @@ end
 @printf("Ham.electrons.E_fermi = %18.10f\n", Ham.electrons.E_fermi)
 
 
-# Set the directions
 
-dW = g
+# Set the directions
+Kg = zeros(Float64, size(g))
+prec_invK!(Ham, g, Kg)
+dW = Kg # why using Kg will not work? Do we need to constrain the search direction?
+constrain_search_dir!(dW, psi, hx)
 dW_Haux = g_Haux
 for iexp in 2:10
     #
