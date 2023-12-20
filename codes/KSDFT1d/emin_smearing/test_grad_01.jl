@@ -38,63 +38,56 @@ Hsub = zeros(Float64, size(Haux))
 
 # Evaluate total energy by calling Lfunc
 E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
-energies1 = deepcopy(Ham.energies)
 calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
 
-println("Original variables:")
-println("Ham.electrons.ebands  = ", Ham.electrons.ebands)
-println("Ham.electrons.Focc    = ", Ham.electrons.Focc)
-println("Ham.electrons.E_fermi = ", Ham.electrons.E_fermi)
-
-
-Δ = 1e-5
-Δ_Haux = 0.0
-dW = #randn(Float64, size(psi))
-dW_Haux = #randn(Float64, size(Haux))
-
-psi_new = psi + Δ*dW
-Haux_new = Haux + Δ_Haux*dW_Haux
-
-# Prepare new psi and Haux
-Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
-psi_new[:,:] = psi_new*Udagger
-Haux_new = Udagger' * Haux_new * Udagger
-Urot = transform_psi_Haux!(psi_new, Haux_new)
-E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
+energies1 = deepcopy(Ham.energies)
 println("New variables:")
-println("Ham.electrons.ebands  = ", Ham.electrons.ebands)
-println("Ham.electrons.Focc    = ", Ham.electrons.Focc)
-println("Ham.electrons.E_fermi = ", Ham.electrons.E_fermi)
-
-energies_new = deepcopy(Ham.energies)
-
-println("E1    = ", E1)
-println("E_new = ", E_new)
-dE = abs(E_new - E1)
-println("dE      = ", dE)
-
-# XXX: Use different gradient from this? from Lfunc_Focc?
-println()
-dE_psi = abs( 2*real(dot(g, Δ*dW)*hx) )
-dE_Haux = abs( real(dot(g_Haux, Δ_Haux*dW_Haux)) )
-println("dE_psi  = ", dE_psi)
-println("dE_Haux = ", dE_Haux)
-println("sum = ", dE_psi + dE_Haux)
-println("ratio = ", (dE_psi + dE_Haux)/dE)
-
-println()
-dE_psi = abs( 2*real(dot(g, Δ*dW*inv(Urot))*hx) )
-dE_Haux = abs( real(dot(g_Haux, Δ_Haux*dW_Haux)) )
-println("dE_psi  = ", dE_psi)
-println("dE_Haux = ", dE_Haux)
-println("sum = ", dE_psi + dE_Haux)
-println("ratio = ", (dE_psi + dE_Haux)/dE)
+for ist in 1:Nstates
+    @printf("%5d %18.10f %18.10f\n", ist, Ham.electrons.Focc[ist], Ham.electrons.ebands[ist,1])
+end
+@printf("Ham.electrons.E_fermi = %18.10f\n", Ham.electrons.E_fermi)
 
 
-println()
-dE_psi = abs( 2*real(dot(g, psi-psi_new)*hx) )
-dE_Haux = abs( real(dot(g_Haux, Haux-Haux_new)) )
-println("dE_psi  = ", dE_psi)
-println("dE_Haux = ", dE_Haux)
-println("sum = ", dE_psi + dE_Haux)
-println("ratio = ", (dE_psi + dE_Haux)/dE)
+# Set the directions
+
+dW = g
+dW_Haux = g_Haux
+for iexp in 2:10
+    #
+    Δ = 10.0^(-iexp)
+    println("\nStart Δ = ", Δ)
+    #
+    psi_new = psi + Δ*dW
+    Haux_new = Haux + Δ*dW_Haux
+    #
+    # Prepare new psi and Haux
+    Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
+    psi_new[:,:] = psi_new*Udagger
+    Haux_new = Udagger' * Haux_new * Udagger
+    Urot = transform_psi_Haux!(psi_new, Haux_new)
+    #
+    # Evaluate energy at new variables
+    E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
+    println("New variables:")
+    for ist in 1:Nstates
+        @printf("%5d %18.10f %18.10f\n", ist, Ham.electrons.Focc[ist], Ham.electrons.ebands[ist,1])
+    end
+    @printf("Ham.electrons.E_fermi = %18.10f\n", Ham.electrons.E_fermi)
+
+    energies_new = deepcopy(Ham.energies)
+
+    println("E1    = ", E1)
+    println("E_new = ", E_new)
+    dE = abs(E_new - E1)
+    println("dE      = ", dE)
+
+    # XXX: Use different gradient from this? from Lfunc_Focc?
+    println()
+    dE_psi = 2*real(dot(g, Δ*dW)*hx)
+    dE_Haux = real(dot(g_Haux, Δ*dW_Haux))
+    println("dE_psi  = ", dE_psi)
+    println("dE_Haux = ", dE_Haux)
+    println("sum = ", dE_psi + dE_Haux)
+    println("ratio = ", (dE_psi + dE_Haux)/dE)
+end
+
