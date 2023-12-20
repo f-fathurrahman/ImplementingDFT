@@ -15,7 +15,12 @@ include("Lfunc.jl")
 include("../utilities.jl")
 include("gradients_psi_Haux.jl")
 
-function linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux)
+function constrain_search_dir!(d, psi, hx)
+    d[:] = d - psi * ( psi' * d ) * hx
+    return
+end
+
+function linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
     #
     hx = Ham.grid.hx
     #
@@ -24,7 +29,7 @@ function linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux)
     Kgt_Haux = zeros(Float64, size(Haux))
     Hsub = zeros(Float64, size(Haux))
     #
-    α_t = 1e-1
+    α_t = 1e-3
     psic = psi + α_t*d # trial wavefunc
     Hauxc = Haux + α_t*d_Haux
     #
@@ -35,12 +40,15 @@ function linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux)
     #
     Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc) # need to call this?
     calc_grad_Lfunc_Haux!(Ham, psic, Hauxc, gt, Hsub, gt_Haux, Kgt_Haux)
-    #
-    denum1 = sum(conj(g-gt).*d)*hx + sum(conj(g_Haux-gt_Haux).*d_Haux)
-    println("LineMin: denum1 = ", denum1)
     println("LineMin: Etrial = ", Etrial)
+    if Etrial > E1
+        println("LineMin: Etrial is not smaller")
+    end
+    #
+    denum1 = 2*sum(conj(g-gt).*d)*hx + sum(conj(g_Haux-gt_Haux).*d_Haux)
+    println("LineMin: denum1 = ", denum1)
     if denum1 != 0.0 # check for small
-        num1 = sum(conj(g).*d)*hx + sum(conj(g_Haux).*d_Haux)
+        num1 = 2*sum(conj(g).*d)*hx + sum(conj(g_Haux).*d_Haux)
         println("num1 = ", num1)
         α = abs( α_t*num1/denum1 )
     else
@@ -77,7 +85,7 @@ function linemin_armijo(Ham, psi, Haux, d_in, d_Haux_in, E1;
     for iterE in 1:20
         #
         dE = E_new - E1
-        @printf("LineMin: %3d %18.5e %18.5e\n", iterE, α, dE)
+        #@printf("LineMin: %3d %18.5e %18.5e\n", iterE, α, dE)
         if dE < 0.0
             println("E_new is smaller, α=$(α) is accepted, found in iterE=$(iterE)")
             is_success = true
@@ -179,35 +187,29 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         println("β = $(β)")
 =#
 
-
         #d[:,:] = -Kg + (β+β_Haux)*d_old
         #d_Haux[:,:] = -Kg_Haux + (β+β_Haux)*d_Haux_old
 
         d[:,:] = -Kg + β*d_old
         d_Haux[:,:] = -Kg_Haux + β*d_Haux_old
 
+        constrain_search_dir!(d, psi, hx)
 
-        println()
-        if is_increasing
-            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
-        else
-            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
-        end
+        #println()
+        #if is_increasing
+        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
+        #else
+        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
+        #end
 
-        #α = linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux)
-        #is_linmin_success = true # force to true
+        α = linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
+        is_linmin_success = true # force to true
 
         if !is_linmin_success
             is_converged = false
             break
         end
 
-        #
-        #println("DEBUG: dot grad psi: ", dot(g,Kg)*hx)
-        #println("DEBUG: dot grad Haux: ", dot(g_Haux,Kg_Haux))
-        #
-        #println("DEBUG: dot step psi: ", dot(g,d)*hx)
-        #println("DEBUG: dot step Haux: ", dot(g_Haux,d_Haux))
         #
         # Save old variables
         E_old = E1
