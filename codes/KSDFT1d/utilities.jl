@@ -34,6 +34,17 @@ function prepare_psi_Haux!(psi, Haux, hx)
     return Udagger, Urot # need these?
 end
 
+function revert_psi_Haux!(psi, Haux, Udagger, Urot)
+    psi[:,:] = psi[:,:]*Urot'
+    Haux[:,:] = Urot * Haux * Urot'
+    #
+    # Udagger is not an orthogonal matrix. Use inverse explicitly
+    Haux[:,:] = inv(Udagger') * Haux * inv(Udagger)
+    psi[:,:] = psi * inv(Udagger)
+    return
+end
+
+
 function ortho_sqrt( psi::Array{Float64,2} )
     Udagger = inv(sqrt(psi'*psi))
     return psi*Udagger
