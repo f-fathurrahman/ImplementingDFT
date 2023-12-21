@@ -1,3 +1,8 @@
+function constrain_search_dir!(d, psi, hx)
+    d[:] = d - psi * ( psi' * d ) * hx
+    return
+end
+
 # https://discourse.julialang.org/t/how-to-generate-a-random-unitary-matrix-perfectly-in-julia/34102
 function random_unitary_matrix(N::Int64)
     #x = (rand(N,N) + rand(N,N)*im) / sqrt(2)

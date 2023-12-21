@@ -15,142 +15,9 @@ include("Lfunc.jl")
 include("../utilities.jl")
 include("gradients_psi_Haux.jl")
 
-function constrain_search_dir!(d, psi, hx)
-    d[:] = d - psi * ( psi' * d ) * hx
-    return
-end
-
-function linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-    #
-    hx = Ham.grid.hx
-    #
-    gt = zeros(Float64, size(psi))
-    gt_Haux = zeros(Float64, size(Haux))
-    Kgt_Haux = zeros(Float64, size(Haux))
-    Hsub = zeros(Float64, size(Haux))
-    #
-    α_t = 1e-3
-    psic = psi + α_t*d # trial wavefunc
-    Hauxc = Haux + α_t*d_Haux
-    #
-    Udagger = inv(sqrt(psic'*psic)) ./ sqrt(hx) # rotation
-    psic[:,:] = psic*Udagger # orthogonalize
-    Hauxc = Udagger' * Hauxc * Udagger # rotate Haux
-    Urot2 = transform_psi_Haux!(psic, Hauxc) # make Haux diagonal 
-    #
-    Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc) # need to call this?
-    calc_grad_Lfunc_Haux!(Ham, psic, Hauxc, gt, Hsub, gt_Haux, Kgt_Haux)
-    println("LineMin: Etrial = ", Etrial)
-    if Etrial > E1
-        println("LineMin: Etrial is not smaller")
-    end
-    #
-    denum1 = 2*sum(conj(g-gt).*d)*hx + sum(conj(g_Haux-gt_Haux).*d_Haux)
-    println("LineMin: denum1 = ", denum1)
-    if denum1 != 0.0 # check for small
-        num1 = 2*sum(conj(g).*d)*hx + sum(conj(g_Haux).*d_Haux)
-        println("num1 = ", num1)
-        α = α_t*num1/denum1
-    else
-        α = 0.0
-    end
-    println("LineMin: α = ", α)
-    return α
-end
-
-
-function linemin_armijo(Ham, psi, Haux, d_in, d_Haux_in, E1;
-    α0=10.0, reduce_factor=0.5, α_safe=1e-8
-)
-    #
-    hx = Ham.grid.hx
-    #
-    τ = reduce_factor # reduction factor
-    #
-    α = α0
-    d = α*d_in
-    d_Haux = α*d_Haux_in
-    #
-    psi_new = psi + d
-    Haux_new = Haux + d_Haux
-    #
-    Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
-    psi_new[:,:] = psi_new*Udagger
-    Haux_new = Udagger' * Haux_new * Udagger
-    Urot = transform_psi_Haux!(psi_new, Haux_new)
-    #
-    E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
-    #
-    is_success = false
-    for iterE in 1:20
-        #
-        dE = E_new - E1
-        #@printf("LineMin: %3d %18.5e %18.5e\n", iterE, α, dE)
-        if dE < 0.0
-            println("E_new is smaller, α=$(α) is accepted, found in iterE=$(iterE)")
-            is_success = true
-            break
-        end        
-        #
-        α = τ*α
-        d[:,:] = α*d_in
-        d_Haux[:,:] = α*d_Haux_in
-        #
-        psi_new[:,:] = psi + d
-        Haux_new[:,:] = Haux + d_Haux
-        #
-        Udagger[:,:] = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
-        psi_new[:,:] = psi_new*Udagger
-        Haux_new[:,:] = Udagger' * Haux_new * Udagger
-        Urot[:,:] = transform_psi_Haux!(psi_new, Haux_new)
-        #
-        E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
-    end
-
-    if is_success
-        return α, true
-    else
-        #println("LineMin: unsuccessful, returning last α")
-        #return α
-        #error("LineMin: unsuccessful")
-        println("LineMin: unsuccessful, returning α_safe")
-        return α_safe, true #false
-    end
-end
-
-
-function linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-    hx = Ham.grid.hx
-    #
-    α_t = 1e-4
-    psic = psi + α_t*d # trial wavefunc
-    Hauxc = Haux + α_t*d_Haux
-    #
-    Udagger = inv(sqrt(psic'*psic)) ./ sqrt(hx) # rotation
-    psic[:,:] = psic*Udagger # orthonormalize
-    Hauxc = Udagger' * Hauxc * Udagger # rotate Haux
-    Urot2 = transform_psi_Haux!(psic, Hauxc) # make Haux diagonal 
-    #
-    Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc)
-    ΔEdir = 2*dot(g, α_t*d)*hx + dot(d_Haux, α_t*g_Haux)
-    #
-    println("LineMin: E1     = ", E1)
-    println("LineMin: Etrial = ", Etrial)
-    if Etrial > E1
-        println("LineMin: WARNING!!! Etrial is higher than E1")
-        return α_t, false
-    end
-    println("LineMin: ΔEdir  = ", ΔEdir)
-    println("LineMin: ratio of energy diff = ", (E1-Etrial)/ΔEdir)
-    #
-    c = ( Etrial - (E1 + ΔEdir) ) / α_t
-    println("LineMin: c = ", c)
-    if c < 0.0
-        println("LineMin: Negative curvature, returning α_t")
-        return α_t, true
-    end
-    return -ΔEdir/(2*c), true
-end
+include("linemin_grad.jl")
+include("linemin_armijo.jl")
+include("linemin_quad.jl")
 
 
 function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
@@ -221,26 +88,23 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         println("β = $(β)")
 =#
 
-        #d[:,:] = -Kg + (β+β_Haux)*d_old
-        #d_Haux[:,:] = -Kg_Haux + (β+β_Haux)*d_Haux_old
-
         d[:,:] = -Kg + β*d_old
         d_Haux[:,:] = -Kg_Haux + β*d_Haux_old
 
         constrain_search_dir!(d, psi, hx)
 
-        #println()
-        #if is_increasing
-        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
-        #else
-        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
-        #end
+        println()
+        if is_increasing
+            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
+        else
+            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
+        end
 
         #α = linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         #is_linmin_success = true # force to true
 
-        α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-        println("α = ", α)
+        #α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
+        #println("α = ", α)
 
         # We will stop iteration if line minimization is not successful
         if !is_linmin_success
