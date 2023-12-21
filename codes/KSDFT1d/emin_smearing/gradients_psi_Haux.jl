@@ -77,7 +77,8 @@ function calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
     end
     g_tmp[:,:] = grad_smear( smear_fermi, smear_fermi_prime, ebands[:,ispin], E_fermi, kT, gradF )
     g_Haux[:,:] = w * 0.5 * (g_tmp' + g_tmp)
-    Kg_Haux[:,:] = -copy(gradF0) #-0.1*copy(gradF0)
+    #Kg_Haux[:,:] = -copy(gradF0) #-0.1*copy(gradF0)
+    Kg_Haux[:,:] = -0.1*copy(gradF0)
 
     return
 

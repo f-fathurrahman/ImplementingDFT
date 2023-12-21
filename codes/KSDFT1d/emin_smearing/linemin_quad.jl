@@ -20,13 +20,13 @@ function linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         return α_t, false
     end
     println("LineMin: ΔEdir  = ", ΔEdir)
-    println("LineMin: ratio of energy diff = ", (E1-Etrial)/ΔEdir)
+    println("LineMin: ratio of energy diff = ", (Etrial - E1)/ΔEdir)
     #
     c = ( Etrial - (E1 + ΔEdir) ) / α_t
     println("LineMin: c = ", c)
-    if c < 0.0
-        println("LineMin: Negative curvature, returning α_t")
-        return α_t, true
-    end
-    return -ΔEdir/(2*c), true
+    #if c < 0.0
+    #    println("LineMin: Negative curvature, returning α_t")
+    #    return α_t, true
+    #end
+    return abs(ΔEdir/(2*c)), true
 end

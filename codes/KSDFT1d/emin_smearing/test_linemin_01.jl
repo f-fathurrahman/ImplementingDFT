@@ -177,7 +177,11 @@ function main()
     Nstates = Ham.electrons.Nstates
 
     # Random wavefunc
-    Random.seed!(11) # vary this to find problematic case?
+    iseed = abs(rand(Int64))
+    println("iseed = ", iseed)
+    Random.seed!(iseed)
+    #Random.seed!(1) # vary this to find problematic case?
+
     psi = generate_random_wavefunc(Ham)
     Haux = diagm( 0 => sort(randn(Nstates)) )
     #
