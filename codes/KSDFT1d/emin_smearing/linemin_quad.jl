@@ -11,7 +11,7 @@ function linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
     Urot2 = transform_psi_Haux!(psic, Hauxc) # make Haux diagonal 
     #
     Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc)
-    ΔEdir = 2*dot(g, α_t*d)*hx + dot(d_Haux, α_t*g_Haux)
+    ΔEdir = 2*dot(g, α_t*d)*hx + dot(g_Haux, α_t*d_Haux)
     #
     println("LineMin: E1     = ", E1)
     println("LineMin: Etrial = ", Etrial)
