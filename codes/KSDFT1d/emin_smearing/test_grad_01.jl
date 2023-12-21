@@ -14,11 +14,6 @@ include("Lfunc.jl")
 include("../utilities.jl")
 include("gradients_psi_Haux.jl")
 
-function constrain_search_dir!(d, psi, hx)
-    d[:] = d - psi * ( psi' * d ) * hx
-    return
-end
-
 Ham = init_Hamiltonian()
 
 hx = Ham.grid.hx
