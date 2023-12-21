@@ -48,6 +48,7 @@ end
 @printf("Ham.electrons.E_fermi = %18.10f\n", Ham.electrons.E_fermi)
 
 
+# Also try to vary only psi or only Haux
 
 # Set the directions
 Kg = zeros(Float64, size(g))
