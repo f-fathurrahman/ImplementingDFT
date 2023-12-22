@@ -22,7 +22,7 @@ Npoints = Ham.grid.Npoints
 Nstates = Ham.electrons.Nstates
 
 # Random wavefunc
-#Random.seed!(111) # vary this to find problematic case?
+Random.seed!(111) # vary this to find problematic case?
 psi = generate_random_wavefunc(Ham)
 Haux = diagm( 0 => sort(randn(Nstates)) )
 #
@@ -53,7 +53,7 @@ Nsteps = 10
 α = α_start
 for i in 1:Nsteps
     α *= mult_factor
-    d[:,:] = zero_psi #-Kg
+    d[:,:] = -Kg
     constrain_search_dir!(d, psi, hx)
     d_Haux[:,:] = -Kg_Haux
     #
@@ -61,9 +61,11 @@ for i in 1:Nsteps
     Haux_new = Haux + α*d_Haux
     prepare_psi_Haux!(psi_new, Haux_new, hx)
     E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
-    dg = 2*dot(g, α*d)*hx + dot(g_Haux, α*d_Haux)
+    dg_psi = 2*dot(g, α*d)*hx
+    dg_Haux = dot(g_Haux, α*d_Haux)
+    dg = dg_psi + dg_Haux
     dE = E_new - E1
     ratio = dE/dg
-    @printf("%18.10f %18.10f %18.10f %18.10f %18.10f\n", α, E_new, dE, dg, ratio)
+    @printf("%12.5e %12.5e %12.5e [%12.5e,%12.5e] %12.5e %10.5f\n", α, E_new, dE, dg_psi, dg_Haux, dg, ratio)
 end
 
