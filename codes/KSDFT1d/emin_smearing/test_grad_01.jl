@@ -21,7 +21,7 @@ Npoints = Ham.grid.Npoints
 Nstates = Ham.electrons.Nstates
 
 # Random wavefunc
-#Random.seed!(1234)
+Random.seed!(1234)
 psi = generate_random_wavefunc(Ham)
 psi_orig = deepcopy(psi)
 
@@ -67,7 +67,7 @@ for iexp in 2:10
     # Prepare new psi and Haux
     Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
     psi_new[:,:] = psi_new*Udagger
-    Haux_new = Udagger' * Haux_new * Udagger
+    #Haux_new = Udagger' * Haux_new * Udagger
     Urot = transform_psi_Haux!(psi_new, Haux_new)
     #
     # Evaluate energy at new variables

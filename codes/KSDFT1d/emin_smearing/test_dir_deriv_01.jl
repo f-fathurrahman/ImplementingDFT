@@ -38,15 +38,15 @@ Hsub = zeros(Float64, size(Haux))
 
 E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
 calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
-prec_invK!(Ham, g, Kg)
-#calc_grad_no_Focc!(Ham, psi, Kg)
-#prec_invK!(Ham, Kg)
+#prec_invK!(Ham, g, Kg)
+calc_grad_no_Focc!(Ham, psi, Kg)
+prec_invK!(Ham, Kg)
 
 @printf("%18.10f %18.10f\n", 0.0, E1)
 
 α_start = 1e-10
 mult_factor = 5
-Nsteps = 1
+Nsteps = 10
 α = α_start
 for i in 1:Nsteps
     α *= mult_factor

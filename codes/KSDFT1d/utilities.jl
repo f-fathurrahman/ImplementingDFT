@@ -26,7 +26,7 @@ end
 function prepare_psi_Haux!(psi, Haux, hx)
     Udagger = inv(sqrt(psi'*psi)) ./ sqrt(hx)
     psi[:,:] = psi*Udagger
-    Haux[:,:] = Udagger' * Haux * Udagger
+    #Haux[:,:] = Udagger' * Haux * Udagger
     # Make Haux diagonal
     λ, Urot = eigen(Hermitian(Haux))
     Haux[:,:] = diagm(0 => λ)

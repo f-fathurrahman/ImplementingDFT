@@ -130,7 +130,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         #
         Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(hx)
         psi[:,:] = psi*Udagger
-        Haux[:,:] = Udagger' * Haux * Udagger
+        #Haux[:,:] = Udagger' * Haux * Udagger
         Urot[:,:] = transform_psi_Haux!(psi, Haux)
         #
         E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
@@ -212,7 +212,7 @@ function main()
         #
         Udagger = inv(sqrt(psi'*psi)) ./ sqrt(hx)
         psi[:,:] = psi*Udagger
-        Haux[:,:] = Udagger' * Haux * Udagger
+        #Haux[:,:] = Udagger' * Haux * Udagger
         Urot = transform_psi_Haux!(psi, Haux)
     end
 
