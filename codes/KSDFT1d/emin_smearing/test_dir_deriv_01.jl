@@ -44,13 +44,17 @@ prec_invK!(Ham, Kg)
 
 @printf("%18.10f %18.10f\n", 0.0, E1)
 
+# Use this if we want to only calculate in psi or Haux variables
+zero_psi = zeros(Float64, size(psi))
+zero_Haux = zeros(Float64, size(Haux))
 α_start = 1e-10
 mult_factor = 5
 Nsteps = 10
 α = α_start
 for i in 1:Nsteps
     α *= mult_factor
-    d[:,:] = -g
+    d[:,:] = zero_psi #-Kg
+    constrain_search_dir!(d, psi, hx)
     d_Haux[:,:] = -Kg_Haux
     #
     psi_new = psi + α*d
