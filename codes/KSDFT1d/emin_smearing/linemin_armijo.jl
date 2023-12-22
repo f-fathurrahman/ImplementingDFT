@@ -12,11 +12,7 @@ function linemin_armijo(Ham, psi, Haux, d_in, d_Haux_in, E1;
     #
     psi_new = psi + d
     Haux_new = Haux + d_Haux
-    #
-    Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
-    psi_new[:,:] = psi_new*Udagger
-    #Haux_new = Udagger' * Haux_new * Udagger
-    Urot = transform_psi_Haux!(psi_new, Haux_new)
+    prepare_psi_Haux!(psi_new, Haux_new, hx)
     #
     E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
     #
@@ -37,11 +33,7 @@ function linemin_armijo(Ham, psi, Haux, d_in, d_Haux_in, E1;
         #
         psi_new[:,:] = psi + d
         Haux_new[:,:] = Haux + d_Haux
-        #
-        Udagger[:,:] = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
-        psi_new[:,:] = psi_new*Udagger
-        #Haux_new[:,:] = Udagger' * Haux_new * Udagger
-        Urot[:,:] = transform_psi_Haux!(psi_new, Haux_new)
+        prepare_psi_Haux!(psi_new, Haux_new, hx)
         #
         E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
     end

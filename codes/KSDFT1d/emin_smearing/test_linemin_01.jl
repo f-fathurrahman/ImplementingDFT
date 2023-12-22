@@ -26,11 +26,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
 
-    #
     Hsub = zeros(Float64, size(Haux))
-    #
-    Udagger = zeros(Float64, size(Haux))
-    Urot = zeros(Float64, size(Haux))
 
     # Evaluate total energy and gradient by calling Lfunc
     E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
@@ -70,41 +66,38 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
         println("\nBegin iterEmin = ", iterEmin)
 
-#=
+
         if iterEmin >= 2
             #β = real( dot(g - g_old, Kg) )/real( dot(g_old,Kg_old) )
-            num1 = 2*dot(g - g_old, Kg)*hx + dot(g_Haux - g_Haux_old, Kg_Haux)
-            denum1 = 2*dot(g_old,Kg_old)*hx + dot(g_Haux_old,Kg_Haux_old)
+            num1 = 2*dot(g-g_old, Kg)*hx + dot(g_Haux-g_Haux_old, Kg_Haux)
+            denum1 = 2*dot(g_old, Kg_old)*hx + dot(g_Haux_old, Kg_Haux_old)
+            #num1 = 2*dot(g,Kg)*hx + dot(g_Haux,Kg_Haux)
+            #denum1 = 2*dot(g_old,Kg_old)*hx + dot(g_Haux_old,Kg_Haux_old)
             β = num1/denum1
             if β < 0.0
                 β = 0.0
             end
-            #β_Haux = real( dot(g_Haux - g_Haux_old, Kg_Haux) )/real( dot(g_Haux_old,Kg_Haux_old) )
-            #if β_Haux < 0.0
-            #    β_Haux = 0.0
-            #end
         end
         #println("β = $(β) , β_Haux = $(β_Haux)")
         println("β = $(β)")
-=#
 
         d[:,:] = -Kg + β*d_old
         d_Haux[:,:] = -Kg_Haux + β*d_Haux_old
 
         constrain_search_dir!(d, psi, hx)
 
-        println()
-        if is_increasing
-            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
-        else
-            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
-        end
+        #println()
+        #if is_increasing
+        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
+        #else
+        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
+        #end
 
         #α = linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         #is_linmin_success = true # force to true
 
-        #α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-        #println("α = ", α)
+        α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
+        println("α = ", α)
 
         # We will stop iteration if line minimization is not successful
         if !is_linmin_success
@@ -128,10 +121,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         psi[:,:] = psi + α*d
         Haux[:,:] = Haux + α*d_Haux
         #
-        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(hx)
-        psi[:,:] = psi*Udagger
-        #Haux[:,:] = Udagger' * Haux * Udagger
-        Urot[:,:] = transform_psi_Haux!(psi, Haux)
+        prepare_psi_Haux!(psi, Haux, hx)
         #
         E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
         calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
@@ -210,10 +200,7 @@ function main()
         psi[:,:] = psi[:,:] + g
         Haux[:,:] = Haux[:,:] + g_Haux
         #
-        Udagger = inv(sqrt(psi'*psi)) ./ sqrt(hx)
-        psi[:,:] = psi*Udagger
-        #Haux[:,:] = Udagger' * Haux * Udagger
-        Urot = transform_psi_Haux!(psi, Haux)
+        prepare_psi_Haux!(psi, Haux, hx)
     end
 
     println("ebands = ")

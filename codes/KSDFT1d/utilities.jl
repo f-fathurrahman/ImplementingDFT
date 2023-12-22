@@ -26,7 +26,6 @@ end
 function prepare_psi_Haux!(psi, Haux, hx)
     Udagger = inv(sqrt(psi'*psi)) ./ sqrt(hx)
     psi[:,:] = psi*Udagger
-    #Haux[:,:] = Udagger' * Haux * Udagger
     # Make Haux diagonal
     λ, Urot = eigen(Hermitian(Haux))
     Haux[:,:] = diagm(0 => λ)
@@ -34,12 +33,10 @@ function prepare_psi_Haux!(psi, Haux, hx)
     return Udagger, Urot # need these?
 end
 
+# This is reverse operation to prepare_psi_Haux
 function revert_psi_Haux!(psi, Haux, Udagger, Urot)
     psi[:,:] = psi[:,:]*Urot'
     Haux[:,:] = Urot * Haux * Urot'
-    #
-    # Udagger is not an orthogonal matrix. Use inverse explicitly
-    Haux[:,:] = inv(Udagger') * Haux * inv(Udagger)
     psi[:,:] = psi * inv(Udagger)
     return
 end

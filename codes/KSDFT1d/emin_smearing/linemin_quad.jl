@@ -7,7 +7,6 @@ function linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
     #
     Udagger = inv(sqrt(psic'*psic)) ./ sqrt(hx) # rotation
     psic[:,:] = psic*Udagger # orthonormalize
-    #Hauxc = Udagger' * Hauxc * Udagger # rotate Haux
     Urot2 = transform_psi_Haux!(psic, Hauxc) # make Haux diagonal 
     #
     Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc)
