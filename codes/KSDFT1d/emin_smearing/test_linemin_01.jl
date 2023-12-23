@@ -8,8 +8,8 @@ using Serialization
 using KSDFT1d
 
 #include("system_defs_01.jl")
-#include("system_defs_02.jl")
-include("system_defs_03.jl")
+include("system_defs_02.jl")
+#include("system_defs_03.jl")
 
 include("Lfunc.jl")
 include("../utilities.jl")
@@ -66,7 +66,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
         println("\nBegin iterEmin = ", iterEmin)
 
-
+#=
         if iterEmin >= 2
             #β = real( dot(g - g_old, Kg) )/real( dot(g_old,Kg_old) )
             num1 = 2*dot(g-g_old, Kg)*hx + dot(g_Haux-g_Haux_old, Kg_Haux)
@@ -79,6 +79,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
             end
         end
         #println("β = $(β) , β_Haux = $(β_Haux)")
+=#
         println("β = $(β)")
 
         d[:,:] = -Kg + β*d_old
@@ -86,18 +87,18 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
         constrain_search_dir!(d, psi, hx)
 
-        #println()
-        #if is_increasing
-        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
-        #else
-        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
-        #end
+        println()
+        if is_increasing
+            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
+        else
+            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
+        end
 
         #α = linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         #is_linmin_success = true # force to true
 
-        α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-        println("α = ", α)
+        #α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
+        #println("α = ", α)
 
         # We will stop iteration if line minimization is not successful
         if !is_linmin_success
@@ -167,7 +168,8 @@ function main()
     Nstates = Ham.electrons.Nstates
 
     # Random wavefunc
-    iseed = abs(rand(Int64))
+    #iseed = abs(rand(Int64))
+    iseed = 1234
     println("iseed = ", iseed)
     Random.seed!(iseed)
     #Random.seed!(1) # vary this to find problematic case?

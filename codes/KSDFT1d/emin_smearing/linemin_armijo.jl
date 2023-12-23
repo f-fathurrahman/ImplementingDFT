@@ -113,7 +113,7 @@ function linemin_armijo(Ham, psi, Haux, d_in, d_Haux_in, E1;
     for iterE in 1:20
         #
         dE = E_new - E1
-        #@printf("LineMin: %3d %18.5e %18.5e\n", iterE, α, dE)
+        @printf("LineMin: %3d %18.5e %18.5e\n", iterE, α, dE)
         if dE < 0.0
             println("E_new is smaller, α=$(α) is accepted, found in iterE=$(iterE)")
             is_success = true

@@ -8,8 +8,8 @@ using Serialization
 using KSDFT1d
 
 #include("system_defs_01.jl")
-#include("system_defs_02.jl")
-include("system_defs_03.jl")
+include("system_defs_02.jl")
+#include("system_defs_03.jl")
 
 include("Lfunc.jl")
 include("../utilities.jl")
@@ -45,11 +45,13 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
     Nconverges = 0
     is_increasing = false
     is_converged = false
-    α = 1.0
-    α_Haux = 1.0
+    α = 1e-4
+    α_Haux = 1e-1
     β = 0.0
     β_Haux = 0.0
 
+    is_linmin_success1 = true
+    is_linmin_success2 = true
 
     g_old = zeros(Float64, size(psi))
     Kg_old = zeros(Float64, size(psi))
@@ -82,6 +84,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
             end
         end
 =#
+
         println("β = $(β) , β_Haux = $(β_Haux)")
 
         # Search direction
@@ -90,16 +93,13 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         #
         constrain_search_dir!(d, psi, hx)
 
-
-        α, is_linmin_success1 = linemin_armijo_psi(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.25)
-        println("α = ", α)
-        α_Haux, is_linmin_success2 = linemin_armijo_Haux(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.25)
-        println("α_Haux = ", α_Haux)
-
+        α, is_linmin_success1 = linemin_armijo_psi(Ham, psi, Haux, d, d_Haux, E1, α0=1.0, reduce_factor=0.25)
+        α_Haux, is_linmin_success2 = linemin_armijo_Haux(Ham, psi, Haux, d, d_Haux, E1, α0=1.0, reduce_factor=0.25)
+        
         #α, is_linmin_success1 = linemin_quad_psi(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-        #println("α = ", α)
         #α_Haux, is_linmin_success2 = linemin_quad_Haux(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-        #println("α_Haux = ", α_Haux)
+
+        println("α = ", α, " α_Haux = ", α_Haux)
 
         # We will stop iteration if line minimization is not successful
         if !(is_linmin_success1 && is_linmin_success2)
