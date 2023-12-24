@@ -79,26 +79,29 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
             end
         end
         #println("β = $(β) , β_Haux = $(β_Haux)")
-=#
+=#  
         println("β = $(β)")
+
+        # old variables
+        d_old[:] .= d[:]
+        d_Haux_old[:] .= d_Haux[:]
 
         d[:,:] = -Kg + β*d_old
         d_Haux[:,:] = -Kg_Haux + β*d_Haux_old
-
         constrain_search_dir!(d, psi, hx)
 
-        #println()
-        #if is_increasing
-        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
-        #else
-        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
-        #end
+        println()
+        if is_increasing
+            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
+        else
+            α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
+        end
 
         #α = linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         #is_linmin_success = true # force to true
 
-        α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-        println("α = ", α)
+        #α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
+        #println("α = ", α)
 
         # We will stop iteration if line minimization is not successful
         if !is_linmin_success
@@ -106,17 +109,24 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
             break
         end
 
+        num1 = 2*dot(g,d_old)*hx + dot(g_Haux,d_Haux_old)
+        gg = 2*dot(g,g)*hx + dot(g_Haux,g_Haux)
+        dd = 2*dot(d_old,d_old)*hx + dot(d_Haux_old,d_Haux_old)
+        println("num1 = ", num1)
+        println("gg*dd = ", gg*dd)
+        linmin_test = num1/sqrt(gg*dd)
+        println("linmin_test = ", linmin_test)
+
+
         #
         # Save old variables
         E_old = E1
         #
         g_old[:] .= g[:]
         Kg_old[:] .= Kg[:]
-        d_old[:] .= d[:]
         #
         g_Haux_old[:] .= g_Haux[:]
         Kg_Haux_old[:] .= Kg_Haux[:]
-        d_Haux_old[:] .= d_Haux[:]
         #
         #
         psi[:,:] = psi + α*d
