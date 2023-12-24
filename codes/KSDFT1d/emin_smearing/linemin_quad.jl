@@ -66,21 +66,26 @@ function linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
     #
     Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc)
     ΔEdir = 2*dot(g, α_t*d)*hx + dot(g_Haux, α_t*d_Haux)
+    if ΔEdir > 0
+        println("linemin_quad: !!! Bad step direction")
+    end
     #
-    println("LineMin: E1     = ", E1)
-    println("LineMin: Etrial = ", Etrial)
+    println("linemin_quad: E1     = ", E1)
+    println("linemin_quad: Etrial = ", Etrial)
     if Etrial > E1
-        println("LineMin: WARNING!!! Etrial is higher than E1")
+        println("linemin_quad: WARNING!!! Etrial is higher than E1")
         return α_t, false
     end
-    println("LineMin: ΔEdir  = ", ΔEdir)
-    println("LineMin: ratio of energy diff = ", (Etrial - E1)/ΔEdir)
+    println("linemin_quad: ΔEdir  = ", ΔEdir)
+    println("linemin_quad: ratio of energy diff = ", (Etrial - E1)/ΔEdir)
     #
     c = ( Etrial - (E1 + ΔEdir) ) / α_t
-    println("LineMin: c = ", c)
-    #if c < 0.0
-    #    println("LineMin: Negative curvature, returning α_t")
-    #    return α_t, true
-    #end
-    return abs(ΔEdir/(2*c)), true
+    α = -ΔEdir/(2*c)
+    println("linemin_quad: c = ", c)
+    println("linemin_quad: α = ", α)
+    if α < 0.0
+        println("linemin_quad: Wrong curvature, returning α")
+        return α, true
+    end
+    return α, true
 end

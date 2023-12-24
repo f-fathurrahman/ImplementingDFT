@@ -8,16 +8,14 @@ using Serialization
 using KSDFT1d
 
 #include("system_defs_01.jl")
-include("system_defs_02.jl")
-#include("system_defs_03.jl")
+#include("system_defs_02.jl")
+include("system_defs_03.jl")
 
 include("Lfunc.jl")
 include("../utilities.jl")
 include("gradients_psi_Haux.jl")
 
-include("linemin_grad.jl")
-include("linemin_armijo.jl")
-include("linemin_quad.jl")
+include("linemin_quad_v2.jl")
 
 
 function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
@@ -59,8 +57,13 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
     Kg_Haux_old = zeros(Float64, size(Haux))
     d_Haux_old = zeros(Float64, size(Haux))
 
+    Udagger = zeros(Float64, size(Haux))
+    Urot = zeros(Float64, size(Haux))
 
     println("E initial = ", E1)
+
+    α_t_start = 1.0
+    α_t = α_t_start
 
     for iterEmin in 1:500
 
@@ -87,24 +90,14 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
         constrain_search_dir!(d, psi, hx)
 
-        #println()
-        #if is_increasing
-        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1, reduce_factor=0.1)
-        #else
-        #    α, is_linmin_success = linemin_armijo(Ham, psi, Haux, d, d_Haux, E1)
-        #end
-
-        #α = linemin_grad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-        #is_linmin_success = true # force to true
-
-        α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
+        α, α_t, is_linmin_success = linemin_quad(α_t, Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         println("α = ", α)
 
         # We will stop iteration if line minimization is not successful
-        if !is_linmin_success
-            is_converged = false
-            break
-        end
+        #if !is_linmin_success
+        #    is_converged = false
+        #    break
+        #end
 
         #
         # Save old variables
@@ -117,21 +110,36 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         g_Haux_old[:] .= g_Haux[:]
         Kg_Haux_old[:] .= Kg_Haux[:]
         d_Haux_old[:] .= d_Haux[:]
-        #
-        #
-        psi[:,:] = psi + α*d
-        Haux[:,:] = Haux + α*d_Haux
-        #
-        prepare_psi_Haux!(psi, Haux, hx)
-        #
-        E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
-        calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
-        #prec_invK!(Ham, g, Kg) # Precondition
-        calc_grad_no_Focc!(Ham, psi, Kg)
-        prec_invK!(Ham, Kg)
-        #
-        #
-        dE = E1 - E_old
+        
+        for itry in 1:3
+            #
+            # Actual step
+            psi[:,:] = psi + α*d
+            Haux[:,:] = Haux + α*d_Haux
+            Udagger[:,:], Urot[:,:] = prepare_psi_Haux!(psi, Haux, hx)
+            E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
+            calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+            calc_grad_no_Focc!(Ham, psi, Kg)
+            prec_invK!(Ham, Kg)
+            #
+            dE = E1 - E_old
+            if E1 > E_old
+                println()
+                println("E1 is not decreasing, reversing step")
+                println("α = ", α, " E1 = ", E1, " E_old = ", E_old)
+                revert_psi_Haux!(psi, Haux, Udagger, Urot)
+                psi[:,:] = psi - α*d
+                Haux[:,:] = Haux - α*d_Haux
+                Erevert = calc_Lfunc_Haux!(Ham, psi, Haux)
+                println("After revert: Erevert = ", Erevert)
+                α = 0.1*α
+                println("Decreasing α to ", α)
+            else
+                println("Successful linemin: E1 = ", E1, " E_old = ", E_old)
+                break
+            end
+        end
+
         dg_Haux = dot(g_Haux,g_Haux)*hx/length(g_Haux)
         dg = dot(g,g)*hx/length(g)
         #
