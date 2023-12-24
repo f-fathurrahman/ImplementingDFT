@@ -71,33 +71,37 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
 #=
         if iterEmin >= 2
-            #β = real( dot(g - g_old, Kg) )/real( dot(g_old,Kg_old) )
             num1 = 2*dot(g-g_old, Kg)*hx + dot(g_Haux-g_Haux_old, Kg_Haux)
             denum1 = 2*dot(g_old, Kg_old)*hx + dot(g_Haux_old, Kg_Haux_old)
-            #num1 = 2*dot(g,Kg)*hx + dot(g_Haux,Kg_Haux)
-            #denum1 = 2*dot(g_old,Kg_old)*hx + dot(g_Haux_old,Kg_Haux_old)
             β = num1/denum1
             if β < 0.0
                 β = 0.0
             end
         end
-        #println("β = $(β) , β_Haux = $(β_Haux)")
 =#
+
         println("β = $(β)")
 
         d[:,:] = -Kg + β*d_old
         d_Haux[:,:] = -Kg_Haux + β*d_Haux_old
-
         constrain_search_dir!(d, psi, hx)
+
+        gdotd = 2*dot(g, d)*hx + dot(g_Haux, d_Haux)
+        if gdotd > 0
+            println("CG: !!! Bad step direction, reset CG")
+            d[:,:] = -Kg
+            d_Haux[:,:] = -Kg_Haux
+            constrain_search_dir!(d, psi, hx)
+        end
 
         α, α_t, is_linmin_success = linemin_quad(α_t, Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         println("α = ", α)
 
         # We will stop iteration if line minimization is not successful
-        #if !is_linmin_success
-        #    is_converged = false
-        #    break
-        #end
+        if !is_linmin_success
+            is_converged = false
+
+        end
 
         #
         # Save old variables
@@ -111,7 +115,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         Kg_Haux_old[:] .= Kg_Haux[:]
         d_Haux_old[:] .= d_Haux[:]
         
-        for itry in 1:3
+        for itry in 1:10
             #
             # Actual step
             psi[:,:] = psi + α*d

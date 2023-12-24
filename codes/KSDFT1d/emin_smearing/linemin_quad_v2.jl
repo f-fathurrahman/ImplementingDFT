@@ -12,7 +12,7 @@ function linemin_quad(α_t::Float64, Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
     gdotd = 2*dot(g, d)*hx + dot(g_Haux, d_Haux)
     if gdotd > 0.0
         println("linemin_quad: !!! Bad step direction")
-        return α, α_t, false
+        return 1.0, α_t, false
     end
 
     α_prev = 0.0
@@ -49,7 +49,7 @@ function linemin_quad(α_t::Float64, Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         if Etrial < E1
             println("linemin_quad: Etrial is lower than E1")
             println("linemin_quad: Wrong curvature, returning α_t")
-            α_t = α_t*increaseFactor
+            #α_t = α_t*increaseFactor
             #println("linemin_quad: α_t is increased to ", α_t)
             return α_t, α_t, true
         end
