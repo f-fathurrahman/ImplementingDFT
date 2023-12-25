@@ -5,14 +5,17 @@ using LinearAlgebra
 using KSDFT1d
 import Random
 
-include("system_defs_01.jl")
+include("../tests/system_defs_01.jl")
 include("../utilities.jl")
 include("direct_min_no_smearing.jl")
 
 
 function main()
 
-    Random.seed!(1234)
+    #iseed = abs(rand(Int64))
+    iseed = 1234
+    Random.seed!(iseed)
+    println("Using iseed = ", iseed)
 
     Ham = init_Hamiltonian()
 
@@ -56,48 +59,78 @@ function main()
     d_old = zeros(Float64, Npoints, Nstates)
 
     β = 0.0
+    Nconverged = 0
 
-    for iterEmin in 1:50
+    for iterEmin in 1:100
         
-        Etot_old = Etot
-        Etot = calc_KohnSham_Etotal!(Ham, psi)
+        println("\nBegin iterEmin = ", iterEmin)
 
+        Etot_old = Etot
+        # Hamiltonian will be updated by calling calc_KohnSham_Etotal!
+        Etot = calc_KohnSham_Etotal!(Ham, psi)
+        # Then, we call gradient without updating Hamiltonian
         g[:,:] .= calc_grad(Ham, psi)
 
-        dg = dot(g,g)*hx
+        dg = 2*dot(g,g)*hx
         dEtot = abs(Etot - Etot_old)
-        @printf("iterEmin = %3d Etot = %18.10f dEtot = %10.5e dg = %10.5e\n", 
-            iterEmin, Etot, dEtot, dg)
+        @printf("%3d Etot=%18.10f dE=%10.5e dG=%10.5e\n", iterEmin, Etot, dEtot, dg)
+        #
         if dEtot < 1e-6
+            Nconverged += 1
+        else
+            Nconverged = 0
+        end
+        if Nconverged >= 2
             println("Converged")
             break
         end
 
-        Kg[:,:] .= prec_invK(Ham, g)
-        #Kg[:,:] .= prec_invHam(Ham, g)
+        prec_invK!(Ham, g, Kg)
+        #prec_invHam!(Ham, g, Kg)
+
+        num1 = 2*dot(g,d_old)*hx
+        gg = 2*dot(g,g)*hx
+        dd = 2*dot(d_old,d_old)*hx
+        println("num1 = ", num1)
+        println("gg*dd = ", gg*dd)
+        linmin_test = num1/sqrt(gg*dd)
+        println("linmin_test = ", linmin_test)
+
 
         if iterEmin >= 2
-            β = real( dot(g - g_old, Kg) )/real( dot(g_old,Kg_old) )
+            β = dot(g-g_old, Kg)/dot(g_old,Kg_old)
             if β < 0.0
                 β = 0.0
             end
-            #println("β = ", β)
         end
+        println("β = ", β)
 
-        @views d[:] .= -Kg[:] + β*d_old[:]
+        # new gradient is already evaluated?
+        num1 = 2*dot(g, Kg_old)*hx
+        gg1 = 2*dot(g, Kg)*hx
+        gg2 = 2*dot(g_old, Kg_old)*hx
+        println("num1 = ", num1, " gg1 = ", gg1, " gg2 = ", gg2)
+        cg_test = num1/sqrt(gg1*gg2)
+        println("cg_test = ", cg_test)
+
+        # Set search direction
+        d[:] .= -Kg[:] + β*d_old[:]
+        constrain_search_dir!(d, psi, hx)
+        
+        # Line minimization
         psic[:] = ortho_sqrt( psi + α_t*d )
         psic[:] = psic[:]/sqrt(hx)
-
         #_ = calc_KohnSham_Etotal!(Ham, psic)
         gt[:,:] = calc_grad(Ham, psic; update=true)
-
-        # conj is not really needed because wavefunctions are real-valued here
-        denum = real(sum(conj(g-gt).*d))
+        #
+        denum = 2*dot(g-gt, d)*hx
         if denum != 0.0
-            α = abs( α_t*real(sum(conj(g).*d))/denum )
+            num = 2*dot(g, d)*hx
+            α = abs( α_t*num/denum )
         else
             α = 0.0
         end
+        println("α = ", α)
 
         # Update wavefunction
         psi[:,:] .= ortho_sqrt(psi + α*d)
@@ -110,9 +143,13 @@ function main()
     end
 
     Hr = psi' * (Ham*psi) * hx
-    band_energies = eigvals(Hr)
+    band_energies, U = eigen(Hr)
+    psi[:,:] = psi*U
+
+    println("Band energies:")
     display(band_energies); println()
 
+    println("Total energy components")
     println(Ham.energies)
 
 end

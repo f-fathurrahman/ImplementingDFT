@@ -92,6 +92,7 @@ function prec_invHam!(Ham::Hamiltonian1d, v, Kv)
     Vtot = Ham.potentials.Total
     Hmat = Kmat + diagm( 0 => Vtot[:,1] )
     λ = eigvals(Hmat)
+    println("λ = ", λ[1:size(v,2)])
     for i in 1:size(v,2)
         @views Kv[:,i] = inv(Hmat - λ[i]*I)*v[:,i]
     end
@@ -104,6 +105,7 @@ function prec_invHam!(Ham::Hamiltonian1d, v)
     Vtot = Ham.potentials.Total
     Hmat = Kmat + diagm( 0 => Vtot[:,1] )
     λ = eigvals(Hmat)
+    println("λ = ", λ[1:size(v,2)])
     for i in 1:size(v,2)
         @views v[:,i] = inv(Hmat - λ[i]*I)*v[:,i]
     end
