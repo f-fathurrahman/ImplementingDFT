@@ -8,9 +8,9 @@ using KSDFT1d
 
 include("../BroydenMixer.jl")
 
-#include("system_defs_01.jl")
+include("system_defs_01.jl")
 #include("system_defs_02.jl")
-include("system_defs_03.jl")
+#include("system_defs_03.jl")
 
 #function main()
 
