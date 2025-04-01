@@ -29,7 +29,7 @@ function test_grad_new_01(Ham)
         Kg[ispin] = zeros(Float64, Npoints, Nstates)
         Hsub[ispin] = zeros(Float64, Nstates, Nstates)
         g_Haux[ispin] = zeros(Float64, Nstates, Nstates)
-        Kg_Haux[ispin] = zeros(Float64, Npoints, Nstates)
+        Kg_Haux[ispin] = zeros(Float64, Nstates, Nstates)
     end
 
     rots_cache = RotationsCache(Nspin, Nstates)
