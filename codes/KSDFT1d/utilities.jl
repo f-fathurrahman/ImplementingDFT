@@ -15,33 +15,6 @@ function random_unitary_matrix(N::Int64)
     return U
 end
 
-function transform_psi_Haux!(psi, Haux)
-    λ, Urot = eigen(Hermitian(Haux))
-    psi[:,:] = psi[:,:]*Urot
-    Haux[:,:] = diagm(0 => λ)
-    return Urot
-end
-
-# Just like transform_psi_Haux + orthonormalization
-function prepare_psi_Haux!(psi, Haux, hx)
-    Udagger = inv(sqrt(psi'*psi)) ./ sqrt(hx)
-    psi[:,:] = psi*Udagger
-    # Make Haux diagonal
-    λ, Urot = eigen(Hermitian(Haux))
-    Haux[:,:] = diagm(0 => λ)
-    psi[:,:] = psi[:,:]*Urot
-    return Udagger, Urot # need these?
-end
-
-# This is reverse operation to prepare_psi_Haux
-function revert_psi_Haux!(psi, Haux, Udagger, Urot)
-    psi[:,:] = psi[:,:]*Urot'
-    Haux[:,:] = Urot * Haux * Urot'
-    psi[:,:] = psi * inv(Udagger)
-    return
-end
-
-
 function ortho_sqrt( psi::Array{Float64,2} )
     Udagger = inv(sqrt(psi'*psi))
     return psi*Udagger
