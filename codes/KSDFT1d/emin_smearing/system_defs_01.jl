@@ -1,4 +1,4 @@
-function create_atoms()
+function create_atoms_01()
     Natoms = 3
     σ = ones(Float64, Natoms)*(1.0)
     masses = ones(Float64, Natoms)*42000.0
@@ -11,23 +11,23 @@ function create_atoms()
     return Atoms1d( atpos, Zvals, σ, masses, L )
 end
 
-function pot_gaussian( x, x0 )
+function pot_gaussian_01( x, x0 )
     return -25.0*exp(-4.5*(x-x0)^2)
 end
 
-function init_Vions!(Ham)
+function init_Vions_01!(Ham)
     atpos = Ham.atoms.positions
     Natoms = Ham.atoms.Natoms
     for ia in 1:Natoms
-        Ham.potentials.Ions[:] += pot_gaussian.(Ham.grid.x, atpos[ia])
+        Ham.potentials.Ions[:] += pot_gaussian_01.(Ham.grid.x, atpos[ia])
     end
     return
 end
 
-function init_Hamiltonian()
-    atoms = create_atoms()
+function init_Hamiltonian_01()
+    atoms = create_atoms_01()
     Ham = Hamiltonian1d(atoms, 51, Nstates_extra=6)
-    init_Vions!(Ham)
+    init_Vions_01!(Ham)
     Ham.energies.NN = calc_E_NN(Ham.atoms) # also calculate E_NN
     return Ham
 end

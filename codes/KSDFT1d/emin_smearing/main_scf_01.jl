@@ -1,5 +1,3 @@
-push!(LOAD_PATH, "../")
-
 using Printf
 using LinearAlgebra
 using Serialization
@@ -12,7 +10,7 @@ include("system_defs_01.jl")
 #include("system_defs_02.jl")
 #include("system_defs_03.jl")
 
-#function main()
+function main_scf()
 
     Ham = init_Hamiltonian()
 
@@ -130,5 +128,7 @@ include("system_defs_01.jl")
 
     println(Ham.energies)
 
-#end
+end
+
+
 #main()

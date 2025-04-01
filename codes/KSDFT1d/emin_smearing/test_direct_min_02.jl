@@ -1,5 +1,3 @@
-push!(LOAD_PATH, "../")
-
 import Random
 using Printf
 using LinearAlgebra

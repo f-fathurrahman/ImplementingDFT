@@ -1,37 +1,30 @@
-push!(LOAD_PATH, "../")
+#  need to run setup_path first
 
-import Random
-using Printf
-using LinearAlgebra
-using Serialization
+function test_Lfunc_01()
 
-using KSDFT1d
+    Ham = init_Hamiltonian_01()
 
-include("system_defs_01.jl")
-include("Lfunc.jl")
-include("../utilities.jl")
+    hx = Ham.grid.hx
+    Npoints = Ham.grid.Npoints
+    Nelectrons = Ham.electrons.Nelectrons
+    Nstates = Ham.electrons.Nstates
+    Focc = Ham.electrons.Focc
 
-Ham = init_Hamiltonian()
+    Random.seed!(1234)
+    psi = generate_random_wavefunc(Ham)
+    Hsub = psi' * (Ham*psi) * hx
 
-hx = Ham.grid.hx
-Npoints = Ham.grid.Npoints
-Nelectrons = Ham.electrons.Nelectrons
-Nstates = Ham.electrons.Nstates
-Focc = Ham.electrons.Focc
+    ebands = zeros(Nstates,1) # explicitly declare ebands as 1-column matrix
+    ebands[:,1], Urot = eigen(Hsub)
 
-Random.seed!(1234)
-psi = generate_random_wavefunc(Ham)
-Hsub = psi' * (Ham*psi) * hx
+    display(ebands); println()
 
-ebands = zeros(Nstates,1) # explicitly declare ebands as 1-column matrix
-ebands[:,1], Urot = eigen(Hsub)
+    Etot1 = calc_Lfunc_ebands!(Ham, psi, ebands)
 
-display(ebands); println()
+    println("\nUsing rotated psi")
+    psi2 = psi*Urot
+    Etot2 = calc_Lfunc_ebands!(Ham, psi*Urot, ebands)
 
-Etot1 = calc_Lfunc_ebands!(Ham, psi, ebands)
+    #display(psi2' * psi2 * hx); println()
 
-println("\nUsing rotated psi")
-psi2 = psi*Urot
-Etot2 = calc_Lfunc_ebands!(Ham, psi*Urot, ebands)
-
-#display(psi2' * psi2 * hx); println()
+end
