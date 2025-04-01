@@ -84,7 +84,7 @@ function do_step_psis_Haux!(
     # Step
     for ispin in 1:Nspin
         psis[ispin] += α * d[ispin] * rotPrevC[ispin]
-        Haux[ispin]  += α * rotPrev[ispin]' * d_Haux[ispin] * rotPrev[ispin]
+        Haux[ispin] += α * rotPrev[ispin]' * d_Haux[ispin] * rotPrev[ispin]
     end
     transform_psis_Haux_update_ebands!( Ham, psis, Haux, rots_cache )
     return
