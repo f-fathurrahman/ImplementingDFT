@@ -1,18 +1,6 @@
-using Printf
-using LinearAlgebra
-using Serialization
-
-using KSDFT1d
-
-include("../BroydenMixer.jl")
-
-include("system_defs_01.jl")
-#include("system_defs_02.jl")
-#include("system_defs_03.jl")
-
 function main_scf()
 
-    Ham = init_Hamiltonian()
+    Ham = init_Hamiltonian_03()
 
     hx = Ham.grid.hx
     Npoints = Ham.grid.Npoints
@@ -45,9 +33,7 @@ function main_scf()
 
     Focc = Ham.electrons.Focc
     use_smearing = true
-    kT = 0.1*eV2Ha #0.1 # 0.3*eV2Ha
-
-    println("kT = ", kT)
+    kT = Ham.electrons.kT
 
     evals = Ham.electrons.ebands
 

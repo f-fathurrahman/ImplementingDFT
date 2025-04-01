@@ -2,7 +2,7 @@
 
 function test_Lfunc_01()
 
-    Ham = init_Hamiltonian_01()
+    Ham = init_Hamiltonian_02()
 
     hx = Ham.grid.hx
     Npoints = Ham.grid.Npoints
@@ -26,5 +26,7 @@ function test_Lfunc_01()
     Etot2 = calc_Lfunc_ebands!(Ham, psi*Urot, ebands)
 
     #display(psi2' * psi2 * hx); println()
+
+    @infiltrate
 
 end

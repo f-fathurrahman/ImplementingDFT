@@ -84,7 +84,8 @@ function prec_invHam(Ham::Hamiltonian1d, v)
     Hmat = Kmat + diagm( 0 => Vtot[:,1] )
     λ = eigvals(Hmat)
     vout = similar(v)
-    for i in 1:size(v,2)
+    Nstates = size(v,2)
+    for i in 1:Nstates
         @views vout[:,i] = inv(Hmat - λ[i]*I)*v[:,i]
     end
     return vout

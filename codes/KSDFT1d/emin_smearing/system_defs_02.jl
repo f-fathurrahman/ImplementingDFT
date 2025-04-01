@@ -26,6 +26,7 @@ function init_Hamiltonian_02()
     atoms = create_atoms_02()
     Ham = Hamiltonian1d(atoms, 51, Nstates_extra=5)
     init_Vions_02!(Ham)
+    Ham.electrons.kT = 0.1*eV2Ha
     Ham.energies.NN = calc_E_NN(Ham.atoms) # also calculate E_NN
     return Ham
 end

@@ -9,6 +9,10 @@ using KSDFT1d
 
 includet("system_defs_01.jl")
 includet("system_defs_02.jl")
+includet("system_defs_03.jl")
 includet("Lfunc.jl")
 includet("../utilities.jl")
-include("gradients_psi_Haux.jl")
+includet("gradients_psi_Haux.jl")
+includet("../BroydenMixer.jl")
+
+
