@@ -1,6 +1,4 @@
-function main_scf()
-
-    Ham = init_Hamiltonian_03()
+function main_scf(Ham)
 
     hx = Ham.grid.hx
     Npoints = Ham.grid.Npoints

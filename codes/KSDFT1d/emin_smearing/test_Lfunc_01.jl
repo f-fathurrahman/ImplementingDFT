@@ -1,32 +1,39 @@
 #  need to run setup_path first
 
-function test_Lfunc_01()
-
-    Ham = init_Hamiltonian_02()
+function test_Lfunc_01(Ham)
 
     hx = Ham.grid.hx
-    Npoints = Ham.grid.Npoints
-    Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
-    Focc = Ham.electrons.Focc
+    Nspin = Ham.electrons.Nspin
 
     Random.seed!(1234)
-    psi = generate_random_wavefunc(Ham)
-    Hsub = psi' * (Ham*psi) * hx
+    psis = Vector{Matrix{Float64}}(undef, Nspin)
+    for ispin in 1:Nspin
+        psis[ispin] = generate_random_wavefunc(Ham)
+    end
 
-    ebands = zeros(Nstates,1) # explicitly declare ebands as 1-column matrix
-    ebands[:,1], Urot = eigen(Hsub)
+    Haux = Vector{Matrix{Float64}}(undef, Nspin)
+    for ispin in 1:Nspin
+        Haux[ispin] = randn(Float64, Nstates, Nstates)
+        Haux[ispin] = 0.5*(Haux[ispin] + Haux[ispin]')
+    end
 
-    display(ebands); println()
+    rots_cache = RotationsCache(Nspin, Nstates)
+    transform_psi_Haux_update_ebands!(Ham, psis, Haux, rots_cache)
 
-    Etot1 = calc_Lfunc_ebands!(Ham, psi, ebands)
+    update_from_ebands!(Ham)
+    update_from_psis!(Ham, psis)
+    Etot1 = calc_Lfunc(Ham, psis)
 
-    println("\nUsing rotated psi")
-    psi2 = psi*Urot
-    Etot2 = calc_Lfunc_ebands!(Ham, psi*Urot, ebands)
-
-    #display(psi2' * psi2 * hx); println()
+    println("Etot1 = ", Etot1)
 
     @infiltrate
 
 end
+
+#=
+# Check invariance w.r.t unitary transform
+println("\nUsing rotated psi")
+psi2 = psi*Urot
+Etot2 = calc_Lfunc_ebands!(Ham, psi*Urot, ebands)
+=#
