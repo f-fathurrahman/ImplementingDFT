@@ -2,33 +2,28 @@
 # XXX: vice versa?
 
 function calc_grad!(
-    Ham, psi, g, Hsub
+    Ham, psis, g, Kg, Hsub
 )
-    ispin = 1 # FIXED
+    @assert Ham.electrons.Nspin == 1
 
-    Nstates = size(psi,2)
+    ispin = 1 # FIXED
+    psi = psis[ispin]
+    Nstates = size(psi, 2)
     hx = Ham.grid.hx
     Focc = Ham.electrons.Focc
 
     Hpsi = op_H( Ham, psi )
-    Hsub[:,:] = psi' * Hpsi * hx
-    Hpsi -= psi*Hsub
+    # Set subspace Hamiltonian
+    Hsub[ispin] = psi' * Hpsi * hx
+    Hpsi -= psi*Hsub[ispin]
 
     for ist in 1:Nstates
-        @views g[:,ist] = Focc[ist,ispin] * Hpsi[:,ist]
+        @views g[ispin][:,ist] = Focc[ist,ispin] * Hpsi[:,ist]
     end
+    # Kmat does not depend on spin
+    prec_invK!(Ham, Hpsi, Kg[ispin])
+    # Kg exclude Focc factor
 
-    return
-end
-
-
-# For preconditioned grad, no Focc
-function calc_grad_no_Focc!( Ham, psi, g )
-    ispin = 1 # FIXED
-    hx = Ham.grid.hx
-    g[:,:] = op_H( Ham, psi )
-    Hsub = psi' * g * hx
-    g[:,:] -= psi*Hsub
     return
 end
 
@@ -36,15 +31,16 @@ end
 # Gradient for Haux
 # The real input is actually stored in Ham.electrons.ebands which is calculated
 # from diagonalizing Haux
-function calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
+function calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux; κ=1.0)
 
-    Nspin = 1
+    Nspin = Ham.electrons.Nspin
+    @assert Nspin == 1
+
     Nstates = Ham.electrons.Nstates
-
     fprime = zeros(Float64,Nstates)
     fprimeNum = zeros(Float64,Nstates)
-    dmuNum = zeros(Float64,Nspin)
-    dmuDen = zeros(Float64,Nspin)
+    dmuNum = zeros(Float64, Nspin)
+    dmuDen = zeros(Float64, Nspin)
 
     # These variables are not updated or calculated here
     # They are assumed to be calculated elsewhere
@@ -56,29 +52,27 @@ function calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
     ispin = 1 # FIXED
     for ist in 1:Nstates
         fprime[ist] = smear_fermi_prime( ebands[ist,ispin], E_fermi, kT )
-        fprimeNum[ist] = fprime[ist] * ( real(Hsub[ist,ist]) - ebands[ist,ispin] )
+        fprimeNum[ist] = fprime[ist] * ( real(Hsub[ispin][ist,ist]) - ebands[ist,ispin] )
     end
     # smear_fermi_prime might return NaN if E_fermi is not set properly
     dmuNum[ispin] += w * sum(fprimeNum)
     dmuDen[ispin] += w * sum(fprime)
 
     dmuContrib = sum(dmuNum)/sum(dmuDen)
-    dBzContrib = 0.0 # not used
 
     gradF0 = zeros(Nstates,Nstates)
     gradF = zeros(Nstates,Nstates)
 
     g_tmp = zeros(Nstates,Nstates)
 
-    gradF0[:,:] = Hsub - diagm( 0 => Ham.electrons.ebands[:,ispin] )
+    gradF0[:,:] = Hsub[ispin] - diagm( 0 => Ham.electrons.ebands[:,ispin] )
     gradF[:,:] = copy(gradF0)
     for ist in 1:Nstates
         gradF[ist,ist] = gradF0[ist,ist] - dmuContrib # FIXME: not tested for spinpol
     end
     g_tmp[:,:] = grad_smear( smear_fermi, smear_fermi_prime, ebands[:,ispin], E_fermi, kT, gradF )
-    g_Haux[:,:] = w * 0.5 * (g_tmp' + g_tmp)
-    #Kg_Haux[:,:] = -copy(gradF0) #-0.1*copy(gradF0)
-    Kg_Haux[:,:] = -0.1*copy(gradF0)
+    g_Haux[ispin] = w * 0.5 * (g_tmp' + g_tmp)
+    Kg_Haux[ispin] = -κ*gradF0
 
     return
 
@@ -112,18 +106,21 @@ end
 
 function calc_grad_Lfunc_Haux!(
     Ham::Hamiltonian1d,
-    psi, # (Nbasis,Nstates)
+    psis, # (Nbasis,Nstates)
     Haux, # (Nstates,Nstates)
-    g,
+    g, Kg,
     Hsub,
-    g_Haux,
-    Kg_Haux
+    g_Haux, Kg_Haux
 )
+    @assert Ham.electrons.Nspin == 1
+
+    ispin = 1
+    psi = psis[ispin]
 
     # Calculate ebands first
     ebands = zeros(size(psi,2),1) # ebands need to be of size (Nstates,1)
     # Ham.electrons.ebands also can be used
-    ebands[:,1], Urot = eigen(Hermitian(Haux)) # Force Haux to be Hermitian
+    ebands[:,1], Urot = eigen(Hermitian(Haux[ispin])) # Force Haux to be Hermitian
 
     update_from_ebands!(Ham, ebands)
     update_from_wavefunc!(Ham, psi*Urot)
@@ -135,7 +132,7 @@ function calc_grad_Lfunc_Haux!(
     fill!(Kg_Haux, 0.0)
 
     # Evaluate the gradient for psi
-    calc_grad!(Ham, psi*Urot, g, Hsub) # don't forget to include Urot in psi
+    calc_grad!(Ham, psi*Urot, g, Kg, Hsub) # don't forget to include Urot in psi
     calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
 
     return
@@ -146,10 +143,9 @@ function calc_grad_Lfunc_ebands!(
     Ham::Hamiltonian1d,
     psi, # (Nbasis,Nstates)
     ebands, # (Nstates,1)
-    g,
+    g, Kg,
     Hsub,
-    g_Haux,
-    Kg_Haux
+    g_Haux, Kg_Haux
 )
 
     @assert size(ebands,2) == 1
@@ -165,7 +161,7 @@ function calc_grad_Lfunc_ebands!(
     fill!(Kg_Haux, 0.0)
 
     # Evaluate the gradient for psi
-    calc_grad!(Ham, psi, g, Hsub)
+    calc_grad!(Ham, psi, g, Kg, Hsub)
     calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
     return
 end

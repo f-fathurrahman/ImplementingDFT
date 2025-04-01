@@ -38,7 +38,7 @@ Hsub = zeros(Float64, size(Haux))
 
 # Evaluate total energy by calling Lfunc
 E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
-calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
+calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Kg, Hsub, g_Haux, Kg_Haux)
 
 energies1 = deepcopy(Ham.energies)
 println("New variables:")
