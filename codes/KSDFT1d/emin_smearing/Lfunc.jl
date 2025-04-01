@@ -28,7 +28,7 @@ function RotationsCache(Nspin, Nstates)
     )
 end
 
-function transform_psi_Haux_update_ebands!(
+function transform_psis_Haux_update_ebands!(
     Ham, psis, Haux, rots_cache
 )
     Nspin = Ham.electrons.Nspin
@@ -71,6 +71,22 @@ function rotate_gradients!(g, Kg, g_Haux, Kg_Haux, rots_cache)
         g_Haux[ispin][:,:] = rotPrev[ispin] * g_Haux[ispin][:,:] * rotPrev[ispin]'
         Kg_Haux[ispin][:,:] = rotPrev[ispin] * Kg_Haux[ispin][:,:] * rotPrev[ispin]'
     end
+    return
+end
+
+
+function do_step_psis_Haux!(
+    α::Float64, Ham, psis, Haux, d, d_Haux, rots_cache
+)
+    Nspin = length(psis)
+    rotPrev = rots_cache.rotPrev
+    rotPrevC = rots_cache.rotPrevC
+    # Step
+    for ispin in 1:Nspin
+        psis[ispin] += α * d[ispin] * rotPrevC[ispin]
+        Haux[ispin]  += α * rotPrev[ispin]' * d_Haux[ispin] * rotPrev[ispin]
+    end
+    transform_psis_Haux_update_ebands!( Ham, psis, Haux, rots_cache )
     return
 end
 

@@ -1,6 +1,6 @@
 #  need to run setup_path first
 
-function test_grad_new_01(Ham)
+function test_step_new_01(Ham)
 
     hx = Ham.grid.hx
     Nstates = Ham.electrons.Nstates
@@ -24,12 +24,18 @@ function test_grad_new_01(Ham)
     Hsub = Vector{Matrix{Float64}}(undef, Nspin)
     g_Haux = Vector{Matrix{Float64}}(undef, Nspin)
     Kg_Haux = Vector{Matrix{Float64}}(undef, Nspin)
+    d = Vector{Matrix{Float64}}(undef, Nspin)
+    d_Haux = Vector{Matrix{Float64}}(undef, Nspin)    
     for ispin in 1:Nspin
         g[ispin] = zeros(Float64, Npoints, Nstates)
         Kg[ispin] = zeros(Float64, Npoints, Nstates)
+        #
         Hsub[ispin] = zeros(Float64, Nstates, Nstates)
         g_Haux[ispin] = zeros(Float64, Nstates, Nstates)
         Kg_Haux[ispin] = zeros(Float64, Nstates, Nstates)
+        #
+        g[ispin] = zeros(Float64, Npoints, Nstates)
+        g_Haux[ispin] = zeros(Float64, Nstates, Nstates)
     end
 
     rots_cache = RotationsCache(Nspin, Nstates)
@@ -49,6 +55,34 @@ function test_grad_new_01(Ham)
     # rotate gradients
     rotate_gradients!(g, Kg, g_Haux, Kg_Haux, rots_cache)
 
+    # Set direction
+    d = -Kg
+    d_Haux = -Kg_Haux
+
+    gd = 2*dot(g,d) + dot(g_Haux,d_Haux)
+    println("gd = ", gd)
+    if gd > 0
+        error("Bad step direction")
+    end
+
+    # Move forward, positive α
+    α = 1.0
+    do_step_psis_Haux!(α, Ham, psis, Haux, d, d_Haux, rots_cache)
+    update_from_ebands!(Ham)
+    update_from_psis!(Ham, psis)
+    Etot2 = calc_Lfunc(Ham, psis)
+    println("Etot2 = ", Etot2)
+
+    # Move backward, negative α
+    α = -1.0
+    do_step_psis_Haux!(α, Ham, psis, Haux, d, d_Haux, rots_cache)
+    update_from_ebands!(Ham)
+    update_from_psis!(Ham, psis)
+    Etot3 = calc_Lfunc(Ham, psis)
+    println("Etot3 = ", Etot3)
+    println("Etot3 should be the same as Etot1 = ", Etot1)
+
     @infiltrate
 
 end
+

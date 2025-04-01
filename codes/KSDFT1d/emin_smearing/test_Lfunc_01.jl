@@ -19,7 +19,7 @@ function test_Lfunc_01(Ham)
     end
 
     rots_cache = RotationsCache(Nspin, Nstates)
-    transform_psi_Haux_update_ebands!(Ham, psis, Haux, rots_cache)
+    transform_psis_Haux_update_ebands!(Ham, psis, Haux, rots_cache)
 
     update_from_ebands!(Ham)
     update_from_psis!(Ham, psis)
