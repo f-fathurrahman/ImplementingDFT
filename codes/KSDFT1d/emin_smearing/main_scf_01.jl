@@ -37,6 +37,8 @@ function main_scf(Ham)
 
     for iter_scf in 1:200
 
+        println("\nBegin iter_scf = ", iter_scf)
+
         # Hamiltonian
         @views Vtot[:,1] = Vion[:] + Vhartree[:] + Vxc[:,1]
         @views Hmat[:,:] = Kmat + diagm( 0 => Vtot[:,1] )
