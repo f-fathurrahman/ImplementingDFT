@@ -40,6 +40,9 @@ function test_sd_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
         #
         g[ispin] = zeros(Float64, Npoints, Nstates)
         g_Haux[ispin] = zeros(Float64, Nstates, Nstates)
+        #
+        d[ispin] = zeros(Float64, Npoints, Nstates)
+        d_Haux[ispin] = zeros(Float64, Nstates, Nstates)
     end
 
     rots_cache = RotationsCache(Nspin, Nstates)

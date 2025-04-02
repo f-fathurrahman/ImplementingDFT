@@ -40,6 +40,9 @@ function test_sd_linmin(Ham; NiterMax=100, psis=nothing, Haux=nothing)
         #
         g[ispin] = zeros(Float64, Npoints, Nstates)
         g_Haux[ispin] = zeros(Float64, Nstates, Nstates)
+        #
+        d[ispin] = zeros(Float64, Npoints, Nstates)
+        d_Haux[ispin] = zeros(Float64, Nstates, Nstates)
     end
 
     rots_cache = RotationsCache(Nspin, Nstates)
@@ -83,8 +86,8 @@ function test_sd_linmin(Ham; NiterMax=100, psis=nothing, Haux=nothing)
             α_t,
             Ham, psis, Haux, Hsub, g, g_Haux, Kg, Kg_Haux, d, d_Haux, rots_cache, E1
         )
-        println("Test grad psis before rotate: $(2*dot(g, psis))")
-        println("Test grad Haux before rotate: $(dot(Haux, g_Haux))")
+        println("test grad psis = ", 2*dot(psis,g)*hx)
+        println("test grad Haux = ", dot(Haux,g_Haux))
         rotate_gradients!(g, Kg, g_Haux, Kg_Haux, rots_cache)
  
         #
