@@ -108,6 +108,7 @@ function test_cg_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
         gKNormPrev = gKNorm
         for ispin in 1:Nspin
             gPrev[ispin] = g[ispin]
+            gPrev_Haux[ispin] = g_Haux[ispin]
         end
 
         # Set direction
