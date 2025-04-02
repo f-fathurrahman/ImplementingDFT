@@ -1,6 +1,6 @@
 #  need to run setup_path first
 
-function test_sd_01(Ham; NiterMax=100)
+function test_sd_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
 
     hx = Ham.grid.hx
     Nstates = Ham.electrons.Nstates
@@ -8,17 +8,21 @@ function test_sd_01(Ham; NiterMax=100)
     Npoints = Ham.grid.Npoints
 
     Random.seed!(1234)
-    psis = Vector{Matrix{Float64}}(undef, Nspin)
-    for ispin in 1:Nspin
-        psis[ispin] = generate_random_wavefunc(Ham)
+    if isnothing(psis)
+        psis = Vector{Matrix{Float64}}(undef, Nspin)
+        for ispin in 1:Nspin
+            psis[ispin] = generate_random_wavefunc(Ham)
+        end
     end
 
-    Haux = Vector{Matrix{Float64}}(undef, Nspin)
-    for ispin in 1:Nspin
-        Haux[ispin] = randn(Float64, Nstates, Nstates)
-        Haux[ispin] = 0.5*(Haux[ispin] + Haux[ispin]')
+    if isnothing(Haux)
+        Haux = Vector{Matrix{Float64}}(undef, Nspin)
+        for ispin in 1:Nspin
+            Haux[ispin] = randn(Float64, Nstates, Nstates)
+            Haux[ispin] = 0.5*(Haux[ispin] + Haux[ispin]')
+        end
     end
-    
+
     g = Vector{Matrix{Float64}}(undef, Nspin)
     Kg = Vector{Matrix{Float64}}(undef, Nspin)
     Hsub = Vector{Matrix{Float64}}(undef, Nspin)
@@ -59,6 +63,9 @@ function test_sd_01(Ham; NiterMax=100)
     rotate_gradients!(g, Kg, g_Haux, Kg_Haux, rots_cache)
 
     α = 0.01
+    ebands = Ham.electrons.ebands
+    Focc = Ham.electrons.Focc
+
     for iterSD in 1:NiterMax
 
         println("\nBegin iterSD = ", iterSD)
@@ -111,10 +118,13 @@ function test_sd_01(Ham; NiterMax=100)
             continue # next iter
         end
 
+        @printf("Eigenvalues\n")
+        for ist in 1:Nstates
+            @printf("%5d %18.10f occ=%10.5f\n", ist, ebands[ist,1], Focc[ist,1])
+        end
+
         dE = abs(Etot_new - Etot1)
         @printf("%4d %18.10f %10.5e\n", iterSD, Etot_new, dE)
-        display(Ham.electrons.Focc); println();
-        display(Ham.electrons.ebands); println();
         if dE < 1e-6
             println("!!!! CONVERGED !!!!!")
             break
@@ -123,6 +133,9 @@ function test_sd_01(Ham; NiterMax=100)
         Etot1 = Etot_new
 
     end
+
+    serialize("psis.jldat", psis)
+    serialize("Haux.jldat", Haux)
 
     @infiltrate
 
