@@ -5,18 +5,20 @@ function linmin_quad_v01!(
     d, d_Haux, rots_cache,
     E_old
 )
+    hx = Ham.grid.hx
+    α_prev = 0.0
 
-    gd = 2*dot(g,d) + dot(g_Haux, d_Haux)
+    gd = 2*dot(g,d)*hx + dot(g_Haux, d_Haux)
     println("gd = $(gd)")
     if gd > 0
-        error("Bad step direction")
+        println("ERROR: Bad step direction")
+        return E_old, false, α_prev
     end
 
     NtryMax = 5
 
     α_safe =  1e-5 # safe step size
     α = α_safe # declare this outside for loop, set to a "safe" value
-    α_prev = 0.0
     α_t_ReduceFactor = 0.1
     α_t_IncreaseFactor = 3.0
     is_success = false

@@ -138,9 +138,26 @@ function test_cg_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
                 println("Bad step size is encountered, α_t is set to α_t_start = ", α_t_start)
             end
         else
-            @warn "Line minimization is not successful"
-            # XXX Reset search direction here ?
-            # do_force_grad_dir set to true ?
+            println("WARN: Line minimization is not successful")
+            #
+            do_step_psis_Haux!(-α, Ham, psis, Haux, d, d_Haux, rots_cache)
+            # calculate energy and gradients
+            update_from_ebands!( Ham )
+            update_from_psis!( Ham, psis )
+            # Now, we are ready to evaluate
+            E_new = Inf
+            calc_grad!(Ham, psis, g, Kg, Hsub)
+            calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
+            #
+            if β > 0.0
+                # Failed, but not along the gradient direction:
+                println("Forcing gradient direction")
+                do_force_grad_dir = true
+            else
+                # Failed along the gradient direction
+                println("Probably round off error")
+                break
+            end
         end
 
         @printf("Eigenvalues\n")
