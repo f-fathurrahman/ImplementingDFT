@@ -22,20 +22,36 @@ end
 function Hamiltonian1d(
     atoms::Atoms1d,
     Npoints::Int64;
-    basis=:fd,
-    Nstates_extra=0,
-    Nspin=1,
+    basis = :fd,
+    Nstencil_points = 3,
+    Nstates_extra = 0,
+    Nspin = 1,
 )
 
     # Limitations on the current implementation
     @assert Nspin == 1
     @assert atoms.pbc == false
 
-    #if basis == :fd
-    xmin = -atoms.L/2
-    xmax =  atoms.L/2
-    grid = FD1dGrid( (xmin, xmax), Npoints, pbc=atoms.pbc)
-    Kmat = -0.5*build_D2_matrix_9pt(Npoints, grid.hx)
+    if basis == :fd
+        xmin = -atoms.L/2
+        xmax =  atoms.L/2
+        grid = FD1dGrid( (xmin, xmax), Npoints, pbc=atoms.pbc)
+        if Nstencil_points == 3
+            Kmat = -0.5*build_D2_matrix_3pt(Npoints, grid.hx)
+        elseif Nstencil_points == 5
+            Kmat = -0.5*build_D2_matrix_5pt(Npoints, grid.hx)
+        elseif Nstencil_points == 7
+            Kmat = -0.5*build_D2_matrix_7pt(Npoints, grid.hx)
+        elseif Nstencil_points == 9
+            Kmat = -0.5*build_D2_matrix_7pt(Npoints, grid.hx)
+        elseif Nstencil_points == 11
+            Kmat = -0.5*build_D2_matrix_11pt(Npoints, grid.hx)
+        else
+            error("Nstencil_points = $(Nstencil_points) is not coded or supported yet")
+        end
+    else
+        error("basis = $(basis) is not known")
+    end
 
     #elseif basis_type == :pw
     #    gvec = GVectors1d(L, Ns)

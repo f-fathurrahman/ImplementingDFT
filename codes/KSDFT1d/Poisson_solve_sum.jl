@@ -18,3 +18,12 @@ function Poisson_solve_sum!( grid,
     return
 end 
 
+function Poisson_solve_sum( grid,
+    rho::Vector{Float64}; a = 1.0
+)
+    Npoints = grid.Npoints
+    V = zeros(Float64, Npoints)
+    Poisson_solve_sum!(grid, rho, V)
+    return V
+end 
+

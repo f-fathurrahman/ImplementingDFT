@@ -64,3 +64,10 @@ function prec_invHam(Ham::Hamiltonian1d, v)
     return vout
 end
 
+function expit(x)
+    if x > 0
+        return 1 / (1 + exp(-x))
+    else
+        return exp(x) / (1 + exp(x))
+    end
+end

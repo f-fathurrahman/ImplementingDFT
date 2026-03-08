@@ -22,7 +22,7 @@ include("smearing.jl")
 export smear_fermi, smear_fermi_entropy, smear_fermi_prime, grad_smear
 
 include("occupations.jl")
-export update_Focc!
+export find_E_fermi, update_Focc!
 
 include("XCCalculator.jl")
 export XCCalculator
