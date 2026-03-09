@@ -1,5 +1,4 @@
 function edft_calc_h_matrix!(Ham, psi, hmat)
-    Npoints = size(psi, 1)
     Nstates = size(psi, 2)
     hx = Ham.grid.hx
     fill!(hmat, 0.0)
@@ -13,6 +12,18 @@ function edft_calc_h_matrix!(Ham, psi, hmat)
         end
     end
     return
+end
+
+function edft_calc_rhoe(
+    Ham::Hamiltonian1d,
+    Focc_matrix::Matrix{Float64},
+    psi::Matrix{Float64}
+)
+    Nspin = 1 # HARDCODED
+    Npoints = Ham.grid.Npoints
+    rhoe = zeros(Float64, Npoints, Nspin)
+    edft_calc_rhoe!(Ham, Focc_matrix, psi, rhoe)
+    return rhoe
 end
 
 function edft_calc_rhoe!(
@@ -241,7 +252,7 @@ function inner_loop!(
             end
         end
         
-        println("β_opt = $(β_opt) A_opt = $(A_opt)")
+        verbose && println("β_opt = $(β_opt) A_opt = $(A_opt)")
 
         if !isnan(β_opt)
             # Update f
@@ -272,6 +283,52 @@ end
 
 function density_difference(rhoe_1, rhoe_2, hx)
     return sum(abs.(rhoe_1 - rhoe_2)) * hx
+end
+
+function edft_calc_grad(Ham, Focc_matrix, psi)
+    
+    Npoints = Ham.grid.Npoints
+    Nstates = Ham.electrons.Nstates
+    hx = Ham.grid.hx
+    Kmat = Ham.Kmat
+    Vtot = Ham.potentials.Total
+    Vxc = Ham.potentials.XC
+    Vion = Ham.potentials.Ions
+    Vhartree = Ham.potentials.Hartree
+    
+    ispin = 1
+
+    rhoe = edft_calc_rhoe(Ham, Focc_matrix, psi)
+    ρ = reshape(rhoe, Npoints)
+    Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
+    Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe)
+    Vtot[:,ispin] = Vhartree[:] + Vxc[:,ispin]
+
+    # Full Hamiltonian operator: T + V_ext + V_HXC
+    H_op = Kmat + diagm(Vion + Vtot[:,ispin])
+
+    grads = zeros(Float64, Npoints, Nstates)
+    for ist in 1:Nstates
+        grads[:,ist] = -H_op*psi[:,ist]
+    end
+
+    # For unoccupied orbitals, true gradient is zero; set to zero to avoid spurious updates.
+    f_diag = diag(Focc_matrix) # Take only diagonal elements?
+    for ist in 1:Nstates
+        if f_diag[ist] < 1e-12
+            grads[:,ist] = 0.0
+        end
+    end
+
+    # Orthogonalize gradients to all orbitals (preserve orthonormality)
+    for ist in 1:Nstates
+        for jst in 1:Nstates
+            prj = dot(psi[:,jst], grads[:,ist])*hx
+            grads[:,ist] .-= prj*psi[:,jst]
+        end
+    end
+
+    return grads
 end
 
 
@@ -370,6 +427,75 @@ function emin_edft!(Ham)
 
     dn = density_difference(rhoe_new, rhoe_old, hx)
     println("dn = ", dn)
+
+    grads = edft_calc_grad(Ham, Focc_matrix, psi)
+    grad_norm = sqrt(sum(grads.^2) * hx)   # Frobenius norm
+    println("grad_norm = ", grad_norm)
+
+    #if outer == 0:
+    search_dir = copy(grads)
+    #else
+    #gg_new = np.sum(grads**2) * obj.dx
+    #gg_old = np.sum(obj.search_dir**2) * obj.dx
+    #beta_cg = gg_new / max(gg_old, 1e-12)
+    #obj.search_dir = grads + beta_cg * obj.search_dir
+
+    #print("search_dir = ", obj.search_dir) 
+
+    # Line search along search_dir
+    psi_old = copy(psi)
+    Focc_matrix_old = copy(Focc_matrix)
+    A_best = A_new
+    psi_best = psi_old
+    Focc_matrix_best = Focc_matrix_old
+    α_best = 0.0
+
+    psi_trial = similar(psi)
+
+    # Try step lengths: 1.0, 0.5, 0.25, ...
+    α = 1.0
+    for iter_linmin in 1:10
+        # This is probably not needed?
+        if α < 1e-4
+            print("alpha={alpha} is too small")
+            break
+        end
+        psi_trial[:,:] = psi + α * search_dir
+        ortho_gram_schmidt!(psi_trial, hx)
+        #
+        edft_calc_h_matrix!(Ham, psi_trial, hmat)
+        # Quick inner loop (just one pass) for this trial
+        # This will modify Focc_matrix
+        _, _ = inner_loop!(Ham, Focc_matrix, psi_trial, hmat, NmaxIter_inner=1, verbose=false)
+        #
+        rhoe_trial = edft_calc_rhoe(Ham, Focc_matrix, psi_trial)
+        #
+        ρ = reshape(rhoe_trial, Npoints) # should be sum over Nspin
+        Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
+        Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe_trial)
+        A_trial = calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe_trial)
+        #
+        println("Try α = $(α) A_trial = $(A_trial)")
+        if A_trial < A_best
+            A_best = A_trial
+            psi_best[:,:] = psi_trial[:,:]
+            Focc_matrix_best[:,:] = Focc_matrix[:,:]
+            α_best = α
+        end
+        # Restore old state for next trial
+        Focc_matrix[:,:] = Focc_matrix_old[:,:] # need this?
+        α *= 0.5
+    end
+
+    println("α_best = $(α_best) A_best = $(A_best)")
+    println("psi_best = ")
+    display(psi_best); println()
+
+    # Accept best state
+    psi[:,:] = psi_best[:,:]
+    Focc_matrix[:,:] = Focc_matrix_best[:,:]
+    edft_calc_h_matrix!(Ham, psi, hmat)
+    display(hmat); println()
 
     @infiltrate
 
