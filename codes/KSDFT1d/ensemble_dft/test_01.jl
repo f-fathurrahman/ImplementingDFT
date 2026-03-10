@@ -3,7 +3,7 @@ function create_atoms_01()
     σ = ones(Float64, Natoms)*(1.0)
     masses = ones(Float64, Natoms)
     #Zvals = ones(Float64, Natoms)
-    Zvals = [2.0, 1.0]
+    Zvals = [1.0, 1.0]
     L = 10.0  # from -L/2 to +L/2
     atpos = zeros(Float64, Natoms)
     atpos[1] = -2.0

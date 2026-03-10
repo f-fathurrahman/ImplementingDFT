@@ -412,90 +412,127 @@ function emin_edft!(Ham)
     #    println("iter_inner = $(iter_inner) change_f = $(change_f)")
     #end
 
-    change_f, _ = inner_loop!(Ham, Focc_matrix, psi, hmat, NmaxIter_inner = 2)
-    println("change_f = $(change_f)")
-
     rhoe_new = similar(rhoe)
-    edft_calc_rhoe!(Ham, Focc_matrix, psi, rhoe_new)
-    #
-    ρ = reshape(rhoe_new, Npoints) # should be sum over Nspin
-    Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
-    Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe_new)
-    
-    A_new = calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe_new)
-    println("A_new = ", A_new)
-
-    dn = density_difference(rhoe_new, rhoe_old, hx)
-    println("dn = ", dn)
-
-    grads = edft_calc_grad(Ham, Focc_matrix, psi)
-    grad_norm = sqrt(sum(grads.^2) * hx)   # Frobenius norm
-    println("grad_norm = ", grad_norm)
-
-    #if outer == 0:
-    search_dir = copy(grads)
-    #else
-    #gg_new = np.sum(grads**2) * obj.dx
-    #gg_old = np.sum(obj.search_dir**2) * obj.dx
-    #beta_cg = gg_new / max(gg_old, 1e-12)
-    #obj.search_dir = grads + beta_cg * obj.search_dir
-
-    #print("search_dir = ", obj.search_dir) 
-
-    # Line search along search_dir
-    psi_old = copy(psi)
-    Focc_matrix_old = copy(Focc_matrix)
-    A_best = A_new
-    psi_best = psi_old
-    Focc_matrix_best = Focc_matrix_old
-    α_best = 0.0
-
+    grads = similar(psi)
     psi_trial = similar(psi)
+    psi_best = similar(psi)
+    psi_old = similar(psi)
+    Focc_matrix_best = similar(Focc_matrix)
+    Focc_matrix_old = similar(Focc_matrix)
+    search_dir = similar(psi)
 
-    # Try step lengths: 1.0, 0.5, 0.25, ...
-    α = 1.0
-    for iter_linmin in 1:10
-        # This is probably not needed?
-        if α < 1e-4
-            print("alpha={alpha} is too small")
+    for iter_emin in 1:50
+
+        println("\nBegin iter_emin=$(iter_emin)")
+
+        change_f, _ = inner_loop!(Ham, Focc_matrix, psi, hmat, NmaxIter_inner = 2)
+        println("change_f = $(change_f)")
+        #
+        edft_calc_rhoe!(Ham, Focc_matrix, psi, rhoe_new)
+        #
+        ρ = reshape(rhoe_new, Npoints) # should be sum over Nspin
+        Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
+        Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe_new)
+        #
+        A_new = calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe_new)
+        println("A_new after inner loop = ", A_new)
+        dn = density_difference(rhoe_new, rhoe_old, hx)
+        println("dn after inner_loop = ", dn)
+
+        rhoe_old[:,:] = rhoe_new[:,:]
+
+        grads[:,:] = edft_calc_grad(Ham, Focc_matrix, psi)
+        grad_norm = sqrt(sum(grads.^2) * hx)   # Frobenius norm
+        println("grad_norm = ", grad_norm)
+
+        #if outer == 0:
+        search_dir[:,:] = grads[:,:]
+        #else
+        #gg_new = np.sum(grads**2) * obj.dx
+        #gg_old = np.sum(obj.search_dir**2) * obj.dx
+        #beta_cg = gg_new / max(gg_old, 1e-12)
+        #obj.search_dir = grads + beta_cg * obj.search_dir
+
+        #print("search_dir = ", obj.search_dir) 
+
+        # Line search along search_dir
+        psi_old[:,:] = psi[:,:]
+        Focc_matrix_old[:,:] = Focc_matrix[:,:]
+        A_best = A_new
+        psi_best[:,:] = psi_old
+        Focc_matrix_best[:,:] = Focc_matrix_old[:,:]
+        α_best = 0.0
+
+        # Try step lengths: 1.0, 0.5, 0.25, ...
+        α = 1.0
+
+        for iter_linmin in 1:10
+            # This is probably not needed?
+            if α < 1e-4
+                print("alpha=$α is too small")
+                break
+            end
+            psi_trial[:,:] = psi + α * search_dir
+            ortho_gram_schmidt!(psi_trial, hx)
+            #
+            edft_calc_h_matrix!(Ham, psi_trial, hmat)
+            # Quick inner loop (just one pass) for this trial
+            # This will modify Focc_matrix
+            _, _ = inner_loop!(Ham, Focc_matrix, psi_trial, hmat, NmaxIter_inner=1, verbose=false)
+            #
+            rhoe_trial = edft_calc_rhoe(Ham, Focc_matrix, psi_trial)
+            #
+            ρ = reshape(rhoe_trial, Npoints) # should be sum over Nspin
+            Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
+            Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe_trial)
+            A_trial = calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe_trial)
+            #
+            #println("Try α = $(α) A_trial = $(A_trial)")
+            if A_trial < A_best
+                A_best = A_trial
+                psi_best[:,:] = psi_trial[:,:]
+                Focc_matrix_best[:,:] = Focc_matrix[:,:]
+                α_best = α
+            end
+            # Restore old state for next trial
+            Focc_matrix[:,:] = Focc_matrix_old[:,:] # need this?
+            α *= 0.5
+        end
+
+        println("α_best = $(α_best) A_best = $(A_best)")
+        #println("psi_best = ")
+        #display(psi_best); println()
+
+        # Accept best state
+        psi[:,:] = psi_best[:,:]
+        Focc_matrix[:,:] = Focc_matrix_best[:,:]
+        edft_calc_h_matrix!(Ham, psi, hmat)
+        #display(hmat); println()
+
+        # Recompute final A for this iteration
+        # use rhoe_new as last variable
+        edft_calc_rhoe!(Ham, Focc_matrix, psi, rhoe_new)
+        ρ = reshape(rhoe_new, Npoints) # should be sum over Nspin
+        Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
+        Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe_new)
+        A_new = calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe_new)
+        #println("A_new = ", A_new)
+        dn = density_difference(rhoe_new, rhoe_old, hx)
+        #println("dn = ", dn)
+
+        dA = abs(A_new - A_old)
+        println("$(iter_emin) A_new=$(A_new) dA=$(dA) dn=$(dn)")
+
+        if (dA < 1e-6) && (dn < 1e-6)
+            println("Converged!!!")
             break
         end
-        psi_trial[:,:] = psi + α * search_dir
-        ortho_gram_schmidt!(psi_trial, hx)
-        #
-        edft_calc_h_matrix!(Ham, psi_trial, hmat)
-        # Quick inner loop (just one pass) for this trial
-        # This will modify Focc_matrix
-        _, _ = inner_loop!(Ham, Focc_matrix, psi_trial, hmat, NmaxIter_inner=1, verbose=false)
-        #
-        rhoe_trial = edft_calc_rhoe(Ham, Focc_matrix, psi_trial)
-        #
-        ρ = reshape(rhoe_trial, Npoints) # should be sum over Nspin
-        Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
-        Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe_trial)
-        A_trial = calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe_trial)
-        #
-        println("Try α = $(α) A_trial = $(A_trial)")
-        if A_trial < A_best
-            A_best = A_trial
-            psi_best[:,:] = psi_trial[:,:]
-            Focc_matrix_best[:,:] = Focc_matrix[:,:]
-            α_best = α
-        end
-        # Restore old state for next trial
-        Focc_matrix[:,:] = Focc_matrix_old[:,:] # need this?
-        α *= 0.5
+
+        A_old = A_new
+        rhoe_old[:,:] = rhoe_new[:,:]
+
     end
 
-    println("α_best = $(α_best) A_best = $(A_best)")
-    println("psi_best = ")
-    display(psi_best); println()
-
-    # Accept best state
-    psi[:,:] = psi_best[:,:]
-    Focc_matrix[:,:] = Focc_matrix_best[:,:]
-    edft_calc_h_matrix!(Ham, psi, hmat)
-    display(hmat); println()
 
     @infiltrate
 
