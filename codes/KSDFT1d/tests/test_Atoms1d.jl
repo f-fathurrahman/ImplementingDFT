@@ -1,9 +1,4 @@
-push!(LOAD_PATH, "../")
-
-using Printf
-using KSDFT1d
-
-function main()
+function test_Atoms1d()
     Natoms = 8
     σ = ones(Float64, Natoms)*(1.0)
     masses = ones(Float64, Natoms)*42000.0
@@ -18,5 +13,3 @@ function main()
     
     atoms = Atoms1d( atpos, Zvals, σ, masses, L )
 end
-
-main()

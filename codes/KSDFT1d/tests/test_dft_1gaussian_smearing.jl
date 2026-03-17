@@ -1,10 +1,4 @@
-push!(LOAD_PATH, "../")
 
-using Printf
-using LinearAlgebra
-using Serialization
-
-using KSDFT1d
 
 include("../BroydenMixer.jl")
 
@@ -34,7 +28,7 @@ end
 
 function init_Hamiltonian()
     atoms = create_atoms()
-    Ham = Hamiltonian1d(atoms, 51, Nstates_extra=5)
+    Ham = Hamiltonian1d(atoms, 51, Nstates_empty=5)
     init_Vions!(Ham)
     return Ham
 end

@@ -24,8 +24,9 @@ function Hamiltonian1d(
     Npoints::Int64;
     basis = :fd,
     Nstencil_points = 3,
-    Nstates_extra = 0,
+    Nstates_empty = nothing,
     Nspin = 1,
+    use_smearing = false
 )
 
     # Limitations on the current implementation
@@ -59,7 +60,12 @@ function Hamiltonian1d(
 
     dx = grid.dx
 
-    electrons = Electrons(atoms, Nstates_extra=Nstates_extra, Nspin=Nspin)
+    electrons = Electrons(
+        atoms,
+        Nstates_empty = Nstates_empty,
+        Nspin_wf = Nspin,
+        use_smearing = use_smearing
+    )
 
     rhoe = ones(Float64, Npoints, Nspin)
     @views rhoe[:] = rhoe[:] / ( sum(rhoe)*dx ) * electrons.Nelectrons

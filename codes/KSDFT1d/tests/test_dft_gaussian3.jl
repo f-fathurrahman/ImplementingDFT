@@ -36,7 +36,7 @@ end
 
 function init_Hamiltonian()
     atoms = create_atoms()
-    Ham = Hamiltonian1d(atoms, 51, Nstates_extra=6)
+    Ham = Hamiltonian1d(atoms, 51, Nstates_empty=6)
     init_Vions!(Ham)
     return Ham
 end

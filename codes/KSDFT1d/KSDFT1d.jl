@@ -15,7 +15,8 @@ export FD1dGrid
 include("Atoms1d.jl")
 export Atoms1d
 
-include("Electrons.jl")
+#include("Electrons.jl")
+include("Electrons_pwdft.jl")
 export Electrons
 
 include("smearing.jl")
