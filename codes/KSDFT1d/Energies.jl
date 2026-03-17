@@ -15,6 +15,7 @@ end
 import Base: show
 function show( io::IO, energies::Energies )
 
+    @printf(io, "\n")
     @printf(io, "Kinetic    energy: %18.10f\n", energies.Kinetic )
     @printf(io, "Ion        energy: %18.10f\n", energies.Ion )
     @printf(io, "Hartree    energy: %18.10f\n", energies.Hartree )

@@ -2,6 +2,7 @@ module KSDFT1d
 
 using Printf
 using LinearAlgebra
+using Serialization
 
 include("../common/constants.jl")
 
@@ -48,5 +49,10 @@ export calc_E_kin, calc_E_NN
 include("Libxc_old.jl")
 include("LDA_libxc_1d.jl")
 export calc_epsxc_1d, calc_Vxc_1d
+
+include("BroydenMixer.jl")
+export BroydenMixer
+export do_mix! # probably should be defined in some abstract type
+
 
 end # module

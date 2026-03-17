@@ -1,3 +1,6 @@
+# XXX rhoe is taken from Ham.rhoe so it might converges early if called
+# multiple times consecutively
+#
 function solve_scf!(Ham)
 
     dx = Ham.grid.dx
@@ -30,10 +33,12 @@ function solve_scf!(Ham)
     mixer = BroydenMixer(rhoe, betamix, mixdim=8)
 
     Focc = Ham.electrons.Focc
-    use_smearing = true
+    use_smearing = Ham.electrons.use_smearing
     kT = Ham.electrons.kT
 
     evals = Ham.electrons.ebands
+
+    Nconverges = 0
 
     for iter_scf in 1:200
 
@@ -56,11 +61,6 @@ function solve_scf!(Ham)
             update_Focc!( Focc, smear_fermi, smear_fermi_entropy,
                       evals, Float64(Nelectrons), kT )
             @printf("Fermi energy = %18.10f\n", E_f)
-        end
-
-        @printf("Eigenvalues\n")
-        for ist in 1:Nstates
-            @printf("%5d %18.10f occ=%10.5f\n", ist, evals[ist,1], Focc[ist,1])
         end
 
         calc_rhoe!(Ham, psi, rhoe_new)
@@ -87,6 +87,12 @@ function solve_scf!(Ham)
         @printf("%3d %18.10f %10.5e %10.5e\n", iter_scf, Etot, ΔE, mae_rhoe)
 
         if mae_rhoe < 1e-7
+            Nconverges += 1
+        else
+            Nconverges = 0
+        end
+
+        if Nconverges >= 2
             println("Converged: mae_rhoe = ", mae_rhoe, " ΔE = ", ΔE)
             break
         end
@@ -107,6 +113,11 @@ function solve_scf!(Ham)
         Poisson_solve_sum!(Ham.grid, ρ, Vhartree)
         Vxc[:] = calc_Vxc_1d(Ham.xc_calc, rhoe)
 
+    end
+
+    @printf("Eigenvalues\n")
+    for ist in 1:Nstates
+        @printf("%5d %18.10f occ=%10.5f\n", ist, evals[ist,1], Focc[ist,1])
     end
 
     serialize("TEMP_scf_psi.dat", psi)

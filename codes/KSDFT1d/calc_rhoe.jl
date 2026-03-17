@@ -17,7 +17,7 @@ function calc_rhoe!(
     Nstates = size(psi, 2)
     fill!(rhoe, 0.0)
     Focc = Ham.electrons.Focc
-    @assert Ham.electrons.Nspin == 1
+    @assert Ham.electrons.Nspin_dens == 1
     ispin = 1 # XXX read ispin from Ham ?
     for ist in 1:Nstates, ip in 1:Npoints
         rhoe[ip,ispin] += Focc[ist,ispin] * psi[ip,ist] * psi[ip,ist]
@@ -32,7 +32,7 @@ function calc_rhoe!(
     rhoe::Array{Float64,2}
 )
     Nspin = size(psis, 1)
-    @assert Nspin == Ham.electrons.Nspin
+    @assert Nspin == Ham.electrons.Nspin_dens
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     Focc = Ham.electrons.Focc
