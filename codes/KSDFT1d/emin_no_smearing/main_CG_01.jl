@@ -19,7 +19,7 @@ function main()
 
     Ham = init_Hamiltonian()
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
@@ -43,8 +43,8 @@ function main()
     Ham.energies.NN = E_NN
 
     psi = ortho_sqrt( rand(Float64, Npoints, Nstates) )
-    psi[:] = psi[:]/sqrt(hx)
-    display(psi' * psi * hx)
+    psi[:] = psi[:]/sqrt(dx)
+    display(psi' * psi * dx)
 
 
     α_t = 3e-5
@@ -71,7 +71,7 @@ function main()
         # Then, we call gradient without updating Hamiltonian
         g[:,:] .= calc_grad(Ham, psi)
 
-        dg = 2*dot(g,g)*hx
+        dg = 2*dot(g,g)*dx
         dEtot = abs(Etot - Etot_old)
         @printf("%3d Etot=%18.10f dE=%10.5e dG=%10.5e\n", iterEmin, Etot, dEtot, dg)
         #
@@ -88,9 +88,9 @@ function main()
         prec_invK!(Ham, g, Kg)
         #prec_invHam!(Ham, g, Kg)
 
-        num1 = 2*dot(g,d_old)*hx
-        gg = 2*dot(g,g)*hx
-        dd = 2*dot(d_old,d_old)*hx
+        num1 = 2*dot(g,d_old)*dx
+        gg = 2*dot(g,g)*dx
+        dd = 2*dot(d_old,d_old)*dx
         println("num1 = ", num1)
         println("gg*dd = ", gg*dd)
         linmin_test = num1/sqrt(gg*dd)
@@ -106,26 +106,26 @@ function main()
         println("β = ", β)
 
         # new gradient is already evaluated?
-        num1 = 2*dot(g, Kg_old)*hx
-        gg1 = 2*dot(g, Kg)*hx
-        gg2 = 2*dot(g_old, Kg_old)*hx
+        num1 = 2*dot(g, Kg_old)*dx
+        gg1 = 2*dot(g, Kg)*dx
+        gg2 = 2*dot(g_old, Kg_old)*dx
         println("num1 = ", num1, " gg1 = ", gg1, " gg2 = ", gg2)
         cg_test = num1/sqrt(gg1*gg2)
         println("cg_test = ", cg_test)
 
         # Set search direction
         d[:] .= -Kg[:] + β*d_old[:]
-        constrain_search_dir!(d, psi, hx)
+        constrain_search_dir!(d, psi, dx)
         
         # Line minimization
         psic[:] = ortho_sqrt( psi + α_t*d )
-        psic[:] = psic[:]/sqrt(hx)
+        psic[:] = psic[:]/sqrt(dx)
         #_ = calc_KohnSham_Etotal!(Ham, psic)
         gt[:,:] = calc_grad(Ham, psic; update=true)
         #
-        denum = 2*dot(g-gt, d)*hx
+        denum = 2*dot(g-gt, d)*dx
         if denum != 0.0
-            num = 2*dot(g, d)*hx
+            num = 2*dot(g, d)*dx
             α = abs( α_t*num/denum )
         else
             α = 0.0
@@ -134,7 +134,7 @@ function main()
 
         # Update wavefunction
         psi[:,:] .= ortho_sqrt(psi + α*d)
-        psi[:] = psi[:]/sqrt(hx)
+        psi[:] = psi[:]/sqrt(dx)
 
         # Previous
         @views g_old[:] .= g[:]
@@ -142,7 +142,7 @@ function main()
         @views d_old[:] .= d[:]
     end
 
-    Hr = psi' * (Ham*psi) * hx
+    Hr = psi' * (Ham*psi) * dx
     band_energies, U = eigen(Hr)
     psi[:,:] = psi*U
 

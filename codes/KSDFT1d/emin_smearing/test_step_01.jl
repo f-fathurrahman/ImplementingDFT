@@ -22,7 +22,7 @@ function main()
     # Initialize a Hamiltonian object
     Ham = init_Hamiltonian()
     
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
@@ -38,7 +38,7 @@ function main()
     update_from_wavefunc!(Ham, psi) # update the potential
     
     # Prepare Haux
-    #Haux = psi' * (Ham*psi) * hx # Hsub, subspace Hamiltonian
+    #Haux = psi' * (Ham*psi) * dx # Hsub, subspace Hamiltonian
     # Using diagonal Haux
     ebands1 = sort(randn(Nstates))
     Haux = diagm(0 => ebands1)
@@ -72,9 +72,9 @@ function main()
     display(g_Haux)
     #display(Kg_Haux)
 
-    println("dot g,g = ", dot(g,g)*hx)
+    println("dot g,g = ", dot(g,g)*dx)
 
-    dg = dot(g_Haux,g_Haux)*hx
+    dg = dot(g_Haux,g_Haux)*dx
     println("dot g_Haux,g_Haux = ", dg)
 
     α = 2e-3 #3e-5
@@ -100,11 +100,11 @@ function main()
         #ortho_sqrt!(psi)
         
         # Orthonormalize (involves rotation)
-        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(hx)
+        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(dx)
         psi[:,:] = psi*Udagger
 
         println("Check ortho 1:")
-        display(psi' * psi * hx)
+        display(psi' * psi * dx)
 
         # Also rotate Haux
         Haux[:,:] = Udagger' * Haux * Udagger
@@ -115,7 +115,7 @@ function main()
         Urot2[:,:] = transform_psi_Haux!(psi, Haux)
 
         println("Check ortho 2:")
-        display(psi' * psi * hx)
+        display(psi' * psi * dx)
         
         println("Haux after (should be diagonal):")
         display(Haux); println()
@@ -125,7 +125,7 @@ function main()
         
         prec_invK!(Ham, g, Kg)
 
-        println("dot(g,g) = ", dot(g,g)*hx)
+        println("dot(g,g) = ", dot(g,g)*dx)
 
         println("g_Haux = ")
         display(g_Haux)
@@ -144,7 +144,7 @@ function main()
             println("WARNING: Energy does not decrease")
         end
 
-        dg = dot(g_Haux,g_Haux)*hx
+        dg = dot(g_Haux,g_Haux)*dx
         println("dot g_Haux,g_Haux = ", dg)
 
         if (abs(E1 - E2) < 1e-7) && (dg < 1e-7)

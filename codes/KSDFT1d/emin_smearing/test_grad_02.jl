@@ -16,7 +16,7 @@ include("gradients_psi_Haux.jl")
 
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nstates = Ham.electrons.Nstates
 
@@ -57,7 +57,7 @@ dW[1,1] = Δ
 psi_new = psi + dW
 Haux_new = Haux + dW_Haux
 # Orthonormalize (involves rotation)
-Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
+Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(dx)
 psi_new[:,:] = psi_new*Udagger
 Haux_new = Udagger' * Haux_new * Udagger
 Urot = transform_psi_Haux!(psi_new, Haux_new)
@@ -72,7 +72,7 @@ dW[1,1] = -Δ
 psi_new = psi + dW
 Haux_new = Haux + dW_Haux
 # Orthonormalize (involves rotation)
-Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
+Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(dx)
 psi_new[:,:] = psi_new*Udagger
 Haux_new = Udagger' * Haux_new * Udagger
 Urot = transform_psi_Haux!(psi_new, Haux_new)

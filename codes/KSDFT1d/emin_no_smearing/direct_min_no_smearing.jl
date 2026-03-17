@@ -8,7 +8,7 @@ function calc_grad( Ham, psi; update=false )
     
     ispin = 1
     Focc = Ham.electrons.Focc
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
 
     Nbasis = size(psi,1)
     Nstates = size(psi,2)
@@ -19,7 +19,7 @@ function calc_grad( Ham, psi; update=false )
     for i in 1:Nstates
         @views grad[:,i] .= Hpsi[:,i]
         for j in 1:Nstates
-            @views λ = dot(psi[:,j], Hpsi[:,i]) * hx
+            @views λ = dot(psi[:,j], Hpsi[:,i]) * dx
             @views grad[:,i] .= grad[:,i] .-  λ * psi[:,j]
         end
         grad[:,i] .= Focc[i,ispin]*grad[:,i]
@@ -32,7 +32,7 @@ function calc_grad( Ham, psi; update=false )
     end
 
     #F = Matrix(Diagonal(Focc[:,ispin]))
-    #ℍ = psi' * Hpsi * hx
+    #ℍ = psi' * Hpsi * dx
     #HFH = ℍ*F - F*ℍ
     #ℚ = 0.5*HFH
     #@views grad[:,:] .+= psi*ℚ # additional contributions
@@ -50,7 +50,7 @@ function update_from_wavefunc!(Ham, psi)
 
     # Electron density
     calc_rhoe!(Ham, psi, rhoe)
-    #println("integ rhoe = ", sum(rhoe)*hx)
+    #println("integ rhoe = ", sum(rhoe)*dx)
 
     # Update the potentials
     # Note that Vxc, Vhartree, and Vtot refers to Ham.potentials
@@ -67,7 +67,7 @@ function calc_KohnSham_Etotal!(Ham, psi)
     
     update_from_wavefunc!(Ham, psi)
 
-    hx = Ham.grid.hx    
+    dx = Ham.grid.dx    
     Npoints = Ham.grid.Npoints
     Vion = Ham.potentials.Ions
     Vxc = Ham.potentials.XC
@@ -79,14 +79,14 @@ function calc_KohnSham_Etotal!(Ham, psi)
     Ekin = calc_E_kin(Ham, psi)
     Ham.energies.Kinetic = Ekin
     
-    Ehartree = 0.5*dot(rhoe[:,1], Vhartree)*hx
+    Ehartree = 0.5*dot(rhoe[:,1], Vhartree)*dx
     Ham.energies.Hartree = Ehartree
 
-    Eion = dot(rhoe, Vion)*hx
+    Eion = dot(rhoe, Vion)*dx
     Ham.energies.Ion = Eion
 
     epsxc = calc_epsxc_1d(Ham.xc_calc, rhoe[:,1])
-    Exc = dot(rhoe, epsxc)*hx
+    Exc = dot(rhoe, epsxc)*dx
     Ham.energies.XC = Exc
 
     # The total energy (also include nuclei-nuclei or ion-ion energy)

@@ -21,7 +21,7 @@ function main()
     # Initialize a Hamiltonian object
     Ham = init_Hamiltonian()
     
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
@@ -34,7 +34,7 @@ function main()
     update_from_wavefunc!(Ham, psi) # update the potential
     
     # Prepare Haux from psi (form subspace Hamiltonian)
-    #Haux = psi' * (Ham*psi) * hx # Hsub, subspace Hamiltonian
+    #Haux = psi' * (Ham*psi) * dx # Hsub, subspace Hamiltonian
     
     # Using random diagonal Haux
     ebands1 = sort(randn(Nstates))
@@ -98,8 +98,8 @@ function main()
         # Preconditioning for g_Haux is done in calc_grad_Lfunc_Haux!
 
         dE = abs(E1 - E_new)
-        dg = dot(g,g)*hx /  length(g)
-        dg_Haux = dot(g_Haux,g_Haux)*hx / length(g_Haux)
+        dg = dot(g,g)*dx /  length(g)
+        dg_Haux = dot(g_Haux,g_Haux)*dx / length(g_Haux)
         #
         @printf("Emin: %8d %18.10f %10.5e [%10.5e %10.5e]\n", iterEmin, E_new, dE, dg, dg_Haux)
 
@@ -159,7 +159,7 @@ function main()
         psic[:,:] = psi[:,:] + α_t*d[:,:] # trial wavefunc
         Hauxc[:,:] = Haux[:,:] + α_t_Haux*d_Haux[:,:]
         #
-        Udagger[:,:] = inv(sqrt(psic'*psic)) ./ sqrt(hx) # rotation
+        Udagger[:,:] = inv(sqrt(psic'*psic)) ./ sqrt(dx) # rotation
         psic[:,:] = psic*Udagger # orthogonalize
         Hauxc[:,:] = Udagger' * Hauxc * Udagger # rotate Haux
         Urot2[:,:] = transform_psi_Haux!(psic, Hauxc) # make Haux diagonal 
@@ -168,7 +168,7 @@ function main()
         _ = calc_Lfunc_Haux!(Ham, psic, Hauxc)
         calc_grad_Lfunc_Haux!(Ham, psic, Hauxc, gt, Hsub, gt_Haux, Kgt_Haux)
         #
-        denum = real(sum(conj(g-gt).*d)) # no need for factor of hx for dot product here
+        denum = real(sum(conj(g-gt).*d)) # no need for factor of dx for dot product here
         println("denum = ", denum)
         if denum != 0.0
             α = abs( α_t*real(sum(conj(g).*d))/denum )
@@ -193,7 +193,7 @@ function main()
         Haux[:,:] = Haux[:,:] + α_Haux*d_Haux[:,:]
         #
         # Orthonormalize wavefunction (involves rotation)
-        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(hx) # rotation
+        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(dx) # rotation
         psi[:,:] = psi*Udagger
         #
         # Also rotate Haux according to Udagger

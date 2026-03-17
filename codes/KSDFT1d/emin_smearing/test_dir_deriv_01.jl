@@ -17,7 +17,7 @@ include("gradients_psi_Haux.jl")
 
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nstates = Ham.electrons.Nstates
 
@@ -54,14 +54,14 @@ Nsteps = 10
 for i in 1:Nsteps
     α *= mult_factor
     d[:,:] = -Kg
-    constrain_search_dir!(d, psi, hx)
+    constrain_search_dir!(d, psi, dx)
     d_Haux[:,:] = -Kg_Haux
     #
     psi_new = psi + α*d
     Haux_new = Haux + α*d_Haux
-    prepare_psi_Haux!(psi_new, Haux_new, hx)
+    prepare_psi_Haux!(psi_new, Haux_new, dx)
     E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
-    dg_psi = 2*dot(g, α*d)*hx
+    dg_psi = 2*dot(g, α*d)*dx
     dg_Haux = dot(g_Haux, α*d_Haux)
     dg = dg_psi + dg_Haux
     dE = E_new - E1

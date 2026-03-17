@@ -8,7 +8,7 @@ function calc_KohnSham_Etotal!(
     Urot = update_from_Haux!(Ham, Haux)
     update_from_wavefunc!(Ham, psi*Urot)
 
-    hx = Ham.grid.hx    
+    dx = Ham.grid.dx    
     Npoints = Ham.grid.Npoints
     Vion = Ham.potentials.Ions
     Vxc = Ham.potentials.XC
@@ -21,14 +21,14 @@ function calc_KohnSham_Etotal!(
     Ekin = calc_E_kin(Ham, psi) # XXX: use psi*Urot ?
     Ham.energies.Kinetic = Ekin
     
-    Ehartree = 0.5*dot(rhoe[:,1], Vhartree)*hx
+    Ehartree = 0.5*dot(rhoe[:,1], Vhartree)*dx
     Ham.energies.Hartree = Ehartree
 
-    Eion = dot(rhoe, Vion)*hx
+    Eion = dot(rhoe, Vion)*dx
     Ham.energies.Ion = Eion
 
     epsxc = calc_epsxc_1d(Ham.xc_calc, rhoe[:,1])
-    Exc = dot(rhoe, epsxc)*hx
+    Exc = dot(rhoe, epsxc)*dx
     Ham.energies.XC = Exc
 
     # The total energy (also include nuclei-nuclei or ion-ion energy)

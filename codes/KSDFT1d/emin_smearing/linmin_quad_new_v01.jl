@@ -5,10 +5,10 @@ function linmin_quad_v01!(
     d, d_Haux, rots_cache,
     E_old
 )
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     α_prev = 0.0
 
-    gd = 2*dot(g,d)*hx + dot(g_Haux, d_Haux)
+    gd = 2*dot(g,d)*dx + dot(g_Haux, d_Haux)
     println("gd = $(gd)")
     if gd > 0
         println("ERROR: Bad step direction")

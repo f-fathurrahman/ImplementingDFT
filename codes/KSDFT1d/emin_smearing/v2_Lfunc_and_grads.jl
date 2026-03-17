@@ -18,7 +18,7 @@ function v2_calc_Lfunc_Haux!(
     Haux::Matrix{Float64} # (Nstates,Nstates)
 )
 
-    hx = Ham.grid.hx    
+    dx = Ham.grid.dx    
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     Vion = Ham.potentials.Ions
@@ -38,14 +38,14 @@ function v2_calc_Lfunc_Haux!(
     Ekin = calc_E_kin(Ham, psi)
     Ham.energies.Kinetic = Ekin
     
-    Ehartree = 0.5*dot(rhoe[:,1], Vhartree)*hx
+    Ehartree = 0.5*dot(rhoe[:,1], Vhartree)*dx
     Ham.energies.Hartree = Ehartree
 
-    Eion = dot(rhoe, Vion)*hx
+    Eion = dot(rhoe, Vion)*dx
     Ham.energies.Ion = Eion
 
     epsxc = calc_epsxc_1d(Ham.xc_calc, rhoe[:,1])
-    Exc = dot(rhoe, epsxc)*hx
+    Exc = dot(rhoe, epsxc)*dx
     Ham.energies.XC = Exc
 
     # The total energy (also include nuclei-nuclei or ion-ion energy)

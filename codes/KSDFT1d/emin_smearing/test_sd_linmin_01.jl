@@ -2,7 +2,7 @@
 
 function test_sd_linmin(Ham; NiterMax=100, psis=nothing, Haux=nothing)
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Nstates = Ham.electrons.Nstates
     Nspin = Ham.electrons.Nspin
     Npoints = Ham.grid.Npoints
@@ -57,7 +57,7 @@ function test_sd_linmin(Ham; NiterMax=100, psis=nothing, Haux=nothing)
     calc_grad!(Ham, psis, g, Kg, Hsub)
     calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
     #
-    println("test grad psis = ", 2*dot(psis,g)*hx)
+    println("test grad psis = ", 2*dot(psis,g)*dx)
     println("test grad Haux = ", dot(Haux,g_Haux))
     # rotate gradients
     rotate_gradients!(g, Kg, g_Haux, Kg_Haux, rots_cache)
@@ -77,7 +77,7 @@ function test_sd_linmin(Ham; NiterMax=100, psis=nothing, Haux=nothing)
         for ispin in 1:Nspin
             d[ispin] = -Kg[ispin]
             d_Haux[ispin] = -Kg_Haux[ispin]
-            constrain_search_dir!(d[ispin], psis[ispin], hx)
+            constrain_search_dir!(d[ispin], psis[ispin], dx)
         end
 
         #
@@ -86,7 +86,7 @@ function test_sd_linmin(Ham; NiterMax=100, psis=nothing, Haux=nothing)
             α_t,
             Ham, psis, Haux, Hsub, g, g_Haux, Kg, Kg_Haux, d, d_Haux, rots_cache, E1
         )
-        println("test grad psis = ", 2*dot(psis,g)*hx)
+        println("test grad psis = ", 2*dot(psis,g)*dx)
         println("test grad Haux = ", dot(Haux,g_Haux))
         rotate_gradients!(g, Kg, g_Haux, Kg_Haux, rots_cache)
  

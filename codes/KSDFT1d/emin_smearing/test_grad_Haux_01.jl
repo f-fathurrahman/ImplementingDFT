@@ -17,7 +17,7 @@ include("gradients_psi_Haux.jl")
 # Initialize a Hamiltonian object
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nelectrons = Ham.electrons.Nelectrons
 Nstates = Ham.electrons.Nstates
@@ -26,7 +26,7 @@ Focc = Ham.electrons.Focc
 Random.seed!(1234)
 psi = generate_random_wavefunc(Ham)
 
-Haux = psi' * (Ham*psi) * hx # Hsub, subspace Hamiltonian
+Haux = psi' * (Ham*psi) * dx # Hsub, subspace Hamiltonian
 
 # Evaluate total energy by calling Lfunc
 E1 = calc_Lfunc_Haux!(Ham, psi, Haux)

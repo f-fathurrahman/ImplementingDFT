@@ -45,7 +45,7 @@ function main()
 
     Ham = init_Hamiltonian()
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
@@ -94,7 +94,7 @@ function main()
         evals[:,1] .= evals_all[1:Nstates]
 
         # Renormalize
-        psi[:] = psi[:]/sqrt(hx)
+        psi[:] = psi[:]/sqrt(dx)
 
         if use_smearing
             E_f, mTS =
@@ -109,14 +109,14 @@ function main()
         end
 
         calc_rhoe!(Ham, psi, rhoe_new)
-        println("integ rhoe_new = ", sum(rhoe_new)*hx)
+        println("integ rhoe_new = ", sum(rhoe_new)*dx)
 
         Ekin = calc_E_kin(Ham, psi)
-        Ehartree = 0.5*dot(rhoe_new[:,1], Vhartree)*hx
-        Eion = dot(rhoe_new, Vion)*hx
+        Ehartree = 0.5*dot(rhoe_new[:,1], Vhartree)*dx
+        Eion = dot(rhoe_new, Vion)*dx
 
         epsxc[:] = calc_epsxc_1d(Ham.xc_calc, rhoe_new[:,1])
-        Exc = dot(rhoe_new, epsxc)*hx
+        Exc = dot(rhoe_new, epsxc)*dx
         
         # Set the internal variables
         Ham.energies.Kinetic = Ekin
@@ -143,7 +143,7 @@ function main()
         else
             rhoe[:] = rhoe_new[:]
         end
-        println("integ rhoe after mix = ", sum(rhoe)*hx)
+        println("integ rhoe after mix = ", sum(rhoe)*dx)
 
         Etot_old = Etot
 

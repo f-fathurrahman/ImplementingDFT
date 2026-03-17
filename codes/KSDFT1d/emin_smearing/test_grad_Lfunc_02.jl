@@ -17,7 +17,7 @@ include("gradients_psi_Haux.jl")
 # Initialize a Hamiltonian object
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nelectrons = Ham.electrons.Nelectrons
 Nstates = Ham.electrons.Nstates

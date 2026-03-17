@@ -17,7 +17,7 @@ include("v2_Lfunc_and_grads.jl")
 
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nstates = Ham.electrons.Nstates
 
@@ -27,7 +27,7 @@ psi = generate_random_wavefunc(Ham)
 update_from_wavefunc!(Ham, psi) # using default Focc
 
 # Calculate band energies from subspace Hamiltonian obtained from current psi
-Hsub = psi' * (Ham * psi) * hx
+Hsub = psi' * (Ham * psi) * dx
 ebands = reshape(eigvals(Hsub), Nstates, 1)
 Haux = diagm( 0 => ebands[:,1] )
 Haux_orig = deepcopy(Haux)
@@ -54,7 +54,7 @@ dW[1,1] = Δ
 psi_new = psi + dW
 Haux_new = Haux + dW_Haux
 # Orthonormalize (involves rotation)
-Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
+Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(dx)
 psi_new[:,:] = psi_new*Udagger
 Haux_new = Udagger' * Haux_new * Udagger
 Urot = transform_psi_Haux!(psi_new, Haux_new)
@@ -66,7 +66,7 @@ dW[1,1] = -Δ
 psi_new = psi + dW
 Haux_new = Haux + dW_Haux
 # Orthonormalize (involves rotation)
-Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
+Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(dx)
 psi_new[:,:] = psi_new*Udagger
 Haux_new = Udagger' * Haux_new * Udagger
 Urot = transform_psi_Haux!(psi_new, Haux_new)

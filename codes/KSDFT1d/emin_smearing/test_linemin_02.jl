@@ -22,7 +22,7 @@ include("linemin_quad.jl")
 
 function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
 
@@ -70,8 +70,8 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
 #=
         if iterEmin >= 2
-            num1 = 2*dot(g-g_old, Kg)*hx
-            denum1 = 2*dot(g_old, Kg_old)*hx
+            num1 = 2*dot(g-g_old, Kg)*dx
+            denum1 = 2*dot(g_old, Kg_old)*dx
             β = num1/denum1
             if β < 0.0
                 β = 0.0
@@ -91,7 +91,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         d[:,:] = -Kg + β*d_old
         d_Haux[:,:] = -Kg_Haux + β_Haux*d_Haux_old
         #
-        constrain_search_dir!(d, psi, hx)
+        constrain_search_dir!(d, psi, dx)
 
         α, is_linmin_success1 = linemin_armijo_psi(Ham, psi, Haux, d, d_Haux, E1, α0=1.0, reduce_factor=0.25)
         α_Haux, is_linmin_success2 = linemin_armijo_Haux(Ham, psi, Haux, d, d_Haux, E1, α0=1.0, reduce_factor=0.25)
@@ -122,7 +122,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         # Update psi
         psi[:,:] = psi + α*d
         Haux[:,:] = Haux + α_Haux*d_Haux
-        prepare_psi_Haux!(psi, Haux, hx)
+        prepare_psi_Haux!(psi, Haux, dx)
         # Evaluate
         E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
         calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
@@ -131,8 +131,8 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         prec_invK!(Ham, Kg)
         #
         dE = E1 - E_old
-        dg_Haux = dot(g_Haux,g_Haux)*hx/length(g_Haux)
-        dg = dot(g,g)*hx/length(g)
+        dg_Haux = dot(g_Haux,g_Haux)*dx/length(g_Haux)
+        dg = dot(g,g)*dx/length(g)
         #
         @printf("EMIN: %8d %18.10f %18.10e [%18.10e,%18.10e]\n", iterEmin, E1, dE, dg, dg_Haux)
         if E1 > E_old
@@ -162,7 +162,7 @@ end
 function main()
     Ham = init_Hamiltonian()
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
 
@@ -201,7 +201,7 @@ function main()
         psi[:,:] = psi[:,:] + g
         Haux[:,:] = Haux[:,:] + g_Haux
         #
-        prepare_psi_Haux!(psi, Haux, hx)
+        prepare_psi_Haux!(psi, Haux, dx)
     end
 
     println("ebands = ")

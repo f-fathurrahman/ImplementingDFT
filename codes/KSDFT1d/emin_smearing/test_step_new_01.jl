@@ -2,7 +2,7 @@
 
 function test_step_new_01(Ham)
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Nstates = Ham.electrons.Nstates
     Nspin = Ham.electrons.Nspin
     Npoints = Ham.grid.Npoints

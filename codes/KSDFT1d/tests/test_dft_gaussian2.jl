@@ -41,7 +41,7 @@ function main()
 
     Ham = init_Hamiltonian()
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
@@ -84,7 +84,7 @@ function main()
         evals = evals_all[1:Nstates]
 
         # Renormalize
-        psi[:] = psi[:]/sqrt(hx)
+        psi[:] = psi[:]/sqrt(dx)
         
         @printf("Eigenvalues\n")
         for ist in 1:Nstates
@@ -92,13 +92,13 @@ function main()
         end
 
         calc_rhoe!(Ham, psi, rhoe_new)
-        println("integ rhoe_new = ", sum(rhoe_new)*hx)
+        println("integ rhoe_new = ", sum(rhoe_new)*dx)
 
         epsxc[:] = calc_epsxc_1d(Ham.xc_calc, rhoe_new[:,1])
         Ekin = calc_E_kin(Ham, psi)
-        Ehartree = 0.5*dot(rhoe_new[:,1], Vhartree)*hx
-        Eion = dot(rhoe_new, Vion)*hx
-        Exc = dot(rhoe_new, epsxc)*hx
+        Ehartree = 0.5*dot(rhoe_new[:,1], Vhartree)*dx
+        Eion = dot(rhoe_new, Vion)*dx
+        Exc = dot(rhoe_new, epsxc)*dx
         Etot = Ekin + Ehartree + Eion + Exc + E_NN
 
         ΔE = abs(Etot - Etot_old)

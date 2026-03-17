@@ -37,15 +37,15 @@ function Hamiltonian1d(
         xmax =  atoms.L/2
         grid = FD1dGrid( (xmin, xmax), Npoints, pbc=atoms.pbc)
         if Nstencil_points == 3
-            Kmat = -0.5*build_D2_matrix_3pt(Npoints, grid.hx)
+            Kmat = -0.5*build_D2_matrix_3pt(Npoints, grid.dx)
         elseif Nstencil_points == 5
-            Kmat = -0.5*build_D2_matrix_5pt(Npoints, grid.hx)
+            Kmat = -0.5*build_D2_matrix_5pt(Npoints, grid.dx)
         elseif Nstencil_points == 7
-            Kmat = -0.5*build_D2_matrix_7pt(Npoints, grid.hx)
+            Kmat = -0.5*build_D2_matrix_7pt(Npoints, grid.dx)
         elseif Nstencil_points == 9
-            Kmat = -0.5*build_D2_matrix_7pt(Npoints, grid.hx)
+            Kmat = -0.5*build_D2_matrix_7pt(Npoints, grid.dx)
         elseif Nstencil_points == 11
-            Kmat = -0.5*build_D2_matrix_11pt(Npoints, grid.hx)
+            Kmat = -0.5*build_D2_matrix_11pt(Npoints, grid.dx)
         else
             error("Nstencil_points = $(Nstencil_points) is not coded or supported yet")
         end
@@ -57,13 +57,13 @@ function Hamiltonian1d(
     #    gvec = GVectors1d(L, Ns)
     #end
 
-    hx = grid.hx
+    dx = grid.dx
 
     electrons = Electrons(atoms, Nstates_extra=Nstates_extra, Nspin=Nspin)
 
     rhoe = ones(Float64, Npoints, Nspin)
-    @views rhoe[:] = rhoe[:] / ( sum(rhoe)*hx ) * electrons.Nelectrons
-    println("integ rhoe = ", sum(rhoe)*hx)
+    @views rhoe[:] = rhoe[:] / ( sum(rhoe)*dx ) * electrons.Nelectrons
+    println("integ rhoe = ", sum(rhoe)*dx)
     
     potentials = Potentials(
         zeros(Float64, Npoints),

@@ -1,6 +1,6 @@
 function edft_calc_h_matrix!(Ham, psi, hmat)
     Nstates = size(psi, 2)
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     fill!(hmat, 0.0)
     # Apply T + V_ions to each orbital (column)
     H0 = Ham.Kmat + diagm( 0 => Ham.potentials.Ions)
@@ -8,7 +8,7 @@ function edft_calc_h_matrix!(Ham, psi, hmat)
     for jst in 1:Nstates
         Hpsi_j = H0 * psi[:,jst]
         for ist in 1:Nstates
-            hmat[ist,jst] = dot(psi[:,ist], Hpsi_j)*hx
+            hmat[ist,jst] = dot(psi[:,ist], Hpsi_j)*dx
         end
     end
     return
@@ -36,7 +36,7 @@ function edft_calc_rhoe!(
     Npoints = size(rhoe, 1)
     Nstates = size(psi, 2)
     Nelectrons = Ham.electrons.Nelectrons
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     #
     contrib = zeros(Float64, Npoints)
     fill!(rhoe, 0.0)
@@ -55,37 +55,37 @@ function edft_calc_rhoe!(
             rhoe[i] = 0.0
         end
     end
-    #ss = sum(rhoe)*hx
+    #ss = sum(rhoe)*dx
     ##println("ss = ", ss)
     #rhoe[:] *= Nelectrons/ss
     
-    #ss = sum(rhoe)*hx
+    #ss = sum(rhoe)*dx
     #println("ss = ", ss)
     return
 end
 
-function edft_calc_Vhxc_mat!(Ham, psi, Vhxc, Vhxc_mat)
+function edft_calc_Vdxc_mat!(Ham, psi, Vdxc, Vdxc_mat)
     Nstates = size(psi, 2)
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     for ist in 1:Nstates, jst in ist:Nstates
-        vij = dot( psi[:,ist] .* psi[:,jst], Vhxc) * hx
-        Vhxc_mat[ist,jst] = vij
+        vij = dot( psi[:,ist] .* psi[:,jst], Vdxc) * dx
+        Vdxc_mat[ist,jst] = vij
         if ist != jst
-            Vhxc_mat[jst,ist] = vij
+            Vdxc_mat[jst,ist] = vij
         end
     end
     return
 end
 
-function ortho_gram_schmidt!(psi, hx)
+function ortho_gram_schmidt!(psi, dx)
     Nstates = size(psi, 2)
     for ist in 1:Nstates
-        nrm = sqrt(dot(psi[:,ist], psi[:,ist])*hx)
+        nrm = sqrt(dot(psi[:,ist], psi[:,ist])*dx)
         if nrm > 1e-12
             psi[:,ist] /= nrm
         end
         for jst in (ist+1):Nstates
-            prj = dot(psi[:,jst], psi[:,ist])*hx
+            prj = dot(psi[:,jst], psi[:,ist])*dx
             psi[:,jst] .-= prj * psi[:,ist]
         end
     end
@@ -117,12 +117,12 @@ end
 
 
 function calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe)
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     E_kext = tr(Focc_matrix * hmat)
-    E_H = 0.5 * dot(rhoe, Vhartree) * hx
+    E_H = 0.5 * dot(rhoe, Vhartree) * dx
     
     epsxc = calc_epsxc_1d(Ham.xc_calc, rhoe[:,1])
-    E_xc = dot(rhoe, epsxc)*hx
+    E_xc = dot(rhoe, epsxc)*dx
 
     kT = Ham.electrons.kT
     S, _ = calc_entropy(Focc_matrix)
@@ -154,14 +154,14 @@ function inner_loop!(
     end
     ispin = 1  # HARDCODED
 
-    Vhxc_mat = zeros(Float64, Nstates, Nstates)
+    Vdxc_mat = zeros(Float64, Nstates, Nstates)
     Hsub = zeros(Float64, Nstates, Nstates)
     rhoe_current = zeros(Float64, Npoints, Nspin)
 
     rhoe_1 = zeros(Float64, Npoints, Nspin)
     Vhartree1 = similar(Vhartree)
     Vxc1 = similar(Vxc)
-    Vhxc_mat1 = zeros(Float64, Nstates, Nstates)
+    Vdxc_mat1 = zeros(Float64, Nstates, Nstates)
     Vtot1 = similar(Vtot)
 
     rhoe_β = zeros(Float64, Npoints, Nspin)
@@ -181,8 +181,8 @@ function inner_loop!(
         Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe_current)
         Vtot[:,ispin] = Vhartree[:] + Vxc[:,ispin]
 
-        edft_calc_Vhxc_mat!(Ham, psi, Vtot, Vhxc_mat)
-        Hsub[:,:] = hmat + Vhxc_mat
+        edft_calc_Vdxc_mat!(Ham, psi, Vtot, Vdxc_mat)
+        Hsub[:,:] = hmat + Vdxc_mat
 
         ebands[:,ispin], X = eigen(Hermitian(Hsub))
 
@@ -214,8 +214,8 @@ function inner_loop!(
 
         Vtot1[:,ispin] = Vhartree1[:] + Vxc1[:,ispin]
 
-        edft_calc_Vhxc_mat!(Ham, psi, Vtot1, Vhxc_mat1)
-        Hsub1 = hmat + Vhxc_mat1
+        edft_calc_Vdxc_mat!(Ham, psi, Vtot1, Vdxc_mat1)
+        Hsub1 = hmat + Vdxc_mat1
         dA1 = sum(delta_f .* (Hsub1 - kT*sprim1))
 
         # Cubic interpolation for beta
@@ -281,15 +281,15 @@ function inner_loop!(
 
 end
 
-function density_difference(rhoe_1, rhoe_2, hx)
-    return sum(abs.(rhoe_1 - rhoe_2)) * hx
+function density_difference(rhoe_1, rhoe_2, dx)
+    return sum(abs.(rhoe_1 - rhoe_2)) * dx
 end
 
 function edft_calc_grad(Ham, Focc_matrix, psi)
     
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Kmat = Ham.Kmat
     Vtot = Ham.potentials.Total
     Vxc = Ham.potentials.XC
@@ -304,7 +304,7 @@ function edft_calc_grad(Ham, Focc_matrix, psi)
     Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe)
     Vtot[:,ispin] = Vhartree[:] + Vxc[:,ispin]
 
-    # Full Hamiltonian operator: T + V_ext + V_HXC
+    # Full Hamiltonian operator: T + V_ext + V_dxC
     H_op = Kmat + diagm(Vion + Vtot[:,ispin])
 
     grads = zeros(Float64, Npoints, Nstates)
@@ -323,7 +323,7 @@ function edft_calc_grad(Ham, Focc_matrix, psi)
     # Orthogonalize gradients to all orbitals (preserve orthonormality)
     for ist in 1:Nstates
         for jst in 1:Nstates
-            prj = dot(psi[:,jst], grads[:,ist])*hx
+            prj = dot(psi[:,jst], grads[:,ist])*dx
             grads[:,ist] .-= prj*psi[:,jst]
         end
     end
@@ -337,7 +337,7 @@ function emin_edft!(Ham)
     grid = Ham.grid
     Npoints = grid.Npoints
     Nstates = Ham.electrons.Nstates
-    hx = grid.hx
+    dx = grid.dx
     Nspin = Ham.electrons.Nspin
 
     Kmat = Ham.Kmat
@@ -363,9 +363,9 @@ function emin_edft!(Ham)
     end
 
     #ortho_sqrt!(psi)
-    #psi[:,:] = psi[:,:]/sqrt(hx)
+    #psi[:,:] = psi[:,:]/sqrt(dx)
     
-    ortho_gram_schmidt!(psi, hx)
+    ortho_gram_schmidt!(psi, dx)
 
     hmat = zeros(Float64, Nstates, Nstates)
     edft_calc_h_matrix!(Ham, psi, hmat)
@@ -436,13 +436,13 @@ function emin_edft!(Ham)
         #
         A_new = calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe_new)
         println("A_new after inner loop = ", A_new)
-        dn = density_difference(rhoe_new, rhoe_old, hx)
+        dn = density_difference(rhoe_new, rhoe_old, dx)
         println("dn after inner_loop = ", dn)
 
         rhoe_old[:,:] = rhoe_new[:,:]
 
         grads[:,:] = edft_calc_grad(Ham, Focc_matrix, psi)
-        grad_norm = sqrt(sum(grads.^2) * hx)   # Frobenius norm
+        grad_norm = sqrt(sum(grads.^2) * dx)   # Frobenius norm
         println("grad_norm = ", grad_norm)
 
         #if outer == 0:
@@ -473,7 +473,7 @@ function emin_edft!(Ham)
                 break
             end
             psi_trial[:,:] = psi + α * search_dir
-            ortho_gram_schmidt!(psi_trial, hx)
+            ortho_gram_schmidt!(psi_trial, dx)
             #
             edft_calc_h_matrix!(Ham, psi_trial, hmat)
             # Quick inner loop (just one pass) for this trial
@@ -517,7 +517,7 @@ function emin_edft!(Ham)
         Vxc[:,ispin] = calc_Vxc_1d(Ham.xc_calc, rhoe_new)
         A_new = calc_free_energy(Ham, Focc_matrix, hmat, Vhartree, rhoe_new)
         #println("A_new = ", A_new)
-        dn = density_difference(rhoe_new, rhoe_old, hx)
+        dn = density_difference(rhoe_new, rhoe_old, dx)
         #println("dn = ", dn)
 
         dA = abs(A_new - A_old)

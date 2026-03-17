@@ -33,7 +33,7 @@ function transform_psis_Haux_update_ebands!(
 )
     Nspin = Ham.electrons.Nspin
     ebands = Ham.electrons.ebands
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     #
     Urot = rots_cache.Urot
     UrotC = rots_cache.UrotC
@@ -46,7 +46,7 @@ function transform_psis_Haux_update_ebands!(
         ebands[:,ispin], Urot[ispin] = eigen(Hermitian(Haux[ispin]))
         # overwrite_Haux
         Haux[ispin] = diagm( 0 => Ham.electrons.ebands[:,ispin] )
-        UrotC[ispin] = inv(sqrt(psis[ispin]' * psis[ispin])) ./ sqrt(hx)
+        UrotC[ispin] = inv(sqrt(psis[ispin]' * psis[ispin])) ./ sqrt(dx)
         UrotC[ispin] = UrotC[ispin]*Urot[ispin] # extra rotation
         psis[ispin] = psis[ispin]*UrotC[ispin]
     end
@@ -102,8 +102,8 @@ function transform_psi_Haux!(psi, Haux)
 end
 
 # Just like transform_psi_Haux + orthonormalization
-function prepare_psi_Haux!(psi, Haux, hx)
-    Udagger = inv(sqrt(psi'*psi)) ./ sqrt(hx)
+function prepare_psi_Haux!(psi, Haux, dx)
+    Udagger = inv(sqrt(psi'*psi)) ./ sqrt(dx)
     psi[:,:] = psi*Udagger
     # Make Haux diagonal
     λ, Urot = eigen(Hermitian(Haux))
@@ -197,7 +197,7 @@ function calc_Lfunc(
     psi = psis[ispin]
 
     mTS = Ham.energies.mTS
-    hx = Ham.grid.hx    
+    dx = Ham.grid.dx    
     Vion = Ham.potentials.Ions
     Vhartree = Ham.potentials.Hartree
     rhoe = Ham.rhoe
@@ -208,14 +208,14 @@ function calc_Lfunc(
     Ekin = calc_E_kin(Ham, psi)
     Ham.energies.Kinetic = Ekin
     # Hartree
-    Ehartree = 0.5*dot(rhoe[:,ispin], Vhartree)*hx
+    Ehartree = 0.5*dot(rhoe[:,ispin], Vhartree)*dx
     Ham.energies.Hartree = Ehartree
     # Ion
-    Eion = dot(rhoe, Vion)*hx
+    Eion = dot(rhoe, Vion)*dx
     Ham.energies.Ion = Eion
     # XC
     epsxc = calc_epsxc_1d(Ham.xc_calc, rhoe[:,ispin])
-    Exc = dot(rhoe, epsxc)*hx
+    Exc = dot(rhoe, epsxc)*dx
     Ham.energies.XC = Exc
     #
     # The total energy (also include nuclei-nuclei or ion-ion energy)

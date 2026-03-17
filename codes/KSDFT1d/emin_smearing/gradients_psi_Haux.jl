@@ -9,12 +9,12 @@ function calc_grad!(
     ispin = 1 # FIXED
     psi = psis[ispin]
     Nstates = size(psi, 2)
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Focc = Ham.electrons.Focc
 
     Hpsi = op_H( Ham, psi )
     # Set subspace Hamiltonian
-    Hsub[ispin] = psi' * Hpsi * hx
+    Hsub[ispin] = psi' * Hpsi * dx
     Hpsi -= psi*Hsub[ispin]
 
     for ist in 1:Nstates

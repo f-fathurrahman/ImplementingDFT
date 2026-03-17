@@ -16,7 +16,7 @@ include("gradients_psi_Haux.jl")
 
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nstates = Ham.electrons.Nstates
 
@@ -54,7 +54,7 @@ end
 Kg = zeros(Float64, size(g))
 prec_invK!(Ham, g, Kg)
 dW = Kg # why using Kg will not work? Do we need to constrain the search direction?
-constrain_search_dir!(dW, psi, hx)
+constrain_search_dir!(dW, psi, dx)
 dW_Haux = g_Haux
 for iexp in 2:10
     #
@@ -65,7 +65,7 @@ for iexp in 2:10
     Haux_new = Haux + Δ*dW_Haux
     #
     # Prepare new psi and Haux
-    Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(hx)
+    Udagger = inv(sqrt(psi_new'*psi_new)) ./ sqrt(dx)
     psi_new[:,:] = psi_new*Udagger
     #Haux_new = Udagger' * Haux_new * Udagger
     Urot = transform_psi_Haux!(psi_new, Haux_new)
@@ -87,7 +87,7 @@ for iexp in 2:10
 
     # XXX: Use different gradient from this? from Lfunc_Focc?
     println()
-    dE_psi = 2*real(dot(g, Δ*dW)*hx)
+    dE_psi = 2*real(dot(g, Δ*dW)*dx)
     dE_Haux = real(dot(g_Haux, Δ*dW_Haux))
     println("dE_psi  = ", dE_psi)
     println("dE_Haux = ", dE_Haux)

@@ -11,7 +11,7 @@ end
 function ElecVars( Ham::Hamiltonian1d, psi::BlochWavefunc )
     
     Nstates = Ham.electrons.Nstates
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Nspin = 1 # FIXED
 
 
@@ -20,7 +20,7 @@ function ElecVars( Ham::Hamiltonian1d, psi::BlochWavefunc )
 
     update_from_wavefunc!(Ham, psi)    
 
-    Hsub = psi' * (Ham * psi) * hx
+    Hsub = psi' * (Ham * psi) * dx
     Hsub_eigs = eigvals(Hermitian(Hsub[i]))  # set Haux_eigs to eigenvalues of Hsub
 
     return ElecVars(psiks, Hsub, Hsub_eigs)

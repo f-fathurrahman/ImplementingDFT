@@ -13,7 +13,7 @@ include("../utilities.jl")
 
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nelectrons = Ham.electrons.Nelectrons
 Nstates = Ham.electrons.Nstates

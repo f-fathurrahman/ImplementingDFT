@@ -1,7 +1,7 @@
 # Vary psi and Haux simulataneously
 function linemin_quad(α_t::Float64, Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
 
     α_start = 1.0
     α_min = 1e-10
@@ -9,7 +9,7 @@ function linemin_quad(α_t::Float64, Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
     increaseFactor = 3.0
     NalphaAdjustMax = 3
 
-    gdotd = 2*dot(g, d)*hx + dot(g_Haux, d_Haux)
+    gdotd = 2*dot(g, d)*dx + dot(g_Haux, d_Haux)
     if gdotd > 0.0
         println("linemin_quad: !!! Bad step direction")
         return 1.0, α_t, false
@@ -31,10 +31,10 @@ function linemin_quad(α_t::Float64, Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
         psic = psi + α_t*d # trial wavefunc
         Hauxc = Haux + α_t*d_Haux
         #
-        prepare_psi_Haux!(psic, Hauxc, hx)
+        prepare_psi_Haux!(psic, Hauxc, dx)
         #
         Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc)
-        ΔEdir = 2*dot(g, α_t*d)*hx + dot(g_Haux, α_t*d_Haux)
+        ΔEdir = 2*dot(g, α_t*d)*dx + dot(g_Haux, α_t*d_Haux)
         #
         println("linemin_quad: E1     = ", E1)
         println("linemin_quad: Etrial = ", Etrial)

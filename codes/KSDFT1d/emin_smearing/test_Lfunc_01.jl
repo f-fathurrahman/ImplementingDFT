@@ -2,7 +2,7 @@
 
 function test_Lfunc_01(Ham)
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Nstates = Ham.electrons.Nstates
     Nspin = Ham.electrons.Nspin
 

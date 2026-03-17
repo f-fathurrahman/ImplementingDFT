@@ -1,5 +1,5 @@
-function constrain_search_dir!(d, psi, hx)
-    d[:] = d - psi * ( psi' * d ) * hx
+function constrain_search_dir!(d, psi, dx)
+    d[:] = d - psi * ( psi' * d ) * dx
     return
 end
 
@@ -27,11 +27,11 @@ function ortho_sqrt!( psi::Array{Float64,2} )
 end
 
 function generate_random_wavefunc(Ham)
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
     psi = ortho_sqrt(rand(Npoints,Nstates))
-    psi .*= (1.0/sqrt(hx))
+    psi .*= (1.0/sqrt(dx))
     return psi
 end
 

@@ -2,7 +2,7 @@
 
 function test_cg_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Nstates = Ham.electrons.Nstates
     Nspin = Ham.electrons.Nspin
     Npoints = Ham.grid.Npoints
@@ -62,7 +62,7 @@ function test_cg_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
     calc_grad!(Ham, psis, g, Kg, Hsub)
     calc_grad_Haux!(Ham, Hsub, g_Haux, Kg_Haux)
     #
-    println("test grad psis = ", 2*dot(psis,g)*hx)
+    println("test grad psis = ", 2*dot(psis,g)*dx)
     println("test grad Haux = ", dot(Haux,g_Haux))
     # rotate gradients
     rotate_gradients!(g, Kg, g_Haux, Kg_Haux, rots_cache)
@@ -82,14 +82,14 @@ function test_cg_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
 
         println("\nBegin iterCG = ", iterCG)
 
-        gKNorm = 2*dot(g, Kg)*hx + dot(g_Haux, Kg_Haux)
+        gKNorm = 2*dot(g, Kg)*dx + dot(g_Haux, Kg_Haux)
 
         β = 0.0
         if !do_force_grad_dir
-            gd = 2*dot(g, d)*hx + dot(g_Haux, d_Haux)
-            gPrevKg = 2*dot(gPrev, Kg)*hx + dot(gPrev_Haux, Kg_Haux)
-            gg = 2*dot(g, g)*hx + dot(g_Haux, g_Haux)
-            dd = 2*dot(d, d)*hx + dot(d_Haux, d_Haux)
+            gd = 2*dot(g, d)*dx + dot(g_Haux, d_Haux)
+            gPrevKg = 2*dot(gPrev, Kg)*dx + dot(gPrev_Haux, Kg_Haux)
+            gg = 2*dot(g, g)*dx + dot(g_Haux, g_Haux)
+            dd = 2*dot(d, d)*dx + dot(d_Haux, d_Haux)
             @printf("linmin: %10.3le", gd/sqrt(gg*dd))
             @printf("  cgtest: %10.3le\n", gPrevKg/sqrt(gKNorm*gKNormPrev))
             # Update beta:
@@ -115,7 +115,7 @@ function test_cg_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
         for ispin in 1:Nspin
             d[ispin] = -Kg[ispin] + β*d[ispin]
             d_Haux[ispin] = -Kg_Haux[ispin] + β*d_Haux[ispin]
-            constrain_search_dir!(d[ispin], psis[ispin], hx)
+            constrain_search_dir!(d[ispin], psis[ispin], dx)
         end    
 
         #
@@ -124,7 +124,7 @@ function test_cg_01(Ham; NiterMax=100, psis=nothing, Haux=nothing)
             α_t,
             Ham, psis, Haux, Hsub, g, g_Haux, Kg, Kg_Haux, d, d_Haux, rots_cache, E1
         )
-        println("test grad psis = ", 2*dot(psis,g)*hx)
+        println("test grad psis = ", 2*dot(psis,g)*dx)
         println("test grad Haux = ", dot(Haux,g_Haux))
         rotate_gradients!(g, Kg, g_Haux, Kg_Haux, rots_cache)
  

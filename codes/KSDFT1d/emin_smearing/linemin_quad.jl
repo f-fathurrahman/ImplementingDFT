@@ -1,14 +1,14 @@
 
 function linemin_quad_psi(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     #
     α_t = 1e-5
     psic = psi + α_t*d
     Hauxc = deepcopy(Haux)
     #
-    prepare_psi_Haux!(psic, Hauxc, hx)
+    prepare_psi_Haux!(psic, Hauxc, dx)
     Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc)
-    ΔEdir = 2*dot(g, α_t*d)*hx
+    ΔEdir = 2*dot(g, α_t*d)*dx
     #
     println("linemin_quad_psi: E1     = ", E1)
     println("linemin_quad_psi: Etrial = ", Etrial)
@@ -26,13 +26,13 @@ end
 
 
 function linemin_quad_Haux(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     #
     α_t = 1e-5
     psic = deepcopy(psi)
     Hauxc = Haux + α_t*d_Haux
     #
-    prepare_psi_Haux!(psic, Hauxc, hx)
+    prepare_psi_Haux!(psic, Hauxc, dx)
     Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc)
     ΔEdir = dot(g_Haux, α_t*d_Haux)
     #
@@ -54,18 +54,18 @@ end
 
 # Vary psi and Haux simulataneously
 function linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     #
     α_t = 1e-4
     psic = psi + α_t*d # trial wavefunc
     Hauxc = Haux + α_t*d_Haux
     #
-    Udagger = inv(sqrt(psic'*psic)) ./ sqrt(hx) # rotation
+    Udagger = inv(sqrt(psic'*psic)) ./ sqrt(dx) # rotation
     psic[:,:] = psic*Udagger # orthonormalize
     Urot2 = transform_psi_Haux!(psic, Hauxc) # make Haux diagonal 
     #
     Etrial = calc_Lfunc_Haux!(Ham, psic, Hauxc)
-    ΔEdir = 2*dot(g, α_t*d)*hx + dot(g_Haux, α_t*d_Haux)
+    ΔEdir = 2*dot(g, α_t*d)*dx + dot(g_Haux, α_t*d_Haux)
     if ΔEdir > 0
         println("linemin_quad: !!! Bad step direction")
     end

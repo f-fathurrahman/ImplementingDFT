@@ -2,7 +2,7 @@ struct FD1dGrid
     Npoints::Int64
     Lx::Float64
     Nx::Int64
-    hx::Float64
+    dx::Float64
     dVol::Float64
     x::Array{Float64,1}
     pbc::Bool
@@ -13,18 +13,18 @@ function FD1dGrid( x_domain::Tuple{Float64,Float64}, Nx::Int64; pbc=false )
 
     @assert x_domain[1] < x_domain[2]
     if pbc
-        x, hx = init_FD1d_p_grid(x_domain, Nx)
+        x, dx = init_FD1d_p_grid(x_domain, Nx)
     else
-        x, hx = init_FD1d_grid(x_domain, Nx)
+        x, dx = init_FD1d_grid(x_domain, Nx)
     end
 
     Lx = x_domain[2] - x_domain[1]
 
-    dVol = hx
+    dVol = dx
     
     Npoints = Nx
 
-    return FD1dGrid(Npoints, Lx, Nx, hx, dVol, x, pbc)
+    return FD1dGrid(Npoints, Lx, Nx, dx, dVol, x, pbc)
     
 end
 
@@ -40,11 +40,11 @@ function show( io::IO, grid::FD1dGrid )
     @printf("FD1dGrid instance\n")
     @printf("-----------------\n")
 
-    Nx = grid.Nx; hx = grid.hx
+    Nx = grid.Nx; dx = grid.dx
 
     println()
     @printf(io, "Box size         = %10.5f\n", grid.Lx)
-    @printf(io, "Grid spacing     = %10.5f\n", hx)
+    @printf(io, "Grid spacing     = %10.5f\n", dx)
     @printf(io, "Number of points = %10d\n", grid.Npoints)
     @printf(io, "dVol = dx        = %10.5f\n", grid.dVol)
     println()

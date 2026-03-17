@@ -5,18 +5,18 @@ using LinearAlgebra
 using KSDFT1d
 import Random
 
-include("system_defs_01.jl")
+include("../tests/system_defs_01.jl")
 include("../utilities.jl")
 include("direct_min_no_smearing.jl")
 
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nstates = Ham.electrons.Nstates
 
 psi = ortho_sqrt( randn(Float64, Npoints, Nstates) )
-psi[:] = psi[:]/sqrt(hx)
+psi[:] = psi[:]/sqrt(dx)
 E0 = calc_KohnSham_Etotal!(Ham, psi)
 g0 = calc_grad(Ham, psi)
 
@@ -24,9 +24,9 @@ for i in 4:11
     Δ = 10.0^(-i)
     dW = randn(Float64, Npoints, Nstates)
     psi1 = ortho_sqrt( psi + Δ*dW )
-    psi1[:] = psi1[:]/sqrt(hx)
+    psi1[:] = psi1[:]/sqrt(dx)
     E1 = calc_KohnSham_Etotal!(Ham, psi1)
-    dE = 2*real( sum( g0 .* (Δ*dW) ) )*hx
+    dE = 2*real( sum( g0 .* (Δ*dW) ) )*dx
     #
     println("Δ = ", Δ)
     println("dE = ", dE)

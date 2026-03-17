@@ -23,7 +23,7 @@ include("gradients_psi_Haux.jl")
     # Initialize a Hamiltonian object
     Ham = init_Hamiltonian()
     
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
@@ -36,7 +36,7 @@ include("gradients_psi_Haux.jl")
     update_from_wavefunc!(Ham, psi) # update the potential
     
     # Prepare Haux from psi (form subspace Hamiltonian)
-    #Haux = psi' * (Ham*psi) * hx # Hsub, subspace Hamiltonian
+    #Haux = psi' * (Ham*psi) * dx # Hsub, subspace Hamiltonian
     
     # Using random diagonal Haux
     ebands1 = sort(randn(Nstates))
@@ -70,9 +70,9 @@ include("gradients_psi_Haux.jl")
     calc_grad_no_Focc!(Ham, psi, Kg)
     prec_invK!(Ham, Kg)
 
-    println("dot g,g = ", dot(g,g)*hx)
+    println("dot g,g = ", dot(g,g)*dx)
 
-    dg = dot(g_Haux,g_Haux)*hx
+    dg = dot(g_Haux,g_Haux)*dx
     println("dot g_Haux,g_Haux = ", dg)
 
     # We use different "learning rate" for psi and Haux
@@ -102,11 +102,11 @@ include("gradients_psi_Haux.jl")
         #ortho_sqrt!(psi)
         
         # Orthonormalize wavefunction (involves rotation)
-        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(hx) # rotation
+        Udagger[:,:] = inv(sqrt(psi'*psi)) ./ sqrt(dx) # rotation
         psi[:,:] = psi*Udagger
 
         #println("Check ortho 1:")
-        #display(psi' * psi * hx)
+        #display(psi' * psi * dx)
 
         # Also rotate Haux according to Udagger
         Haux[:,:] = Udagger' * Haux * Udagger
@@ -152,8 +152,8 @@ include("gradients_psi_Haux.jl")
         end
 
         dE = abs(E1 - E_new)
-        dg_Haux = dot(g_Haux,g_Haux)*hx/length(g_Haux)
-        dg = dot(g,g)*hx/length(g)
+        dg_Haux = dot(g_Haux,g_Haux)*dx/length(g_Haux)
+        dg = dot(g,g)*dx/length(g)
         println("dot g_Haux,g_Haux = ", dg)
 
         @printf("Emin: %8d %18.10f %10.5e [%10.5e,%10.5e]\n", iterEmin, E_new, dE, dg, dg_Haux)

@@ -19,7 +19,7 @@ include("linemin_grad.jl")
 
 Ham = init_Hamiltonian()
 
-hx = Ham.grid.hx
+dx = Ham.grid.dx
 Npoints = Ham.grid.Npoints
 Nstates = Ham.electrons.Nstates
 
@@ -53,7 +53,7 @@ prec_invK!(Ham, g, Kg) # Precondition
 # Set direction
 d = -Kg
 d_Haux = -Kg_Haux
-constrain_search_dir!(d, psi, hx)
+constrain_search_dir!(d, psi, dx)
 
 α, is_linmin_success = linemin_quad(Ham, psi, Haux, g, g_Haux, d, d_Haux, E1)
 
@@ -61,13 +61,13 @@ constrain_search_dir!(d, psi, hx)
 #is_linmin_success = true # force to true
 
 println("α = ", α)
-ΔEdir = 2*dot(g, α*d)*hx + dot(g_Haux, α*d_Haux)
+ΔEdir = 2*dot(g, α*d)*dx + dot(g_Haux, α*d_Haux)
 println("Expected ΔE = ", ΔEdir)
 
 # Do the step
 psi_new = psi + α*d
 Haux_new = Haux + α*d_Haux
-Udagger, Urot = prepare_psi_Haux!(psi_new, Haux_new, hx)
+Udagger, Urot = prepare_psi_Haux!(psi_new, Haux_new, dx)
 # Evaluate at the new variables
 E_new = calc_Lfunc_Haux!(Ham, psi_new, Haux_new)
 calc_grad_Lfunc_Haux!(Ham, psi_new, Haux_new, g, Hsub, g_Haux, Kg_Haux)

@@ -22,7 +22,7 @@ include("linemin_quad.jl")
 
 function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
 
@@ -69,10 +69,10 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 #=
         if iterEmin >= 2
             #β = real( dot(g - g_old, Kg) )/real( dot(g_old,Kg_old) )
-            num1 = 2*dot(g-g_old, Kg)*hx + dot(g_Haux-g_Haux_old, Kg_Haux)
-            denum1 = 2*dot(g_old, Kg_old)*hx + dot(g_Haux_old, Kg_Haux_old)
-            #num1 = 2*dot(g,Kg)*hx + dot(g_Haux,Kg_Haux)
-            #denum1 = 2*dot(g_old,Kg_old)*hx + dot(g_Haux_old,Kg_Haux_old)
+            num1 = 2*dot(g-g_old, Kg)*dx + dot(g_Haux-g_Haux_old, Kg_Haux)
+            denum1 = 2*dot(g_old, Kg_old)*dx + dot(g_Haux_old, Kg_Haux_old)
+            #num1 = 2*dot(g,Kg)*dx + dot(g_Haux,Kg_Haux)
+            #denum1 = 2*dot(g_old,Kg_old)*dx + dot(g_Haux_old,Kg_Haux_old)
             β = num1/denum1
             if β < 0.0
                 β = 0.0
@@ -88,7 +88,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
 
         d[:,:] = -Kg + β*d_old
         d_Haux[:,:] = -Kg_Haux + β*d_Haux_old
-        constrain_search_dir!(d, psi, hx)
+        constrain_search_dir!(d, psi, dx)
 
         println()
         if is_increasing
@@ -109,9 +109,9 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
             break
         end
 
-        num1 = 2*dot(g,d_old)*hx + dot(g_Haux,d_Haux_old)
-        gg = 2*dot(g,g)*hx + dot(g_Haux,g_Haux)
-        dd = 2*dot(d_old,d_old)*hx + dot(d_Haux_old,d_Haux_old)
+        num1 = 2*dot(g,d_old)*dx + dot(g_Haux,d_Haux_old)
+        gg = 2*dot(g,g)*dx + dot(g_Haux,g_Haux)
+        dd = 2*dot(d_old,d_old)*dx + dot(d_Haux_old,d_Haux_old)
         println("num1 = ", num1)
         println("gg*dd = ", gg*dd)
         linmin_test = num1/sqrt(gg*dd)
@@ -132,7 +132,7 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         psi[:,:] = psi + α*d
         Haux[:,:] = Haux + α*d_Haux
         #
-        prepare_psi_Haux!(psi, Haux, hx)
+        prepare_psi_Haux!(psi, Haux, dx)
         #
         E1 = calc_Lfunc_Haux!(Ham, psi, Haux)
         calc_grad_Lfunc_Haux!(Ham, psi, Haux, g, Hsub, g_Haux, Kg_Haux)
@@ -142,8 +142,8 @@ function solve_Emin_SD!(Ham, psi, Haux, g, g_Haux, Kg, Kg_Haux, d, d_Haux)
         #
         #
         dE = E1 - E_old
-        dg_Haux = dot(g_Haux,g_Haux)*hx/length(g_Haux)
-        dg = dot(g,g)*hx/length(g)
+        dg_Haux = dot(g_Haux,g_Haux)*dx/length(g_Haux)
+        dg = dot(g,g)*dx/length(g)
         #
         @printf("EMIN: %8d %18.10f %18.10e [%18.10e,%18.10e]\n", iterEmin, E1, dE, dg, dg_Haux)
         if E1 > E_old
@@ -173,7 +173,7 @@ end
 function main()
     Ham = init_Hamiltonian()
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nstates = Ham.electrons.Nstates
 
@@ -212,7 +212,7 @@ function main()
         psi[:,:] = psi[:,:] + g
         Haux[:,:] = Haux[:,:] + g_Haux
         #
-        prepare_psi_Haux!(psi, Haux, hx)
+        prepare_psi_Haux!(psi, Haux, dx)
     end
 
     println("ebands = ")

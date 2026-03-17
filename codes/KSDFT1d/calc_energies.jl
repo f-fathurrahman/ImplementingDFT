@@ -15,9 +15,9 @@ function calc_E_kin(Ham, psi)
     Nstates = size(psi, 2)
     Kpsi = Ham.Kmat*psi
     Focc = Ham.electrons.Focc
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     for ist in 1:Nstates
-        Ekin += Focc[ist]*dot(psi[:,ist], Kpsi[:,ist])*hx
+        Ekin += Focc[ist]*dot(psi[:,ist], Kpsi[:,ist])*dx
     end
     return Ekin
 end

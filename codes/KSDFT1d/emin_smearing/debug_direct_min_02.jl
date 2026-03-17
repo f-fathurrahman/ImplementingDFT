@@ -4,7 +4,7 @@
 
     Ham = init_Hamiltonian()
 
-    hx = Ham.grid.hx
+    dx = Ham.grid.dx
     Npoints = Ham.grid.Npoints
     Nelectrons = Ham.electrons.Nelectrons
     Nstates = Ham.electrons.Nstates
@@ -12,7 +12,7 @@
 
     psi = generate_random_wavefunc(Ham)
 
-    Haux = psi' * (Ham*psi) * hx # Hsub, subspace Hamiltonian
+    Haux = psi' * (Ham*psi) * dx # Hsub, subspace Hamiltonian
     #Haux = rand(Nstates,Nstates)
     #Haux = 0.5*(Haux + Haux')
 
