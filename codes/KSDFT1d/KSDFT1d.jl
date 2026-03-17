@@ -2,7 +2,6 @@ module KSDFT1d
 
 using Printf
 using LinearAlgebra
-using Serialization
 
 include("../common/constants.jl")
 
@@ -38,10 +37,10 @@ export op_H
 export prec_invK!, prec_invHam!
 
 include("Poisson_solve_sum.jl")
-export Poisson_solve_sum!
+export Poisson_solve_sum!, Poisson_solve_sum
 
 include("calc_rhoe.jl")
-export calc_rhoe!
+export calc_rhoe!, calc_rhoe
 
 include("calc_energies.jl")
 export calc_E_kin, calc_E_NN

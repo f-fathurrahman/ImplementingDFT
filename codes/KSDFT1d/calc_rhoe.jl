@@ -1,6 +1,6 @@
 function calc_rhoe( Ham::Hamiltonian1d, psi::Array{Float64,2} )
     Npoints = size(psi, 1)
-    @assert Ham.electrons.Nspin == 1
+    @assert Ham.electrons.Nspin_dens == 1
     Nspin = 1 # XXX
     rhoe = zeros(Float64,Npoints,Nspin)
     calc_rhoe!(Ham, psi, rhoe)

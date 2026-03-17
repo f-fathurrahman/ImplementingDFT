@@ -57,10 +57,9 @@ function solve_scf!(Ham)
         psi[:] = psi[:]/sqrt(dx)
 
         if use_smearing
-            E_f, mTS =
+            Ham.electrons.E_fermi, mTS =
             update_Focc!( Focc, smear_fermi, smear_fermi_entropy,
                       evals, Float64(Nelectrons), kT )
-            @printf("Fermi energy = %18.10f\n", E_f)
         end
 
         calc_rhoe!(Ham, psi, rhoe_new)
@@ -119,6 +118,7 @@ function solve_scf!(Ham)
     for ist in 1:Nstates
         @printf("%5d %18.10f occ=%10.5f\n", ist, evals[ist,1], Focc[ist,1])
     end
+    @printf("Fermi energy = %18.10f\n", Ham.electrons.E_fermi)
 
     serialize("TEMP_scf_psi.dat", psi)
     serialize("TEMP_scf_evals.dat", evals)
