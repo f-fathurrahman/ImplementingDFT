@@ -5,6 +5,7 @@ using Printf
 using LinearAlgebra
 using KSDFT1d
 import Random
+using Serialization
 
 includet("../utilities.jl")
-includet("../examples_system_defs/system_defs_01.jl")
+includet("system_defs_01.jl")
