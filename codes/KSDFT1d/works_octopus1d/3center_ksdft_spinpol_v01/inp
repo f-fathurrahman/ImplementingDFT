@@ -1,0 +1,46 @@
+CalculationMode = gs
+
+Dimensions = 1
+PeriodicDimensions = 0
+
+TheoryLevel = kohn_sham
+
+BoxShape = parallelepiped
+%Lsize
+ 5.0
+%
+
+spacing = 0.20
+
+MixField = density
+MixingScheme = Linear
+Mixing = 0.1
+
+ExtraStates = 4
+Smearing = 0.1
+SmearingFunction = fermi_dirac
+
+Poisson1DSoftCoulombParam = 1.0
+PoissonSolver = direct_sum
+FilterPotentials = filter_none
+
+% Species 
+  "X" | species_user_defined | potential_formula | "-1.0/sqrt(x^2 + 1)" | valence | 1
+%
+
+% Coordinates
+  "X" | -1.0
+  "X" |  0.0
+  "X" |  1.0
+%
+
+SpinComponents = spin_polarized
+GuessMagnetDensity = user_defined
+%AtomsMagnetDirection
+ 1.0
+ 0.0
+ 1.0
+%
+
+SCFCalculateForces = true
+

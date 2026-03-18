@@ -1,0 +1,37 @@
+CalculationMode = gs
+
+Dimensions = 1
+PeriodicDimensions = 0
+
+TheoryLevel = independent_particles
+
+BoxShape = parallelepiped
+%Lsize
+ 10.0
+%
+
+spacing = 0.10
+
+MixField = density
+MixingScheme = Linear
+Mixing = 0.1
+
+ExtraStates = 4
+Smearing = 0.01
+SmearingFunction = fermi_dirac
+
+Poisson1DSoftCoulombParam = 1.0
+PoissonSolver = direct_sum
+FilterPotentials = filter_none
+
+% Species 
+  "X" | species_user_defined | potential_formula | "-1.0/sqrt(x^2 + 1)" | valence | 1
+%
+
+% Coordinates
+  "X" | -2.0
+  "X" |  2.0
+%
+
+SCFCalculateForces = true
+
